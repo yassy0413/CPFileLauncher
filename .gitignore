@@ -1,0 +1,42 @@
+# CPFileLauncher（旧 FileLauncher）
+
+# ---- ビルド出力（dotnet） ----
+[Bb]in/
+[Oo]bj/
+*.binlog
+
+# 配布物（src/build/publish-mac.sh・publish-win の出力。bin/osx-arm64/CPFileLauncher.app など）は
+# リポジトリに入れない（約 120 MB。リリースは別の手段で配る）。上の [Bb]in/ でルートの bin/ も除外される
+
+# ---- テスト ----
+TestResults/
+*.trx
+coverage*.json
+coverage*.xml
+
+# ---- IDE / エディタ ----
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.user
+*.suo
+*.userprefs
+*.swp
+*~
+
+# ---- OS ----
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+
+# ---- ローカル設定・作業ファイル ----
+# Claude Code の個人設定（エージェント定義 .claude/agents/ は共有するので入れる）
+.claude/settings.local.json
+# 実行時のデータフォルダをポータブルモードで実行ファイルの隣に作った場合
+data/
+portable.flag
+# ログ
+*.log

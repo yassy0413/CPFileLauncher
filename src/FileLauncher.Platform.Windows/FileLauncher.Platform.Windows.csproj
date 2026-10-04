@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Windows 実装。App を単一 TFM (net10.0) に保つため -windows TFM にはせず、
+    型に [SupportedOSPlatform("windows")] を付けて実行時に OperatingSystem.IsWindows() で選ぶ。
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FileLauncher.Platform\FileLauncher.Platform.csproj" />
+  </ItemGroup>
+
+</Project>

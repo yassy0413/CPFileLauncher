@@ -1,0 +1,142 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:FileLauncher.App"
+        x:Class="FileLauncher.App.BoardWindow"
+        Title="FileLauncher"
+        SystemDecorations="None"
+        ShowInTaskbar="False"
+        CanResize="False"
+        ShowActivated="True"
+        WindowStartupLocation="Manual"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
+        FontFamily="{DynamicResource FlFontFamily}">
+
+  <!-- 色・形・発光はテーマのトークン（Fl*。Themes/AppTheme.cs、SPEC §3.6）。ライト / ダークは Fluent の値なので従来と同じ見た目 -->
+  <Window.Styles>
+    <Style Selector="Button.slot">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Padding" Value="4" />
+      <Setter Property="Margin" Value="2" />
+      <Setter Property="CornerRadius" Value="{DynamicResource FlSlotCornerRadius}" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Top" />
+    </Style>
+    <!-- ホバー強調（演出 itemHover。色の変化の時間は BoardWindow.ApplyEffects が Transitions で付ける） -->
+    <Style Selector="Button.slot:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource FlSlotHoverBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource FlSlotHoverBorder}" />
+    </Style>
+    <!-- 演出の種類が glow のとき: ホバーで発光（spec/EFFECTS.md「glow の詳細」） -->
+    <Style Selector="Button.slot.glow:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BoxShadow" Value="{DynamicResource FlSlotHoverGlow}" />
+    </Style>
+    <!-- キーボードの選択セル（M4。SPEC §6.6 / §3.6） -->
+    <Style Selector="Button.slot.selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource FlSlotFocusBorder}" />
+      <Setter Property="BoxShadow" Value="{DynamicResource FlSlotFocusGlow}" />
+    </Style>
+    <!-- D&D のドロップ先（演出 dropTarget） -->
+    <Style Selector="Button.slot.drop-target /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource FlDropBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource FlDropBorder}" />
+    </Style>
+    <Style Selector="Button.slot.drop-glow.drop-target /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BoxShadow" Value="{DynamicResource FlDropGlow}" />
+    </Style>
+    <Style Selector="TextBlock.hud">
+      <Setter Property="FontFamily" Value="{DynamicResource FlMonoFontFamily}" />
+      <Setter Property="FontSize" Value="9" />
+      <Setter Property="LetterSpacing" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource FlHudText}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <!-- 空きスロット: 全周の線ではなく四隅の角マーカー（HUD 段階 A。SPEC §3.9） -->
+    <Style Selector="Button.slot.empty">
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Opacity" Value="{DynamicResource FlEmptySlotOpacity}" />
+    </Style>
+    <Style Selector="Button.slot.empty local|CornerTicks">
+      <Setter Property="Stroke" Value="{DynamicResource FlEmptySlotBorder}" />
+    </Style>
+    <Style Selector="Button.slot.empty:pointerover local|CornerTicks">
+      <Setter Property="Stroke" Value="{DynamicResource FlAccent}" />
+    </Style>
+    <Style Selector="Button.slot.empty.drop-target">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="ToggleButton.tab">
+      <Setter Property="Padding" Value="10,2" />
+      <Setter Property="Margin" Value="0,0,4,0" />
+      <Setter Property="MinHeight" Value="24" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="CornerRadius" Value="{DynamicResource FlTabCornerRadius}" />
+      <Setter Property="BorderThickness" Value="{DynamicResource FlTabIndicatorThickness}" />
+    </Style>
+    <Style Selector="ToggleButton.tab /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource FlTabBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource FlTabText}" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="ToggleButton.tab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource FlTabHoverBackground}" />
+    </Style>
+    <Style Selector="ToggleButton.tab:checked /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource FlTabCheckedBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource FlTabSelectedText}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource FlTabIndicator}" />
+    </Style>
+    <Style Selector="ToggleButton.tab:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource FlTabCheckedHoverBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource FlTabSelectedText}" />
+    </Style>
+    <!-- ドラッグ中に離すとそのページへ移るタブ（M4。SPEC §6.2） -->
+    <Style Selector="ToggleButton.tab.drop-target /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource FlDropBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource FlDropBorder}" />
+    </Style>
+    <Style Selector="ToggleButton.tab.drop-target">
+      <Setter Property="BorderThickness" Value="0,0,0,2" />
+    </Style>
+    <Style Selector="ToggleButton.tab.glow:checked /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BoxShadow" Value="{DynamicResource FlTabSelectedGlow}" />
+    </Style>
+
+  </Window.Styles>
+
+  <!-- 枠（Themes/FrameChrome。余白 = 発光が窓の縁で切れないための透明な余白、角ブラケット、最上段の層）。SPEC §3.8 -->
+  <local:FrameChrome x:Name="Chrome" MarginKey="FlGlowMarginThickness" BackgroundKey="FlBoardBackground" ShadowKey="FlBoardGlow">
+    <Grid>
+      <!-- 背景画像（SPEC §3.7）と、その上に重ねる面の色の覆い。画像なしのときは両方とも何も描かない -->
+      <Border x:Name="Backdrop" IsHitTestVisible="False" CornerRadius="{DynamicResource FlBoardCornerRadius}" />
+      <Border x:Name="Overlay" IsHitTestVisible="False" IsVisible="False"
+              Background="{DynamicResource FlBoardBackground}" CornerRadius="{DynamicResource FlBoardCornerRadius}" />
+      <!-- 背景グリッド（HUD 段階 C。SPEC §3.9）: 面・背景画像・覆いの上、タブとスロットの下 -->
+      <local:GridLayer x:Name="BackgroundGrid" Stroke="{DynamicResource FlHudGrid}" />
+      <DockPanel Margin="6">
+        <!-- ヘッダー: ページタブ。タブ以外の部分をドラッグするとウィンドウ移動 -->
+        <Border x:Name="Header" DockPanel.Dock="Top" Height="30" Background="Transparent" Margin="0,0,0,3">
+          <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+            <StackPanel x:Name="TabsPanel" Orientation="Horizontal" VerticalAlignment="Center" />
+          </ScrollViewer>
+        </Border>
+        <Border DockPanel.Dock="Top" Height="1" Margin="0,0,0,0" Background="{DynamicResource FlHeaderSeparator}" />
+        <!-- ステータス行（HUD 段階 A。SPEC §3.9）: PAGE / ITEMS / 時刻。等幅・小さめ・発光なし -->
+        <Border x:Name="StatusBar" DockPanel.Dock="Bottom" Height="17" Margin="0,2,0,0" Padding="4,2,4,0"
+                BorderThickness="0,1,0,0" BorderBrush="{DynamicResource FlHeaderSeparator}">
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <TextBlock x:Name="StatusPage" Classes="hud" HorizontalAlignment="Left" />
+            <TextBlock x:Name="StatusItems" Grid.Column="1" Classes="hud" HorizontalAlignment="Center" />
+            <TextBlock x:Name="StatusClock" Grid.Column="2" Classes="hud" HorizontalAlignment="Right" />
+          </Grid>
+        </Border>
+        <Grid x:Name="SlotGrid" />
+      </DockPanel>
+    </Grid>
+  </local:FrameChrome>
+</Window>

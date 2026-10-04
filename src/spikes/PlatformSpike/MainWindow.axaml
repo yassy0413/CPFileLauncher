@@ -1,0 +1,55 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PlatformSpike.MainWindow"
+        Title="PlatformSpike - control panel"
+        Width="720" Height="520"
+        WindowStartupLocation="CenterScreen">
+
+  <DockPanel Margin="12">
+
+    <StackPanel DockPanel.Dock="Top" Spacing="8">
+      <TextBlock FontWeight="Bold" FontSize="16" Text="FileLauncher 技術検証スパイク" />
+      <TextBlock TextWrapping="Wrap"
+                 Text="このウィンドウは操作パネル。トリガーを実行するとカーソル位置に枚縁なしのポップアップ盤面が出ます。結果は下のログで確認してください。" />
+
+      <WrapPanel>
+        <WrapPanel.Styles>
+          <Style Selector="Button, CheckBox">
+            <Setter Property="Margin" Value="0,0,8,8" />
+          </Style>
+        </WrapPanel.Styles>
+        <Button x:Name="ShowAtCursorButton" Content="ポップアップをカーソル位置に表示" />
+        <Button x:Name="ShowCenterButton" Content="画面中央に表示" />
+        <Button x:Name="HideButton" Content="非表示" />
+        <CheckBox x:Name="TopmostCheck" Content="常に最前面" IsChecked="True" />
+        <CheckBox x:Name="CloseOnDeactivateCheck" Content="非アクティブで閉じる" IsChecked="True" />
+        <CheckBox x:Name="RestoreFocusCheck" Content="閉じた後フォーカスを返す" IsChecked="True" />
+        <CheckBox x:Name="MacHideAppCheck" Content="(Mac) 方式B: NSApp.hide で返す" IsChecked="False" />
+        <CheckBox x:Name="SuppressHotkeyCheck" Content="ホットキーを抑止" IsChecked="True" />
+      </WrapPanel>
+
+      <TextBlock TextWrapping="Wrap" Foreground="Gray"
+                 Text="トリガー: Ctrl+Alt+Space / Ctrl+中クリック（既定） / Alt+中クリック / 中ボタン長押し(400ms) / 左右同時クリック(100ms)" />
+    </StackPanel>
+
+    <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+      <WrapPanel.Styles>
+        <Style Selector="Button">
+          <Setter Property="Margin" Value="0,0,8,0" />
+        </Style>
+      </WrapPanel.Styles>
+      <Button x:Name="ClearLogButton" Content="ログをクリア" />
+      <Button x:Name="CopyLogButton" Content="ログをコピー" />
+      <Button x:Name="QuitButton" Content="終了" />
+      <TextBlock x:Name="StatusText" VerticalAlignment="Center" Foreground="Gray" />
+    </WrapPanel>
+
+    <TextBox x:Name="LogBox"
+             IsReadOnly="True"
+             AcceptsReturn="True"
+             TextWrapping="NoWrap"
+             FontFamily="Cascadia Mono, Menlo, Consolas, monospace"
+             FontSize="12"
+             Margin="0,8,0,0" />
+  </DockPanel>
+</Window>

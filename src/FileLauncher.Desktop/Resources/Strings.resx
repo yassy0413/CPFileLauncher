@@ -1,0 +1,1180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Common_ListSeparator" xml:space="preserve">
+    <value>, </value>
+    <comment>Separator used when joining list fragments</comment>
+  </data>
+  <data name="Settings_Tab_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Settings_Tab_Appearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="Settings_Tab_Popup" xml:space="preserve">
+    <value>Popup</value>
+  </data>
+  <data name="Settings_Tab_Triggers" xml:space="preserve">
+    <value>Triggers</value>
+  </data>
+  <data name="Settings_Tab_Pinned" xml:space="preserve">
+    <value>Pinned</value>
+  </data>
+  <data name="Settings_Tab_Data" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Settings_Tab_Advanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="Effect_boardShow" xml:space="preserve">
+    <value>Board appears</value>
+  </data>
+  <data name="Effect_boardHide" xml:space="preserve">
+    <value>Board disappears</value>
+  </data>
+  <data name="Effect_pageSwitch" xml:space="preserve">
+    <value>Page switch</value>
+  </data>
+  <data name="Effect_tabHighlight" xml:space="preserve">
+    <value>Page tab highlight</value>
+  </data>
+  <data name="Effect_itemHover" xml:space="preserve">
+    <value>Item hover</value>
+  </data>
+  <data name="Effect_itemPress" xml:space="preserve">
+    <value>Item press</value>
+  </data>
+  <data name="Effect_itemLaunch" xml:space="preserve">
+    <value>Launch feedback</value>
+  </data>
+  <data name="Effect_labelHover" xml:space="preserve">
+    <value>Label on hover</value>
+  </data>
+  <data name="Effect_iconLoad" xml:space="preserve">
+    <value>Icon loaded</value>
+  </data>
+  <data name="Effect_dropTarget" xml:space="preserve">
+    <value>Drop target</value>
+  </data>
+  <data name="Effect_toastShow" xml:space="preserve">
+    <value>Toast appears</value>
+  </data>
+  <data name="Effect_toastHide" xml:space="preserve">
+    <value>Toast disappears</value>
+  </data>
+  <data name="Effect_residentAutoHide" xml:space="preserve">
+    <value>Pinned board auto-hide</value>
+  </data>
+  <data name="Effect_residentMove" xml:space="preserve">
+    <value>Pinned board move</value>
+  </data>
+  <data name="Enum_DisplayMode_Popup" xml:space="preserve">
+    <value>Popup</value>
+  </data>
+  <data name="Enum_DisplayMode_Resident" xml:space="preserve">
+    <value>Pinned</value>
+  </data>
+  <data name="Enum_BackgroundFit_Fill" xml:space="preserve">
+    <value>Fill</value>
+  </data>
+  <data name="Enum_BackgroundFit_Fit" xml:space="preserve">
+    <value>Fit</value>
+  </data>
+  <data name="Enum_BackgroundFit_Stretch" xml:space="preserve">
+    <value>Stretch</value>
+  </data>
+  <data name="Enum_BackgroundFit_Tile" xml:space="preserve">
+    <value>Tile</value>
+  </data>
+  <data name="Enum_BackgroundFit_Center" xml:space="preserve">
+    <value>Center</value>
+  </data>
+  <data name="Enum_AccentPreset_Cyan" xml:space="preserve">
+    <value>Cyan</value>
+  </data>
+  <data name="Enum_AccentPreset_Red" xml:space="preserve">
+    <value>Red</value>
+  </data>
+  <data name="Enum_AccentPreset_Blue" xml:space="preserve">
+    <value>Blue</value>
+  </data>
+  <data name="Enum_AccentPreset_Green" xml:space="preserve">
+    <value>Green</value>
+  </data>
+  <data name="Enum_AccentPreset_Purple" xml:space="preserve">
+    <value>Purple</value>
+  </data>
+  <data name="Enum_LabelMode_None" xml:space="preserve">
+    <value>Hidden</value>
+  </data>
+  <data name="Enum_LabelMode_Below" xml:space="preserve">
+    <value>Below icon</value>
+  </data>
+  <data name="Enum_LabelMode_Hover" xml:space="preserve">
+    <value>On hover</value>
+  </data>
+  <data name="Enum_PopupPosition_Cursor" xml:space="preserve">
+    <value>At pointer</value>
+  </data>
+  <data name="Enum_PopupPosition_LastPosition" xml:space="preserve">
+    <value>Last position</value>
+  </data>
+  <data name="Enum_PopupPosition_ScreenCenter" xml:space="preserve">
+    <value>Screen center</value>
+  </data>
+  <data name="Enum_PopupPosition_Fixed" xml:space="preserve">
+    <value>Fixed</value>
+  </data>
+  <data name="Enum_MouseGesture_Click" xml:space="preserve">
+    <value>Click</value>
+  </data>
+  <data name="Enum_MouseGesture_LongPress" xml:space="preserve">
+    <value>Long press</value>
+  </data>
+  <data name="Enum_MouseGesture_LeftRightTogether" xml:space="preserve">
+    <value>Left + right click</value>
+  </data>
+  <data name="Enum_MouseGesture_WheelClickRotate" xml:space="preserve">
+    <value>Wheel click + scroll</value>
+  </data>
+  <data name="Enum_MouseButtonKind_Left" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="Enum_MouseButtonKind_Middle" xml:space="preserve">
+    <value>Middle</value>
+  </data>
+  <data name="Enum_MouseButtonKind_X1" xml:space="preserve">
+    <value>Side 1</value>
+  </data>
+  <data name="Enum_MouseButtonKind_X2" xml:space="preserve">
+    <value>Side 2</value>
+  </data>
+  <data name="Enum_ZOrder_Normal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="Enum_ZOrder_Topmost" xml:space="preserve">
+    <value>Always on top</value>
+  </data>
+  <data name="Enum_ZOrder_Bottommost" xml:space="preserve">
+    <value>Behind other windows (on the desktop)</value>
+  </data>
+  <data name="Enum_EffectKind_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Enum_EffectKind_Fade" xml:space="preserve">
+    <value>Fade</value>
+  </data>
+  <data name="Enum_EffectKind_Zoom" xml:space="preserve">
+    <value>Zoom</value>
+  </data>
+  <data name="Enum_EffectKind_Slide" xml:space="preserve">
+    <value>Slide</value>
+  </data>
+  <data name="Enum_EffectKind_Highlight" xml:space="preserve">
+    <value>Color change</value>
+  </data>
+  <data name="Enum_EffectKind_Glitch" xml:space="preserve">
+    <value>Glitch</value>
+  </data>
+  <data name="Enum_EffectKind_Glow" xml:space="preserve">
+    <value>Glow</value>
+  </data>
+  <data name="Enum_EasingKind_Linear" xml:space="preserve">
+    <value>Constant</value>
+  </data>
+  <data name="Enum_EasingKind_EaseOut" xml:space="preserve">
+    <value>Decelerate (ease out)</value>
+  </data>
+  <data name="Enum_EasingKind_EaseIn" xml:space="preserve">
+    <value>Accelerate (ease in)</value>
+  </data>
+  <data name="Enum_EasingKind_EaseInOut" xml:space="preserve">
+    <value>Accelerate, then decelerate</value>
+  </data>
+  <data name="Enum_EasingKind_BackOut" xml:space="preserve">
+    <value>Overshoot and settle</value>
+  </data>
+  <data name="Enum_ItemColor_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Enum_ItemColor_Red" xml:space="preserve">
+    <value>Red</value>
+  </data>
+  <data name="Enum_ItemColor_Orange" xml:space="preserve">
+    <value>Orange</value>
+  </data>
+  <data name="Enum_ItemColor_Yellow" xml:space="preserve">
+    <value>Yellow</value>
+  </data>
+  <data name="Enum_ItemColor_Green" xml:space="preserve">
+    <value>Green</value>
+  </data>
+  <data name="Enum_ItemColor_Cyan" xml:space="preserve">
+    <value>Cyan</value>
+  </data>
+  <data name="Enum_ItemColor_Blue" xml:space="preserve">
+    <value>Blue</value>
+  </data>
+  <data name="Enum_ItemColor_Purple" xml:space="preserve">
+    <value>Purple</value>
+  </data>
+  <data name="Enum_ItemColor_Pink" xml:space="preserve">
+    <value>Pink</value>
+  </data>
+  <data name="Enum_ItemKind_File" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="Enum_ItemKind_Folder" xml:space="preserve">
+    <value>Folder</value>
+  </data>
+  <data name="Enum_ItemKind_App" xml:space="preserve">
+    <value>Application</value>
+  </data>
+  <data name="Enum_ItemKind_Url" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="Enum_ItemKind_Command" xml:space="preserve">
+    <value>Command</value>
+  </data>
+  <data name="Enum_LaunchMode_Normal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="Enum_LaunchMode_Minimized" xml:space="preserve">
+    <value>Minimized</value>
+  </data>
+  <data name="Enum_LaunchMode_Maximized" xml:space="preserve">
+    <value>Maximized</value>
+  </data>
+  <data name="Page_CopyName" xml:space="preserve">
+    <value>{0} copy</value>
+    <comment>{0} = original page name</comment>
+  </data>
+  <data name="Notice_Load_Settings" xml:space="preserve">
+    <value>Settings (settings.json)</value>
+  </data>
+  <data name="Notice_Load_Board" xml:space="preserve">
+    <value>Board (board.json)</value>
+  </data>
+  <data name="Notice_Load_Title" xml:space="preserve">
+    <value>Loading data</value>
+  </data>
+  <data name="Notice_Load_Recovered" xml:space="preserve">
+    <value>{0} was damaged and has been restored from a backup ({1}). The damaged file was kept as {2}.
+{3}</value>
+    <comment>{0} target, {1} backup file name, {2} damaged file name, {3} error</comment>
+  </data>
+  <data name="Notice_Load_ReplacedWithDefault" xml:space="preserve">
+    <value>{0} was damaged and no usable backup was found. CPFileLauncher starts with the initial state. The damaged file was kept as {1}.
+{2}</value>
+    <comment>{0} target, {1} damaged file name, {2} error</comment>
+  </data>
+  <data name="Notice_Load_NewerSchema" xml:space="preserve">
+    <value>{0} was saved by a newer version of CPFileLauncher (data version {1}; this version supports {2}). To avoid damaging it, changes are not saved in this version.</value>
+    <comment>{0} target, {1} file schema version, {2} supported version</comment>
+  </data>
+  <data name="Notice_UnsupportedOs_Title" xml:space="preserve">
+    <value>Unsupported OS</value>
+  </data>
+  <data name="Notice_UnsupportedOs" xml:space="preserve">
+    <value>This version supports Windows and macOS only.</value>
+  </data>
+  <data name="Tray_ShowBoard" xml:space="preserve">
+    <value>Show board</value>
+  </data>
+  <data name="Tray_DisplayMode" xml:space="preserve">
+    <value>Display mode</value>
+  </data>
+  <data name="Tray_Pages" xml:space="preserve">
+    <value>Pages</value>
+  </data>
+  <data name="Common_Settings" xml:space="preserve">
+    <value>Settings…</value>
+  </data>
+  <data name="Tray_Permissions" xml:space="preserve">
+    <value>Permissions…</value>
+  </data>
+  <data name="Tray_Quit_Win" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="Tray_Quit_Mac" xml:space="preserve">
+    <value>Quit CPFileLauncher</value>
+  </data>
+  <data name="Tray_TriggerDisabled_Tooltip" xml:space="preserve">
+    <value>CPFileLauncher — triggers are disabled</value>
+  </data>
+  <data name="Toast_TriggerNeedsPermission" xml:space="preserve">
+    <value>Triggers are disabled: Accessibility permission is required. You can allow it from the menu bar icon → “Permissions…”.</value>
+  </data>
+  <data name="Toast_TriggerHookFailed" xml:space="preserve">
+    <value>Triggers are disabled (the input hook could not start). You can open the board from the {0}.
+{1}</value>
+    <comment>{0} tray icon / menu bar icon, {1} error</comment>
+  </data>
+  <data name="Common_TrayIcon_Win" xml:space="preserve">
+    <value>tray icon</value>
+  </data>
+  <data name="Common_TrayIcon_Mac" xml:space="preserve">
+    <value>menu bar icon</value>
+  </data>
+  <data name="Toast_TriggerEnabled" xml:space="preserve">
+    <value>Triggers are enabled.</value>
+  </data>
+  <data name="Toast_ImportFailed" xml:space="preserve">
+    <value>Could not import.
+{0}</value>
+    <comment>{0} error</comment>
+  </data>
+  <data name="Menu_Launch" xml:space="preserve">
+    <value>Launch</value>
+  </data>
+  <data name="Menu_RunAsAdmin" xml:space="preserve">
+    <value>Run as administrator</value>
+  </data>
+  <data name="Menu_Reveal_Win" xml:space="preserve">
+    <value>Open file location</value>
+  </data>
+  <data name="Menu_Reveal_Mac" xml:space="preserve">
+    <value>Show in Finder</value>
+  </data>
+  <data name="Menu_Edit" xml:space="preserve">
+    <value>Edit…</value>
+  </data>
+  <data name="Menu_Duplicate" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="Menu_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Menu_NewItem" xml:space="preserve">
+    <value>New item…</value>
+  </data>
+  <data name="Menu_Paste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="Menu_Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="Menu_NewPage" xml:space="preserve">
+    <value>New page</value>
+  </data>
+  <data name="Menu_PageSettings" xml:space="preserve">
+    <value>Page settings…</value>
+  </data>
+  <data name="Menu_DuplicatePage" xml:space="preserve">
+    <value>Duplicate page</value>
+  </data>
+  <data name="Menu_DeletePage" xml:space="preserve">
+    <value>Delete page</value>
+  </data>
+  <data name="Menu_MoveLeft" xml:space="preserve">
+    <value>Move left</value>
+  </data>
+  <data name="Menu_MoveRight" xml:space="preserve">
+    <value>Move right</value>
+  </data>
+  <data name="Menu_DisplayMode" xml:space="preserve">
+    <value>Display mode</value>
+  </data>
+  <data name="Menu_About" xml:space="preserve">
+    <value>About CPFileLauncher</value>
+  </data>
+  <data name="Menu_Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="Toast_ReadOnlyBoard" xml:space="preserve">
+    <value>The board data is from a newer version, so changes are not saved.</value>
+  </data>
+  <data name="Toast_PageFull" xml:space="preserve">
+    <value>“{0}” has no empty slot.</value>
+    <comment>{0} page name</comment>
+  </data>
+  <data name="Toast_NoEmptySlot" xml:space="preserve">
+    <value>There is no empty slot.</value>
+  </data>
+  <data name="Toast_NothingToPaste" xml:space="preserve">
+    <value>The clipboard has nothing that can be pasted (files, folders, or URLs).</value>
+  </data>
+  <data name="Toast_NotAdded_One" xml:space="preserve">
+    <value>{0} item was not added because there is no empty slot.</value>
+    <comment>{0} count</comment>
+  </data>
+  <data name="Toast_NotAdded_Other" xml:space="preserve">
+    <value>{0} items were not added because there are no empty slots.</value>
+    <comment>{0} count</comment>
+  </data>
+  <data name="Toast_MovedToEmpty_One" xml:space="preserve">
+    <value>Moved {0} item to an empty slot.</value>
+    <comment>{0} count</comment>
+  </data>
+  <data name="Toast_MovedToEmpty_Other" xml:space="preserve">
+    <value>Moved {0} items to empty slots.</value>
+    <comment>{0} count</comment>
+  </data>
+  <data name="Toast_RevealFailed" xml:space="preserve">
+    <value>Could not open the location of “{0}”.
+{1}</value>
+    <comment>{0} item name, {1} reason</comment>
+  </data>
+  <data name="Toast_DropFailed" xml:space="preserve">
+    <value>Could not handle the drop.
+{0}</value>
+    <comment>{0} error</comment>
+  </data>
+  <data name="Toast_NothingToAdd" xml:space="preserve">
+    <value>There was nothing to add (drop files, folders, or URLs).</value>
+  </data>
+  <data name="Dialog_AddRows_Title" xml:space="preserve">
+    <value>Not enough empty slots</value>
+  </data>
+  <data name="Dialog_AddRows" xml:space="preserve">
+    <value>Some of the {0} items do not fit in the empty slots after the drop position.
+Add {1} row(s)?</value>
+    <comment>{0} item count, {1} rows to add</comment>
+  </data>
+  <data name="Dialog_AddRows_Ok" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Dialog_AddRows_Cancel" xml:space="preserve">
+    <value>Don’t add</value>
+  </data>
+  <data name="Toast_Transfer_FolderMissing_Copy" xml:space="preserve">
+    <value>Could not copy to “{0}”.
+Folder not found: {1}</value>
+    <comment>{0} item name, {1} folder</comment>
+  </data>
+  <data name="Toast_Transfer_FolderMissing_Move" xml:space="preserve">
+    <value>Could not move to “{0}”.
+Folder not found: {1}</value>
+    <comment>{0} item name, {1} folder</comment>
+  </data>
+  <data name="Toast_Transfer_AllSame_Copy" xml:space="preserve">
+    <value>“{0}” already has identical files, so nothing was copied ({1} skipped).</value>
+    <comment>{0} item name, {1} count</comment>
+  </data>
+  <data name="Toast_Transfer_AllSame_Move" xml:space="preserve">
+    <value>“{0}” already has identical files, so nothing was moved ({1} skipped).</value>
+    <comment>{0} item name, {1} count</comment>
+  </data>
+  <data name="Toast_Transfer_Copied_One" xml:space="preserve">
+    <value>Copied {1} item to “{0}”</value>
+    <comment>{0} item name, {1} count</comment>
+  </data>
+  <data name="Toast_Transfer_Copied_Other" xml:space="preserve">
+    <value>Copied {1} items to “{0}”</value>
+    <comment>{0} item name, {1} count</comment>
+  </data>
+  <data name="Toast_Transfer_Moved_One" xml:space="preserve">
+    <value>Moved {1} item to “{0}”</value>
+    <comment>{0} item name, {1} count</comment>
+  </data>
+  <data name="Toast_Transfer_Moved_Other" xml:space="preserve">
+    <value>Moved {1} items to “{0}”</value>
+    <comment>{0} item name, {1} count</comment>
+  </data>
+  <data name="Toast_Transfer_Details" xml:space="preserve">
+    <value> ({0})</value>
+    <comment>{0} joined fragments</comment>
+  </data>
+  <data name="Toast_Transfer_Renamed" xml:space="preserve">
+    <value>{0} renamed</value>
+    <comment>{0} count</comment>
+  </data>
+  <data name="Toast_Transfer_Skipped" xml:space="preserve">
+    <value>{0} skipped (identical)</value>
+    <comment>{0} count</comment>
+  </data>
+  <data name="Toast_Transfer_Failed" xml:space="preserve">
+    <value>{0} failed (see log)</value>
+    <comment>{0} count</comment>
+  </data>
+  <data name="Toast_DropOnItemNeedsFiles" xml:space="preserve">
+    <value>Drop files or folders onto an item (drop URLs onto an empty slot to add them).</value>
+  </data>
+  <data name="Dialog_ConfirmMove_Title" xml:space="preserve">
+    <value>Confirm move</value>
+  </data>
+  <data name="Dialog_ConfirmMove_One" xml:space="preserve">
+    <value>Move {0} item to “{1}”?</value>
+    <comment>{0} count, {1} item name</comment>
+  </data>
+  <data name="Dialog_ConfirmMove_Other" xml:space="preserve">
+    <value>Move {0} items to “{1}”?</value>
+    <comment>{0} count, {1} item name</comment>
+  </data>
+  <data name="Dialog_ConfirmMove_Ok" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="Toast_UrlCannotOpenFiles" xml:space="preserve">
+    <value>A URL item cannot open files.</value>
+  </data>
+  <data name="Toast_LaunchFailed" xml:space="preserve">
+    <value>Could not launch “{0}”.
+{1}</value>
+    <comment>{0} item name, {1} reason</comment>
+  </data>
+  <data name="Board_ItemMissing_Tooltip" xml:space="preserve">
+    <value>Not found: {0}</value>
+    <comment>{0} path</comment>
+  </data>
+  <data name="Launch_NotFound" xml:space="preserve">
+    <value>Not found: {0}</value>
+    <comment>{0} path</comment>
+  </data>
+  <data name="Launch_Cancelled" xml:space="preserve">
+    <value>Cancelled.</value>
+  </data>
+  <data name="Launch_LauncherUnavailable" xml:space="preserve">
+    <value>Could not start {0}.</value>
+    <comment>{0} launcher program</comment>
+  </data>
+  <data name="Launch_OsError" xml:space="preserve">
+    <value>{0}</value>
+    <comment>{0} message from the OS</comment>
+  </data>
+  <data name="About_Title" xml:space="preserve">
+    <value>About CPFileLauncher</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>Version {0}</value>
+    <comment>{0} version</comment>
+  </data>
+  <data name="About_DataFolder" xml:space="preserve">
+    <value>Data folder</value>
+  </data>
+  <data name="About_DataFolderPortable" xml:space="preserve">
+    <value>Data folder (portable)</value>
+  </data>
+  <data name="Common_Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="About_OpenDataFailed" xml:space="preserve">
+    <value>Could not open the data folder.
+{0}</value>
+    <comment>{0} reason</comment>
+  </data>
+  <data name="About_FontLicense" xml:space="preserve">
+    <value>Bundled font licenses (Chakra Petch, Share Tech Mono — SIL Open Font License 1.1)</value>
+  </data>
+  <data name="About_LicenseMissing" xml:space="preserve">
+    <value>(The license file was not found.)</value>
+  </data>
+  <data name="About_LicenseUnreadable" xml:space="preserve">
+    <value>(The license file could not be read.)</value>
+  </data>
+  <data name="ItemEditor_Title_New" xml:space="preserve">
+    <value>New item</value>
+  </data>
+  <data name="ItemEditor_Title_Edit" xml:space="preserve">
+    <value>Edit item</value>
+  </data>
+  <data name="ItemEditor_Name_Placeholder" xml:space="preserve">
+    <value>Automatic if empty</value>
+  </data>
+  <data name="ItemEditor_WorkingDir_Placeholder" xml:space="preserve">
+    <value>Target’s folder if empty</value>
+  </data>
+  <data name="Common_Browse" xml:space="preserve">
+    <value>Browse…</value>
+  </data>
+  <data name="ItemEditor_Args_Note" xml:space="preserve">
+    <value>%1 or $1 is replaced with the paths of files dropped onto the item (appended at the end if absent).</value>
+  </data>
+  <data name="ItemEditor_RunAsAdmin" xml:space="preserve">
+    <value>Run as administrator</value>
+  </data>
+  <data name="ItemEditor_ChangeIcon" xml:space="preserve">
+    <value>Change…</value>
+  </data>
+  <data name="Common_ResetToDefault" xml:space="preserve">
+    <value>Reset to default</value>
+  </data>
+  <data name="ItemEditor_Hotkey_Invalid" xml:space="preserve">
+    <value>Use a single letter or digit.</value>
+  </data>
+  <data name="ItemEditor_Hotkey_InUse" xml:space="preserve">
+    <value>This key is also used by “{0}”.</value>
+    <comment>{0} other item name</comment>
+  </data>
+  <data name="ItemEditor_Hotkey_Note" xml:space="preserve">
+    <value>Press it while the board is shown to launch the item.</value>
+  </data>
+  <data name="ItemEditor_IconPicker_Title" xml:space="preserve">
+    <value>Icon image</value>
+  </data>
+  <data name="Common_ImageFiles" xml:space="preserve">
+    <value>Images</value>
+  </data>
+  <data name="ItemEditor_Kind" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="ItemEditor_Target" xml:space="preserve">
+    <value>Path, URL, or command</value>
+  </data>
+  <data name="ItemEditor_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ItemEditor_Args" xml:space="preserve">
+    <value>Arguments</value>
+  </data>
+  <data name="ItemEditor_WorkingDir" xml:space="preserve">
+    <value>Working folder</value>
+  </data>
+  <data name="ItemEditor_Icon" xml:space="preserve">
+    <value>Icon</value>
+  </data>
+  <data name="ItemEditor_LaunchMode" xml:space="preserve">
+    <value>Window</value>
+  </data>
+  <data name="ItemEditor_Hotkey" xml:space="preserve">
+    <value>Shortcut key</value>
+  </data>
+  <data name="ItemEditor_Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="PageSettings_Title" xml:space="preserve">
+    <value>Page settings</value>
+  </data>
+  <data name="Common_ButtonSize_Small" xml:space="preserve">
+    <value>Small (32)</value>
+  </data>
+  <data name="Common_ButtonSize_Medium" xml:space="preserve">
+    <value>Medium (48)</value>
+  </data>
+  <data name="Common_ButtonSize_Large" xml:space="preserve">
+    <value>Large (64)</value>
+  </data>
+  <data name="Common_ButtonSize_ExtraLarge" xml:space="preserve">
+    <value>Extra large (96)</value>
+  </data>
+  <data name="PageSettings_ButtonSize_Inherit" xml:space="preserve">
+    <value>Default ({0} px)</value>
+    <comment>{0} common button size</comment>
+  </data>
+  <data name="PageSettings_DoesNotFit_One" xml:space="preserve">
+    <value>{0} item does not fit. Remove it or move it to another page first.</value>
+    <comment>{0} count</comment>
+  </data>
+  <data name="PageSettings_DoesNotFit_Other" xml:space="preserve">
+    <value>{0} items do not fit. Remove some or move them to another page first.</value>
+    <comment>{0} count</comment>
+  </data>
+  <data name="PageSettings_WillMove_One" xml:space="preserve">
+    <value>{0} item will be moved to an empty slot.</value>
+    <comment>{0} count</comment>
+  </data>
+  <data name="PageSettings_WillMove_Other" xml:space="preserve">
+    <value>{0} items will be moved to empty slots.</value>
+    <comment>{0} count</comment>
+  </data>
+  <data name="PageSettings_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="PageSettings_Rows" xml:space="preserve">
+    <value>Rows</value>
+  </data>
+  <data name="PageSettings_Cols" xml:space="preserve">
+    <value>Columns</value>
+  </data>
+  <data name="PageSettings_ButtonSize" xml:space="preserve">
+    <value>Button size</value>
+  </data>
+  <data name="Chrome_Close_Tooltip" xml:space="preserve">
+    <value>Close (Esc)</value>
+  </data>
+  <data name="Permission_Title" xml:space="preserve">
+    <value>Permissions</value>
+  </data>
+  <data name="Permission_Heading" xml:space="preserve">
+    <value>Accessibility permission is required</value>
+  </data>
+  <data name="Permission_Steps" xml:space="preserve">
+    <value>To open the board with the hotkey and mouse triggers, allow CPFileLauncher in macOS “Accessibility”.
+1. Press “Request permission” (or open System Settings).
+2. In System Settings → Privacy &amp; Security → Accessibility, turn CPFileLauncher on.
+3. Triggers are enabled automatically within a few seconds. If not, press “Retry”; if that does not help, press “Restart”.</value>
+  </data>
+  <data name="Permission_TerminalNote" xml:space="preserve">
+    <value>(When started with dotnet run from Terminal, turn “Terminal” on instead.)</value>
+  </data>
+  <data name="Permission_Request" xml:space="preserve">
+    <value>Request permission</value>
+  </data>
+  <data name="Permission_OpenSettings" xml:space="preserve">
+    <value>Open System Settings</value>
+  </data>
+  <data name="Permission_Retry" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="Common_Restart" xml:space="preserve">
+    <value>Restart</value>
+  </data>
+  <data name="Permission_Granted" xml:space="preserve">
+    <value>allowed</value>
+  </data>
+  <data name="Permission_NotGranted" xml:space="preserve">
+    <value>not allowed</value>
+  </data>
+  <data name="Permission_HookOn" xml:space="preserve">
+    <value>on</value>
+  </data>
+  <data name="Permission_HookOff" xml:space="preserve">
+    <value>off</value>
+  </data>
+  <data name="Permission_Status" xml:space="preserve">
+    <value>Accessibility: {0}  /  Triggers (input hook): {1}</value>
+    <comment>{0} allowed / not allowed, {1} on / off</comment>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Common_Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Settings_Triggers_SideButtonNote" xml:space="preserve">
+    <value>Side buttons may conflict with assignments such as Mission Control.</value>
+  </data>
+  <data name="Settings_Triggers_LeftWithoutModifier" xml:space="preserve">
+    <value>The left button without a modifier key cannot be used (normal clicks would stop working). Choose a modifier key or another button.</value>
+  </data>
+  <data name="Settings_Hotkey_Recording" xml:space="preserve">
+    <value>Press a key… (Esc to cancel, cancels after 10 seconds)</value>
+  </data>
+  <data name="Settings_Hotkey_NeedsModifier" xml:space="preserve">
+    <value>Combine with {0} or another modifier (F keys can be used alone).</value>
+    <comment>{0} modifier examples such as Ctrl / Alt</comment>
+  </data>
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Settings_ReadOnlyBanner" xml:space="preserve">
+    <value>The settings file is from a newer version. Changes apply to this session only and are not saved.</value>
+  </data>
+  <data name="Settings_Appearance_Opacity" xml:space="preserve">
+    <value>Opacity</value>
+  </data>
+  <data name="Settings_Appearance_ButtonSize" xml:space="preserve">
+    <value>Button size</value>
+  </data>
+  <data name="Settings_Appearance_Labels" xml:space="preserve">
+    <value>Labels</value>
+  </data>
+  <data name="Settings_Appearance_DefaultRows" xml:space="preserve">
+    <value>Default rows</value>
+  </data>
+  <data name="Settings_Appearance_DefaultRows_Note" xml:space="preserve">
+    <value>Initial value for new pages.</value>
+  </data>
+  <data name="Settings_Appearance_DefaultCols" xml:space="preserve">
+    <value>Default columns</value>
+  </data>
+  <data name="Settings_Appearance_Animation" xml:space="preserve">
+    <value>Animation</value>
+  </data>
+  <data name="Settings_Appearance_Animation_Note" xml:space="preserve">
+    <value>When off, all effects below stop.</value>
+  </data>
+  <data name="Settings_Appearance_Thumbnails" xml:space="preserve">
+    <value>Show images as thumbnails</value>
+  </data>
+  <data name="Common_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Settings_Appearance_Background_Choose" xml:space="preserve">
+    <value>Choose…</value>
+  </data>
+  <data name="Settings_Appearance_Background_Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Settings_Appearance_BackgroundMissing" xml:space="preserve">
+    <value>Image not found: {0}</value>
+    <comment>{0} path</comment>
+  </data>
+  <data name="Settings_Appearance_BackgroundUnreadable" xml:space="preserve">
+    <value>Cannot read the image: {0}</value>
+    <comment>{0} path</comment>
+  </data>
+  <data name="Settings_Appearance_Background" xml:space="preserve">
+    <value>Background image</value>
+  </data>
+  <data name="Settings_Appearance_BackgroundFit" xml:space="preserve">
+    <value>Fit</value>
+  </data>
+  <data name="Settings_Appearance_BackgroundOverlay" xml:space="preserve">
+    <value>Color overlay</value>
+  </data>
+  <data name="Settings_Appearance_BackgroundOverlay_Note" xml:space="preserve">
+    <value>Puts the board color over the image. Higher values make the image fainter and icons and text easier to read.</value>
+  </data>
+  <data name="Settings_Appearance_BackgroundOpacity" xml:space="preserve">
+    <value>Image opacity</value>
+  </data>
+  <data name="Settings_Appearance_BackgroundOpacity_Note" xml:space="preserve">
+    <value>Lower values let the desktop show through the image.</value>
+  </data>
+  <data name="Settings_Appearance_BackgroundPicker_Title" xml:space="preserve">
+    <value>Choose a background image</value>
+  </data>
+  <data name="Settings_Appearance_BackgroundCopyFailed" xml:space="preserve">
+    <value>Could not copy the background image.
+{0}</value>
+    <comment>{0} error</comment>
+  </data>
+  <data name="Settings_Popup_Keyboard" xml:space="preserve">
+    <value>When opened by keyboard (hotkey)</value>
+  </data>
+  <data name="Settings_Popup_Mouse" xml:space="preserve">
+    <value>When opened by mouse</value>
+  </data>
+  <data name="Settings_Popup_PositionNote" xml:space="preserve">
+    <value>“At pointer” is the mouse pointer position in both cases. When opened from the {0} or a menu, the mouse settings are used.</value>
+    <comment>{0} tray icon / menu bar icon</comment>
+  </data>
+  <data name="Settings_Popup_CloseOnLaunch" xml:space="preserve">
+    <value>Close after launching</value>
+  </data>
+  <data name="Settings_Popup_CloseOnOutside" xml:space="preserve">
+    <value>Close when clicking outside</value>
+  </data>
+  <data name="Settings_Popup_CloseOnRetrigger" xml:space="preserve">
+    <value>Trigger again to close</value>
+  </data>
+  <data name="Settings_Popup_CloseOnLeave" xml:space="preserve">
+    <value>Close when the pointer leaves</value>
+  </data>
+  <data name="Settings_Popup_CloseOnLeave_Note" xml:space="preserve">
+    <value>After the pointer has entered the board, it closes when the pointer moves farther than the distance below. Takes effect the next time the board opens.</value>
+  </data>
+  <data name="Settings_Popup_LeaveDistance" xml:space="preserve">
+    <value>Leave distance</value>
+  </data>
+  <data name="Settings_Popup_UseCurrent" xml:space="preserve">
+    <value>Use current board position</value>
+  </data>
+  <data name="Settings_Popup_Fixed" xml:space="preserve">
+    <value>Fixed position</value>
+  </data>
+  <data name="Settings_Popup_Fixed_Note" xml:space="preserve">
+    <value>Used when the position is “Fixed”.</value>
+  </data>
+  <data name="Settings_Popup_UseCurrent_Note" xml:space="preserve">
+    <value>Available while the board is shown.</value>
+  </data>
+  <data name="Settings_General_DisplayMode" xml:space="preserve">
+    <value>Display mode</value>
+  </data>
+  <data name="Settings_General_DisplayMode_Note" xml:space="preserve">
+    <value>Popup: shown only when called. Pinned: always on screen (settings on the “Pinned” tab). You can also switch from the tray / menu bar menu.</value>
+  </data>
+  <data name="Common_On" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="Common_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Settings_General_AutoStartFailed" xml:space="preserve">
+    <value>Could not change the start-at-login setting.
+{0}</value>
+    <comment>{0} error</comment>
+  </data>
+  <data name="Settings_General_AutoStart" xml:space="preserve">
+    <value>Start at login</value>
+  </data>
+  <data name="Settings_General_ConfirmMove" xml:space="preserve">
+    <value>Confirm before moving files</value>
+  </data>
+  <data name="Settings_General_ConfirmMove_Note" xml:space="preserve">
+    <value>When dropping onto a folder item while holding Shift.</value>
+  </data>
+  <data name="Settings_General_WheelPages" xml:space="preserve">
+    <value>Scroll wheel switches pages</value>
+  </data>
+  <data name="Settings_General_WheelPages_Note" xml:space="preserve">
+    <value>Scrolling over the board: down for the next page, up for the previous page.</value>
+  </data>
+  <data name="Settings_General_AltNumber" xml:space="preserve">
+    <value>{0} switches pages</value>
+    <comment>{0} shortcut such as Alt+1–9</comment>
+  </data>
+  <data name="Settings_General_AltNumber_Note" xml:space="preserve">
+    <value>{0} / {1} also switch pages.</value>
+    <comment>{0} next page shortcut, {1} previous page shortcut</comment>
+  </data>
+  <data name="Settings_General_Permissions" xml:space="preserve">
+    <value>Permissions…</value>
+  </data>
+  <data name="Settings_General_Accessibility" xml:space="preserve">
+    <value>Accessibility</value>
+  </data>
+  <data name="Settings_General_Accessibility_Note" xml:space="preserve">
+    <value>Required for the hotkey and mouse triggers.</value>
+  </data>
+  <data name="Settings_Triggers_UseHotkey" xml:space="preserve">
+    <value>Use hotkey</value>
+  </data>
+  <data name="Settings_Triggers_Hotkey" xml:space="preserve">
+    <value>Hotkey</value>
+  </data>
+  <data name="Settings_Triggers_Hotkey_Note" xml:space="preserve">
+    <value>Click, then press the combination. Conflicts with other apps cannot be detected. It may not work over full-screen apps.</value>
+  </data>
+  <data name="Settings_Triggers_Mouse" xml:space="preserve">
+    <value>Mouse triggers</value>
+  </data>
+  <data name="Settings_Triggers_DesktopOnly" xml:space="preserve">
+    <value>Only on the desktop</value>
+  </data>
+  <data name="Settings_Triggers_DesktopOnly_Note" xml:space="preserve">
+    <value>Mouse triggers respond only over the wallpaper (including desktop icons).</value>
+  </data>
+  <data name="Settings_Triggers_LongPress" xml:space="preserve">
+    <value>Long-press time</value>
+  </data>
+  <data name="Settings_Triggers_Chord" xml:space="preserve">
+    <value>Left + right click window</value>
+  </data>
+  <data name="Settings_Pinned_CurrentPinned" xml:space="preserve">
+    <value>Current display mode: Pinned</value>
+  </data>
+  <data name="Settings_Pinned_CurrentPopup" xml:space="preserve">
+    <value>Current display mode: Popup (these settings are used in pinned mode)</value>
+  </data>
+  <data name="Settings_Pinned_ZOrder" xml:space="preserve">
+    <value>Stacking order</value>
+  </data>
+  <data name="Settings_Pinned_ZOrder_Note" xml:space="preserve">
+    <value>When behind other windows, the board comes to the front temporarily when triggered.</value>
+  </data>
+  <data name="Settings_Pinned_AutoHide" xml:space="preserve">
+    <value>Auto-hide</value>
+  </data>
+  <data name="Settings_Pinned_AutoHide_Note" xml:space="preserve">
+    <value>When the board is placed at a screen edge, it hides at the edge when the pointer leaves and comes back when you touch the thin strip at the edge. Nothing happens if it is not at an edge.</value>
+  </data>
+  <data name="Settings_Pinned_LockPosition" xml:space="preserve">
+    <value>Lock position</value>
+  </data>
+  <data name="Settings_Pinned_LockPosition_Note" xml:space="preserve">
+    <value>When on, dragging does not move the board.</value>
+  </data>
+  <data name="Settings_Pinned_MoveToPointer" xml:space="preserve">
+    <value>Move to the pointer on trigger</value>
+  </data>
+  <data name="Settings_Pinned_MoveToPointer_Note" xml:space="preserve">
+    <value>When off, a trigger brings the board to the front where it is.</value>
+  </data>
+  <data name="Settings_Data_Backups" xml:space="preserve">
+    <value>Board backups to keep</value>
+  </data>
+  <data name="Settings_Data_Backups_Note" xml:space="preserve">
+    <value>Number of previous versions kept in backup/ each time board.json is saved. 0 keeps none.</value>
+  </data>
+  <data name="Settings_Data_OpenFolder" xml:space="preserve">
+    <value>Open data folder</value>
+  </data>
+  <data name="Settings_Data_Export" xml:space="preserve">
+    <value>Export…</value>
+  </data>
+  <data name="Settings_Data_Import" xml:space="preserve">
+    <value>Import…</value>
+  </data>
+  <data name="Settings_Data_Backup" xml:space="preserve">
+    <value>Settings and board backup</value>
+  </data>
+  <data name="Settings_Data_Backup_Note" xml:space="preserve">
+    <value>Puts settings.json and board.json into one zip file. Importing replaces the current data and restarts.</value>
+  </data>
+  <data name="Settings_Data_Portable" xml:space="preserve">
+    <value>Portable mode</value>
+  </data>
+  <data name="Settings_Data_PortableOn" xml:space="preserve">
+    <value>On (uses data/ next to the executable)</value>
+  </data>
+  <data name="Settings_Data_PortableOff" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Settings_Data_Portable_Note" xml:space="preserve">
+    <value>Place portable.flag next to the executable to enable it.</value>
+  </data>
+  <data name="Settings_Data_Export_Title" xml:space="preserve">
+    <value>Export settings and board</value>
+  </data>
+  <data name="Settings_Data_Exported" xml:space="preserve">
+    <value>Exported to “{0}”.</value>
+    <comment>{0} file name</comment>
+  </data>
+  <data name="Settings_Data_ExportFailed" xml:space="preserve">
+    <value>Could not export.
+{0}</value>
+    <comment>{0} error</comment>
+  </data>
+  <data name="Settings_Data_Import_Title" xml:space="preserve">
+    <value>Import settings and board</value>
+  </data>
+  <data name="Settings_Data_ImportWhat_Both" xml:space="preserve">
+    <value>settings and board</value>
+  </data>
+  <data name="Settings_Data_ImportWhat_Settings" xml:space="preserve">
+    <value>settings</value>
+  </data>
+  <data name="Settings_Data_ImportWhat_Board" xml:space="preserve">
+    <value>board</value>
+  </data>
+  <data name="Settings_Data_ImportConfirm_Title" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Settings_Data_ImportConfirm" xml:space="preserve">
+    <value>Replace the current {0} with the contents of “{1}” and restart CPFileLauncher?
+The current files are kept in backup/.</value>
+    <comment>{0} what is replaced, {1} file name</comment>
+  </data>
+  <data name="Settings_Data_ImportConfirm_Ok" xml:space="preserve">
+    <value>Import and restart</value>
+  </data>
+  <data name="Archive_NotZip" xml:space="preserve">
+    <value>The file cannot be read as a zip file.</value>
+  </data>
+  <data name="Archive_NoKnownEntries" xml:space="preserve">
+    <value>It contains neither settings.json nor board.json. Choose a zip file exported by CPFileLauncher.</value>
+  </data>
+  <data name="Archive_EntryNotObject" xml:space="preserve">
+    <value>{0} has an unexpected format.</value>
+    <comment>{0} entry name, {1} detail (unused)</comment>
+  </data>
+  <data name="Archive_EntryCorrupt" xml:space="preserve">
+    <value>{0} is damaged: {1}</value>
+    <comment>{0} entry name, {1} parser message</comment>
+  </data>
+  <data name="Settings_Appearance_Effects" xml:space="preserve">
+    <value>Adjust effects…</value>
+  </data>
+  <data name="Settings_Appearance_Effects_ResetAll" xml:space="preserve">
+    <value>Reset all to default</value>
+  </data>
+  <data name="Settings_Appearance_EffectRow" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>{0} effect name, {1} effect ID</comment>
+  </data>
+  <data name="Settings_Advanced_Logging" xml:space="preserve">
+    <value>Write log files</value>
+  </data>
+  <data name="Settings_Advanced_Logging_Note" xml:space="preserve">
+    <value>Development (Debug) builds always write logs regardless of this setting.</value>
+  </data>
+  <data name="Settings_Advanced_OpenLogFolder" xml:space="preserve">
+    <value>Open log folder</value>
+  </data>
+  <data name="Settings_Advanced_Hardware" xml:space="preserve">
+    <value>Hardware acceleration</value>
+  </data>
+  <data name="Settings_Advanced_Hardware_Note" xml:space="preserve">
+    <value>Takes effect after restart. Turn it off if the display is garbled.</value>
+  </data>
+  <data name="Settings_Advanced_Reset" xml:space="preserve">
+    <value>Reset settings…</value>
+  </data>
+  <data name="Settings_Advanced_Reset_Note" xml:space="preserve">
+    <value>Resets all settings to their defaults. The board (items and pages) is kept.</value>
+  </data>
+  <data name="Settings_Advanced_ResetConfirm_Title" xml:space="preserve">
+    <value>Reset settings</value>
+  </data>
+  <data name="Settings_Advanced_ResetConfirm_Ok" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="Settings_General_Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings_General_Language_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Settings_General_Language_Note" xml:space="preserve">
+    <value>Takes effect after restarting CPFileLauncher.</value>
+  </data>
+  <data name="Common_RestartNow" xml:space="preserve">
+    <value>Restart now</value>
+  </data>
+  <data name="Effect_frameOrb" xml:space="preserve">
+    <value>Light orb</value>
+  </data>
+  <data name="Effect_glowPulse" xml:space="preserve">
+    <value>Glow pulse</value>
+  </data>
+  <data name="Enum_EffectKind_Orb" xml:space="preserve">
+    <value>One orb</value>
+  </data>
+  <data name="Enum_EffectKind_OrbTwin" xml:space="preserve">
+    <value>Two orbs</value>
+  </data>
+  <data name="Enum_EffectKind_Pulse" xml:space="preserve">
+    <value>Soft</value>
+  </data>
+  <data name="Enum_EffectKind_PulseStrong" xml:space="preserve">
+    <value>Strong</value>
+  </data>
+  <data name="Settings_Appearance_Effects_AmbientNote" xml:space="preserve">
+    <value>Light orb and glow pulse run the whole time the board is visible and use a lot of CPU (about 20–30%). They are off by default.</value>
+  </data>
+  <data name="Settings_Appearance_Effects_ReducedMotionNote" xml:space="preserve">
+    <value>Stopped because the system’s reduce-motion setting is on.</value>
+  </data>
+  <data name="Settings_Appearance_Colors" xml:space="preserve">
+    <value>Color scheme</value>
+  </data>
+  <data name="Settings_Appearance_Primary" xml:space="preserve">
+    <value>Primary color</value>
+  </data>
+  <data name="Settings_Appearance_Secondary" xml:space="preserve">
+    <value>Secondary color</value>
+  </data>
+  <data name="Settings_Appearance_Swap_Tooltip" xml:space="preserve">
+    <value>Swap primary and secondary</value>
+  </data>
+  <data name="Enum_AccentPreset_Custom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="Enum_ClockMode_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Enum_ClockMode_Minutes" xml:space="preserve">
+    <value>Hours:minutes</value>
+  </data>
+  <data name="Enum_ClockMode_Seconds" xml:space="preserve">
+    <value>Hours:minutes:seconds</value>
+  </data>
+  <data name="Settings_Appearance_Hud_StatusBar" xml:space="preserve">
+    <value>Status line</value>
+  </data>
+  <data name="Settings_Appearance_Hud_StatusBar_Note" xml:space="preserve">
+    <value>Shows the page, item count, and time below the board.</value>
+  </data>
+  <data name="Settings_Appearance_Hud_Clock" xml:space="preserve">
+    <value>Clock</value>
+  </data>
+  <data name="Settings_Appearance_Hud_Clock_Note" xml:space="preserve">
+    <value>Hours:minutes:seconds updates every second and uses a little CPU while the board is visible.</value>
+  </data>
+  <data name="Settings_Appearance_Hud_Date" xml:space="preserve">
+    <value>Date (yyyy/MM/dd)</value>
+  </data>
+  <data name="Settings_Appearance_Hud_Grid" xml:space="preserve">
+    <value>Background grid</value>
+  </data>
+  <data name="Settings_Appearance_Hud_Grid_Note" xml:space="preserve">
+    <value>Thin lines in the primary color behind the slots.</value>
+  </data>
+  <data name="Settings_Appearance_Hud_GridOpacity" xml:space="preserve">
+    <value>Grid strength</value>
+  </data>
+</root>

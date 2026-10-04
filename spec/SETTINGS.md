@@ -1,0 +1,123 @@
+# CPFileLauncher 設定項目一覧
+
+`settings.json`（SPEC §9）に保存される設定項目の一覧。**設定項目の正はこのファイル**で、SPEC §7 には方針だけを置く。
+項目を足す・消す・既定値や範囲を変えるときは、先にこの表を直してから `src/FileLauncher.Core/Model/AppSettings.cs` と設定画面を合わせる。
+
+最終更新: 2026-10-05（サイバーパンク化（SPEC §1.3 / §3.6 / §3.9）は Mac 側がすべて実装済み・ユーザー確認済み。`issue/CYBERPUNK_IDENTITY.md` は完了・削除。下の「未実装」の記述のうち 2 → 3 のマイグレーション・配色・HUD は実装済みに直した。2026-10-04: **HUD 段階 A を実装済み・Mac でユーザー確認済みに**: `appearance.hud.statusBar` / `clock` の 2 行を実装済みにし、ユーザー要望で **`appearance.hud.date`（日付、既定 true）** を追加（SPEC §3.9 H1。`yyyy/MM/dd` を時刻の前に付ける。時刻なしなら日付だけ）。`seconds` の CPU は Mac 計測 0.4〜0.7%。注記の文言は実装したものに合わせた。同日それ以前: **サイバーパンク専用化の要ユーザー判断に回答（確定）**: 背景・文字の導出は案 B、HUD の既定は `statusBar` ON / `clock` = `minutes` / `grid` ON、`appearance.effects` は移行で触らない、HUD の装飾語は翻訳しない。いずれも下表の値どおり。同日それ以前: **サイバーパンク専用化・配色・HUD（SPEC §1.3 / §3.6「配色」/ §3.9、`issue/CYBERPUNK_IDENTITY.md`。すべて未実装）**: `appearance.theme` を**廃止**（2 → 3 のマイグレーションで捨てる）、`appearance.accent` を **`appearance.colors { primary, secondary }`** に置き換え（旧値はプリセットの 2 色へ変換）、`schemaVersion` を **3** に。HUD の 3 行 `appearance.hud.statusBar` / `clock` / `grid` を追加。「演出の調整…」のテーマ依存の記述（既定値がテーマで変わる、`glowPulse` の行の出し分け）を削除。データタブのエクスポート zip 名を `CPFileLauncher-backup-…` に。同日それ以前: **常時の演出 2 行を実装済みに。`frameOrb` / `glowPulse` の既定はどのテーマでも「なし」**（ユーザー判断 案 A: Mac で光の玉 22〜28%・明滅 11〜18% と CPU を多く使う。2 行の下の共通の注記 `Settings_Appearance_Effects_AmbientNote` を「CPU を多く使います（20〜30% 程度）。既定ではオフです。」に変更。オン時は SPEC §11 の CPU 目標の対象外。`spec/EFFECTS.md`「CPU の計測と既定の判断」）。同日それ以前: **「演出の調整…」に常時の演出 `frameOrb` / `glowPulse` を追加**（新しい JSON キーは増えない。`appearance.effects` の ID が 2 つ増え、`kind` に `orb` / `orbTwin` / `pulse` / `pulseStrong`、時間の範囲が演出ごとに変わる。`spec/EFFECTS.md`「常時の演出の詳細」、`issue/AMBIENT_EFFECTS.md`）。同日それ以前: **`general.language` を実装済み（Mac でユーザー確認済み）に**。同日それ以前: **`general.language` の振る舞いを確定**（M5 ステップ 5 設計: `system` の判定、再起動の注記 + 「今すぐ再起動」ボタン、不正値は `system` に丸め、`--lang` 起動引数。SPEC §7、`spec/TERMS.md`）。同日それ以前: **背景画像 4 行（`image` / `fit` / `overlay` / `imageOpacity`）とデータタブのエクスポート（`background/` の同梱）を「実装済み（ユーザー確認済み 2026-10-04、Mac）」に**。Windows 側の確認は SPEC §13.3 C11。同日それ以前: **背景画像に `appearance.background.imageOpacity`（画像の不透明度、既定 100、10〜100、5 刻み）を追加**。ユーザー判断 B′: 画像があるときは面の地の色を描かず、画像の不透明度を下げると画像の部分からデスクトップが透ける（SPEC §3.7 描画の層）。`schemaVersion` は 2 のまま。同時に背景画像 3 行を「実装済み（ユーザー確認待ち）」に。2026-10-03: **盤面の背景画像 `appearance.background`（`image` / `fit` / `overlay`）を追加**（SPEC §3.7。データタブのエクスポートに `background/` を含める。設定画面自体はフレームレス化、SPEC §3.8。`schemaVersion` は 2 のまま）。同日それ以前: M4 ステップ 5 で実装状況を更新: `board.wheelSwitchesPage` / `board.altNumberSwitchesPage`、マウス操作の `wheelClickRotate`、`appearance.defaultRows` / `defaultCols` を実装済みに。項目名は設定画面の実物に合わせた。同日それ以前: **削除確認の設定 `editing.confirmDelete` を廃止**: ユーザー判断「削除確認は全ての場合において不要」。アイテム削除・ページ削除とも確認なし、誤操作の備えは「元に戻す」SPEC §6.7。旧キー（`editing.confirmDelete` / さらに旧い `editing.confirmDeleteOnDragOut`）は読み込み時に無視され次の保存で消える。`schemaVersion` は上げない。同日それ以前: M4 設計で `board.wheelSwitchesPage` / `board.altNumberSwitchesPage` を追加（SPEC §6.5 / §6.6、`issue/M4_BOARD_EDITING.md`）。同日それ以前: ポップアップの表示位置をキーボード／マウスで別々に: `popup.position` / `x` / `y` を `popup.keyboard.*` / `popup.mouse.*` に分割し、settings.json の `schemaVersion` を 2 に（SPEC §3.3 / §9.3、`issue/POPUP_POSITION_BY_TRIGGER.md`）。同日それ以前: サイバーパンクの基調色 `appearance.accent` を追加（SPEC §3.6「基調色プリセット」）。同日それ以前: テーマ設計: `appearance.theme` に `cyberpunk` を追加（SPEC §3.6 / §10.5）、`appearance.effects` の `kind` に `glitch` / `glow` を追加しテーマ別既定値の扱いを定義。それ以前: M5 設計で演出 `appearance.effects` を追加し、`appearance.animation` の用途を `spec/EFFECTS.md` に定義）
+
+## 読み方
+
+- **JSON キー**: `settings.json` 内のパス（camelCase。enum は文字列、フラグ enum は `"ctrl, alt"` のようにカンマ区切り）。
+- **既定値**: ファイルにキーが無いときの値。範囲外の値は読み込み時に範囲へ丸める（`AppSettings.Normalize`）。未知のキーは無視され、次の保存で消える。
+- **OS**: 共通 / Win のみ / Mac のみ。片方の OS で使えない項目は設定画面に**出さない**（無効表示 + 注記にはしない。SPEC §1.2 の原則、2026-10-03 ユーザー判断）。注記を付けるのは「使えるが制約がある」項目だけ。
+- **実装状況**: 「値の反映」の状況。設定画面（UI）は M5 で作った（2026-10-04 完了、Mac でユーザー確認済み。Windows 側の確認は SPEC §13.3 C14）。「M5 ステップ n」は実装したときの順序の記録で、設計の正は SPEC §7（即時反映の仕組み・再起動が要る項目・言語）と §3.1 / §3.2 / §3.4 / §3.5。
+- 単位: 座標・サイズは Windows では物理 px、macOS では pt（SPEC §3.5）。
+
+## ファイル全体
+
+| JSON キー | 型 | 既定値 | 備考 |
+|---|---|---|---|
+| `schemaVersion` | int | **3**（2026-10-04。board.json は 1 のまま） | 現行より新しい値のファイルは読み取り専用（保存しない）。無ければ 1 とみなす。1 → 2: 旧 `popup.position` / `x` / `y` を `popup.keyboard` と `popup.mouse` の両方へ複写して旧キーを削除。**2 → 3**（実装済み 2026-10-04、`SettingsMigrationV3Tests`）: `appearance.theme` を削除、`appearance.accent` をそのプリセットの 2 色の `appearance.colors` に置き換えて削除（不明な値・無ければシアン）。`appearance.effects` は触らない（SPEC §9.3 / §3.6「配色」の移行） |
+
+## 一般タブ（`general`）
+
+| 項目名（UI） | JSON キー | 型 | 既定値 | 範囲・選択肢 | OS | 実装状況 | 備考 |
+|---|---|---|---|---|---|---|---|
+| 表示モード | `general.displayMode` | enum | `popup` | `popup` / `resident` | 共通 | 未実装（M5 ステップ 3。常駐モード本体も同時） | トレイ／メニューバーのメニューからも切替（SPEC §3.4）。切替時の振る舞いは SPEC §3.4 |
+| OS ログイン時に自動起動 | `general.autoStart` | bool | false | | 共通 | Win は実装済み（M5 ステップ 2、2026-10-03。HKCU Run、設定画面を開くたびに OS の登録状態を読む）。Mac は未実装（SMAppService、Mac-3。`.app` 起動時のみ有効）。**Mac では `.app` から起動していない間は一般タブに行を出さない**（2026-10-03 ユーザー判断、実装済み） | 値は OS 側の登録状態と二重になるので、起動時と設定画面を開くたびに OS 側（`IAutoStartService.IsEnabled`）を正として読み直す。登録する実行ファイルは `Environment.ProcessPath`。Mac で `.app` 以外から起動中（`NSBundle.mainBundle.bundleIdentifier` が無い）は行ごと非表示（無効表示 + 注記にはしない。SPEC §1.2） |
+| 言語 | `general.language` | string | `system` | `system` / `ja` / `en`（それ以外の値は読み込み時に `system` へ丸める） | 共通 | 実装済み（M5 ステップ 5。**ユーザー確認済み 2026-10-04、Mac**: 日本語の回帰・`--lang en`・切り替えと「今すぐ再起動」。Windows での確認と、`system` の判定の Windows / macOS `.app` 起動は未確認 → SPEC §13.3 C12） | UI 表示: システム / 日本語 / English（言語名は各言語の自称で、UI 言語に関わらず固定）。**変更は再起動後に反映**: 注記「再起動後に反映されます。」に加え、今の表示言語と選択が違う間だけ「今すぐ再起動」ボタンを行の右に出す（押すと `hub.Flush` → 既存の再起動処理）。`system` は OS の UI 言語（.NET の `CultureInfo.CurrentUICulture` 初期値）が日本語なら日本語、それ以外は英語（英語が既定リソース）。`Program` が Avalonia 起動前に `SettingsPeek` でこのキーだけ先読みして `CurrentUICulture` / `DefaultThreadCurrentUICulture` を設定する（`CurrentCulture` = 数・日付の書式は変えない）。開発・確認用の起動引数 `--lang ja|en` は設定より優先され、保存されない。訳語は `spec/TERMS.md`、方針は SPEC §7、macOS `.app` 起動時の判定は SPEC §13.3 C12 |
+| 移動時に確認（フォルダへの Shift+ドロップ） | `editing.confirmMoveOnDrop` | bool | true | | 共通 | 実装済み（M3） | SPEC §5.3。タブは SPEC で未指定だったため一般タブに仮置き（ユーザー回答待ち）。同名競合の規則（連番の別名・同一内容はスキップ）は設定項目を持たず固定（SPEC §5.3） |
+| ホイールでページを切り替える | `board.wheelSwitchesPage` | bool | true | | 共通 | 実装済み（M4 ステップ 2、2026-10-03。一般タブの ToggleSwitch、注記「盤面の上でホイールを回すと、下で次のページ、上で前のページ。」。値は `BoardWindow.BoardOptions` 経由で毎回読むので即時反映） | SPEC §6.5。下 = 次のページ。ヘッダー（タブ）の上でも同じ（`Frame` でトンネル）。OFF ならホイールは何もしない。アイテムをドラッグ中も効かない。マウストリガー「ホイールクリック + 回転」（トリガータブ）はこの設定と無関係に効く |
+| Alt+1〜9 でページを切り替える（Mac: ⌥1〜9 でページを切り替える） | `board.altNumberSwitchesPage` | bool | true | | 共通 | 実装済み（M4 ステップ 2、2026-10-03。一般タブの ToggleSwitch、注記「Ctrl+Tab / Ctrl+Shift+Tab でも切り替えられます。」（Mac は ⌃Tab / ⌃⇧Tab）） | SPEC §6.5。Alt+1〜9（Mac は ⌥1〜9）で 1〜9 ページ目へ。数字は物理キー（`PhysicalKey.Digit1..9`）で判定（Mac の ⌥ は文字が変わるため）。Ctrl+Tab は設定項目を持たず常に有効 |
+| 権限の設定…（ボタン） | — | — | — | | Mac のみ | 未実装（Mac-1） | 権限ガイドを開く（SPEC §4.3）。値は持たない |
+| アップデート確認 | — | — | — | | 共通 | **未定**（SPEC §13.2 T5） | 旧 §7 に記載があったが、方針が決まるまでモデルに入れない |
+
+## 表示タブ（`appearance`）
+
+| 項目名（UI） | JSON キー | 型 | 既定値 | 範囲・選択肢 | OS | 実装状況 | 備考 |
+|---|---|---|---|---|---|---|---|
+| （旧）テーマ | `appearance.theme` | — | — | — | — | **廃止**（2026-10-04 ユーザー判断: サイバーパンク専用、SPEC §1.3。実装済み・Mac で確認済み 2026-10-04） | 2 → 3 のマイグレーションで削除（値は見ない。`light` / `dark` / `system` を使っていてもサイバーパンクになる）。モデル（`ThemeMode` / `AppearanceSettings.Theme`）からも削除。設定画面に行は無い |
+| 配色 | （`appearance.colors` の表示専用） | — | — | シアン / レッド / ブルー / グリーン / パープル / カスタム | 共通 | 実装済み（**ユーザー確認済み 2026-10-04、Mac**。Windows 側は SPEC §13.3 C18） | `ComboBox`。各項目に主色・副色の色見本 12×12 を 2 つ + 名前。プリセットを選ぶと下の 2 色を書き換える。2 色がプリセットと完全一致すればそのプリセット、違えば「カスタム」を表示（「カスタム」は選べない）。値は保存しない（`primary` / `secondary` から求める。Core `ColorPresets.Match`）。SPEC §3.6「配色」 |
+| 　主色 | `appearance.colors.primary` | string（`#RRGGBB`） | `#00E5FF` | 任意の色。読み込み時: 大文字小文字を問わない、8 桁ならアルファを捨てる、不正ならシアンの値に戻してログ 1 行、表記は大文字の `#RRGGBB` にそろえる。**色の値そのものは変えない**（暗い色を自動で明るくする補正は 2026-10-04 ユーザー判断で取りやめ。暗い色を選んだときの見え方はユーザーの責任、SPEC §3.6「読みやすさ」） | 共通 | 実装済み（ユーザー確認済み 2026-10-04、Mac） | UI: `ColorPicker`（Avalonia.Controls.ColorPicker。アルファ無効、パレット = プリセット 10 色 + ネオン 12 色相は SPEC §3.6 の設計どおりだが**未実装で既定のパレットのまま**。要望があれば足す）+ 右に hex の表示（等幅）。枠・発光・タブ・ホバー・角ブラケット（左上右下）・グリッチの影・光の玉・設定画面のアクセント・**背景と文字の色相**がすべて追従（導出規則は SPEC §3.6）。即時反映（辞書の差し替え。ドラッグ中は 1 フレームに 1 回に間引く）。変更時の通知は `Colors`（`Render` 不要） |
+| 　副色 | `appearance.colors.secondary` | string（`#RRGGBB`） | `#FF2BD6` | 同上 | 共通 | 実装済み（ユーザー確認済み 2026-10-04、Mac） | UI: 同上 + 行の右端に「⇄」（主色と副色を入れ替える）。ドロップ先・角ブラケット（右上左下）・グリッチの影の片方・`orbTwin` の 2 個目に使う。背景・文字は副色からは導かない |
+| 不透明度 | `appearance.opacity` | int (%) | **80** | **30〜100**、5 刻み（スライダー。範囲外は丸め、5 の倍数でない値は最も近い 5 の倍数に） | 共通 | 一部実装（値は盤面全体の `Window.Opacity` に反映済み。既定 80・30〜100 の 5 刻み丸めは実装・テスト済み 2026-10-03。即時反映の UI は M5。Mac での効きは SPEC §13.3 C5） | 既定 80 は 2026-10-03 ユーザー確定。既存の settings.json に `opacity` が書かれていればその値を尊重（既定はキーが無いときだけ）。盤面全体（背景・アイコン・ラベル）にかかる。両モード有効。即時反映（SPEC §3.1）。「ホバー中は不透明」は §12 |
+| 背景画像 | `appearance.background.image` | string / null | null（なし） | データフォルダからの相対パス `background/<ファイル名>`（設定画面から選んだとき）または絶対パス（手編集。`~` / 環境変数を展開）。対応形式 png / jpg / jpeg / bmp / gif / webp | 共通 | 実装済み（**ユーザー確認済み 2026-10-04、Mac**。Windows 側は SPEC §13.3 C11） | SPEC §3.7。UI: プレビュー（120×68）+ ファイル名 + 「選択…」「クリア」。「選択…」はファイルを `background/` へコピーして相対パスを保存、「クリア」は null にしてコピーを削除。盤面の面（`Frame` の内側）だけ・全ページ共通。見つからない / 読めないときは面の色で表示し、値は消さずこの行に `FlError` の注記（トーストは出さない）。長辺 2048 px に縮小してバックグラウンドでデコード（表示遅延に影響しない）。変更時の通知は `Background`（`Render` 不要）。既存の settings.json にキーが無ければ「なし」 |
+| 　表示方法 | `appearance.background.fit` | enum | `fill` | `fill` / `fit` / `stretch` / `tile` / `center` | 共通 | 実装済み（ユーザー確認済み 2026-10-04） | UI 表示: 埋める / 収める / 引き伸ばす / 並べる / 中央（`ComboBox`）。`ImageBrush` の対応は SPEC §3.7。画像があるときは面の地の色を描かないので、「収める」「中央」で画像が届かない余白は覆いの色だけになる（透ける。2026-10-04 ユーザー了承）。画像が無いときは無効表示 |
+| 　画像の覆い | `appearance.background.overlay` | int (%) | 40 | 0〜90、5 刻み（スライダー。範囲外は丸め） | 共通 | 実装済み（ユーザー確認済み 2026-10-04。既定 40・0〜90 は確認の結果そのまま確定） | 画像の上に盤面の面の色（`FlBoardBackground`）をこの不透明度で重ねる（テーマ・基調色に追従）。画像があるときは面の地の色を描かないので、**盤面の暗さはこの覆いだけで決まる**（SPEC §3.7 描画の層）。注記「盤面の色を画像の上に重ねます。大きいほど画像が薄くなり、アイコンと文字が読みやすくなります。」。画像が無いときは無効表示 |
+| 　画像の不透明度 | `appearance.background.imageOpacity` | int (%) | 100 | 10〜100、5 刻み（スライダー。範囲外は丸め） | 共通 | 実装済み（ユーザー確認済み 2026-10-04。既定 100・下限 10 は確認の結果そのまま確定） | 画像の層（`Backdrop`）の `Opacity`。画像があるときは面の地の色を描かないため、下げると**画像の部分からデスクトップが透ける**（覆いの色は残る）。100 なら埋める / 引き伸ばす / 並べるの見た目は従来どおり。注記「下げると画像の部分からデスクトップが透けます。」。「画像の覆い」の直下に置く。画像が無いときは無効表示。ウィンドウ全体の `appearance.opacity` とは独立に掛かる（両方が効く）。変更時の通知は `Background`（`Render` 不要）。`schemaVersion` は 2 のまま（省略可能な項目の追加。キーが無ければ 100） |
+| ボタンサイズ | `appearance.buttonSize` | int (px) | 48 | 32 / 48 / 64 / 96（小 / 中 / 大 / 特大） | 共通 | 実装済み（M2） | ページ個別の `buttonSize`（board.json）が null のときに使う。変更時はアイコンをそのサイズで取り直す（SPEC §5.4） |
+| ステータス行 | `appearance.hud.statusBar` | bool | true | | 共通 | 実装済み（**ユーザー確認済み 2026-10-04、Mac**。Windows 側は SPEC §13.3 C19 (1)） | SPEC §3.9 H1。盤面下部に `PAGE 02/05`（左）/ `ITEMS 24`（中央）/ 日時（右端）の 1 行（高さ 16 + 区切り線 1）。ON のときウィンドウが 17 px 高い。ToggleSwitch。注記「盤面の下にページ・アイテム数・時刻を出します。」。変更時の通知は `Hud`（`Render` あり: 高さが変わる）。省略可能な追加なので `schemaVersion` は上げない |
+| 　時刻 | `appearance.hud.clock` | enum | `minutes` | `off` / `minutes` / `seconds` | 共通 | 実装済み（ユーザー確認済み 2026-10-04、Mac） | UI 表示: 表示しない / 時:分 / 時:分:秒（`ComboBox`）。24 時間表記で固定。`minutes` は分の変わり目だけ、`seconds` は 1 秒ごとに描き直す（**Mac 計測 0.4〜0.7%**。注記「「時:分:秒」は毎秒書き換えるので、盤面が見えている間 CPU を少し使います。」を常に出す）。盤面が見えている間だけ動く。ステータス行 OFF のときは無効表示（状態による無効化。SPEC §3.7 の表示方法と同じ扱い）。変更時の通知は `Hud`（`Render` 不要。文字列の組み直しとタイマーの付け替えだけ） |
+| 　日付（年/月/日） | `appearance.hud.date` | bool | true | | 共通 | 実装済み（ユーザー確認済み 2026-10-04、Mac。ユーザー要望で段階 A に追加） | SPEC §3.9 H1。時刻の前に `yyyy/MM/dd` を付ける（`2026/10/04 15:05`。書式は固定、OS の日付書式には従わない）。時刻が「表示しない」のときは日付だけ `2026/10/04` を出し、タイマーは日付の変わり目（0:00）に合わせる。時刻・日付とも OFF なら右端の区画は出ない。ToggleSwitch（「時刻」の下、注記なし）。ステータス行 OFF のときは無効表示。変更時の通知は `Hud`（`Render` 不要）。キーが無ければ ON（省略可能な追加。`schemaVersion` は上げない） |
+| 背景グリッド | `appearance.hud.grid` | bool | true | | 共通 | 実装済み（**ユーザー確認済み 2026-10-04、Mac**。Windows 側は SPEC §13.3 C19 (4)） | SPEC §3.9 H6「背景グリッドの仕様」。盤面の面（背景画像の覆いの上・タブとアイコンの下）に 24 px 間隔の 1 px の線（色は主色 `FlHudGrid`、濃さは下の「グリッドの濃さ」）。ToggleSwitch。注記「スロットの下に主色の細い線を敷きます。」（実装した文言。設計時の「盤面の背景に薄いグリッドを敷きます。」から変更）。変更時の通知は `Hud`（`Render` の中で層の `IsVisible` を付け直す。ウィンドウの大きさは変わらない）。省略可能な追加なので `schemaVersion` は上げない |
+| 　グリッドの濃さ | `appearance.hud.gridOpacity` | int (%) | **3** | 0〜10、1 刻み（スライダー。範囲外は読み込み時に 0〜10 へ丸める） | 共通 | 実装済み（ユーザー確認済み 2026-10-04、Mac。ユーザー要望で段階 C の確認中に追加） | 背景グリッドの線の不透明度。`GridLayer.Opacity = gridOpacity / 100`（トークン `FlHudGrid` はアルファなしの主色。配色を変えても濃さは保たれる）。**0 なら層ごと非表示**。`ValueSlider`（`%` 表示、注記なし）。「背景グリッド」の直下に置き、背景グリッド OFF の間は無効表示（状態による無効化。ステータス行 OFF で「時刻」「日付」が無効になるのと同じ扱い）。経緯: 設計時 7% → 「強い」との指摘で 4% → 設定化して既定 3%（2026-10-04）。変更時の通知は `Hud`（`Render` の中で `Opacity` を付け直す）。キーが無ければ 3（省略可能な追加。`schemaVersion` は上げない） |
+| ラベル表示 | `appearance.label` | enum | `below` | `none` / `below` / `hover` | 共通 | 実装済み（`hover` は M5 ステップ 2、2026-10-03。演出 labelHover） | `hover` = セルの高さは `none` と同じ。マウスを乗せたスロットだけ、アイコン下部に名前を半透明の帯で重ねて出す（演出は EFFECTS.md `labelHover`）。盤面下部の 1 行にまとめて出す案もあり、動くものを見てから決める |
+| 既定の行数 | `appearance.defaultRows` | int | 4 | 1〜12 | 共通 | 実装済み（初期盤面の作成は M1、新規ページの作成は M4 ステップ 2、表示タブの NumericUpDown は M5。2026-10-03） | SPEC §3.1 / §6.5。メニュー「新規ページ」（`PageEditing.Add`）がこの値で作る。既存ページには影響しない（注記「新しいページを作るときの初期値です。」）。変更通知は `None`（描き直し不要） |
+| 既定の列数 | `appearance.defaultCols` | int | 6 | 1〜12 | 共通 | 同上 | |
+| アニメーション | `appearance.animation` | bool | true | | 共通 | 未実装（M5 ステップ 1） | **全演出の ON/OFF**。演出の一覧・既定値（種類 / 時間 / イージング）は **`spec/EFFECTS.md` が正**。OFF なら全演出が「なし」（時間 0） |
+| 演出の調整…（折りたたみ） | `appearance.effects` | object | `{}`（空 = すべて既定） | キー = EFFECTS.md の演出 ID、値 = `{ "kind": none / fade / zoom / slide / highlight / glitch / glow / orb / orbTwin / pulse / pulseStrong, "durationMs": 0〜1000（常時の演出 `frameOrb` は 2000〜20000、`glowPulse` は 1000〜10000。範囲は `EffectDefinition`）, "easing": linear / easeOut / easeIn / easeInOut / backOut }`。演出ごとに選べる `kind` は EFFECTS.md の「選べる種類」列 | 共通 | 実装済み（M5 ステップ 1〜2、2026-10-03。`glitch` / `glow` とテーマ別既定値はテーマ実装 T1〜T2（SPEC §3.6、EFFECTS.md）、同日ユーザー確認済み）。**常時の演出 `frameOrb` / `glowPulse` の 2 行は実装済み**（2026-10-04。時間は 1 周 / 1 周期の長さで秒表示、イージング無効、2 行の下に共通の注記 `Settings_Appearance_Effects_AmbientNote`「光の玉と発光の明滅は、盤面が見えている間ずっと動き、CPU を多く使います（20〜30% 程度）。既定ではオフです。」、OS の「視差効果を減らす」がオンなら `Settings_Appearance_Effects_ReducedMotionNote` も。`glowPulse` の行はテーマ廃止（2026-10-04）後は常に出す。**2 つとも既定 `none`**（ユーザー判断 案 A。オンにしたときは SPEC §11 の CPU 目標の対象外）。見た目の値の確定（任意）は `issue/AMBIENT_EFFECTS.md` ステップ 4） | **既定値と異なる演出だけ保存する**（既定値はコード内 `EffectCatalog` で、EFFECTS.md と一致させる）。**既定値は 1 組**（2026-10-04 のテーマ廃止まではテーマで変わった。旧ライト / ダークで保存されなかった値はサイバーパンクの既定になる。SPEC §3.6「配色」の移行）。未知の ID・その演出で選べない `kind` は読み込み時に捨てて既定に戻す。UI は「アニメーション」の下に折りたたみで、演出 1 件につき 1 行: 種類ドロップダウン / 時間スライダー（0〜1000、10 刻み）/ イージングドロップダウン（`glitch` ではイージングを使わないので無効表示）/ 「既定に戻す」（= その ID を辞書から削除）。手編集の例: `"effects": { "boardShow": { "kind": "zoom", "durationMs": 100, "easing": "easeOut" } }` |
+| 画像はサムネイルで表示 | `appearance.imageThumbnails` | bool | true | | 共通 | 実装済み（M3） | SPEC §5.4。OFF にすると種類アイコン |
+
+## ポップアップタブ（`popup`）
+
+| 項目名（UI） | JSON キー | 型 | 既定値 | 範囲・選択肢 | OS | 実装状況 | 備考 |
+|---|---|---|---|---|---|---|---|
+| 表示位置（キーボードで開いたとき） | `popup.keyboard.position` | enum | `cursor` | `cursor` / `lastPosition` / `screenCenter` / `fixed` | 共通 | 実装済み（2026-10-03。旧 `popup.position` からのマイグレーション込み。Windows 側の確認は SPEC §13.3 C15） | ホットキーで開いたときに使う。UI 表示: カーソル位置 / 前回の位置 / 画面中央 / 固定座標。「カーソル位置」はキーボードでも**マウスカーソル**の位置（キャレット位置は SPEC §12）。カーソル位置は画面内に収まるよう補正（SPEC §3.3） |
+| 　座標 X / Y（キーボード） | `popup.keyboard.x`, `popup.keyboard.y` | int? | null | 画面内 | 共通 | 実装済み（同上） | `fixed` のときの座標。`lastPosition` のときは閉じるたびに前回位置として上書き保存される欄（**`lastPosition` を選んでいる組だけ**に書く。`fixed` の組の座標は閉じても変わらない）。単位は OS で異なる（Win: 物理 px、Mac: pt）。UI は `fixed` のときだけ有効 + 「今の盤面の位置を使う」ボタン |
+| 表示位置（マウス操作で開いたとき） | `popup.mouse.position` | enum | `cursor` | 同上 | 共通 | 実装済み（同上） | マウストリガーで開いたときに使う。**トレイ／メニューバーアイコンのクリック・メニュー（盤面を表示 / ページ一覧）・2 重起動からの表示もこちら**（SPEC §3.3）。UI は 2 組を同じ見た目で縦に並べ、下に注記「トレイアイコンやメニューから開いたときはマウス操作の設定を使います」 |
+| 　座標 X / Y（マウス） | `popup.mouse.x`, `popup.mouse.y` | int? | null | 画面内 | 共通 | 実装済み（同上） | キーボード側と同じ規則 |
+| （旧）表示位置 / 固定座標 | `popup.position`, `popup.x`, `popup.y` | — | — | — | — | 廃止（schemaVersion 1 → 2 で両組へ複写、SPEC §9.3） | 読み込み時のマイグレーションでのみ扱う。モデル（`PopupSettings`）からは削除 |
+| アイテムを起動したら閉じる | `popup.closeOnLaunch` | bool | true | | 共通 | 実装済み（M3） | SPEC §3.3 |
+| 盤面外クリック／他ウィンドウで閉じる | `popup.closeOnOutsideClick` | bool | true | | 共通 | 実装済み（M2） | フック座標で判定（SPEC §3.3） |
+| トリガー再実行で閉じる（トグル） | `popup.toggleOnTrigger` | bool | true | | 共通 | 実装済み（M2） | |
+| マウスが離れたら閉じる | `popup.closeOnMouseLeave` | bool | false | | 共通 | 実装済み（M5 ステップ 2、2026-10-03） | SPEC §3.3。表示中だけ 100ms 間隔の `DispatcherTimer` で `IWindowService.GetCursorPosition` を見て、盤面矩形からの距離（Core `MouseLeaveTracker`。矩形の外側までの最短距離）が閾値を超えたら閉じる（フックの移動イベントは使わない）。**一度カーソルが盤面に入ってから**判定を始める（画面中央・固定座標の表示でカーソルが遠い場合に即閉じしないため）。モーダル中（`RunModalAsync`）は判定しない |
+| 離れたとみなす距離 | `popup.mouseLeaveDistance` | int | 200 | 50〜1000（SPEC は「距離設定可」のみ。範囲はここで仮決め） | 共通 | 実装済み（M5 ステップ 2、2026-10-03） | 単位は OS に従う。「マウスが離れたら閉じる」OFF のときスライダーは無効表示 |
+| Esc で閉じる | — | — | 常に有効 | | 共通 | 実装済み（M2） | 設定項目ではない（SPEC §3.3） |
+
+## トリガータブ（`triggers`）
+
+| 項目名（UI） | JSON キー | 型 | 既定値 | 範囲・選択肢 | OS | 実装状況 | 備考 |
+|---|---|---|---|---|---|---|---|
+| ホットキーを使う | `triggers.hotkey.enabled` | bool | true | | 共通 | 実装済み（M2） | |
+| ホットキーの修飾キー | `triggers.hotkey.modifiers` | flags | `ctrl, alt` | `ctrl` / `alt` / `shift` / `meta` の組合せ（1 つ以上） | 共通 | 実装済み（M2） | UI 表示は OS で変える: Win「Ctrl / Alt / Shift / Win」、Mac「⌃ / ⌥ / ⇧ / ⌘」。設定画面ではキー入力で記録: 記録欄をクリックすると「キーを押してください…」になり、Avalonia の `KeyDown`（修飾キー + キー）から記録する。記録中は現在のホットキーの判定を止める（`IHotkeyService.Unregister` → 記録後に `Register`）。修飾キーなし・修飾キーのみは受け付けない（SPEC §4.1）。Esc で中止。Avalonia `Key` → SharpHook のキー名への対応表に無いキーは「このキーは使えません」 |
+| ホットキーのキー | `triggers.hotkey.key` | string | `Space` | SharpHook の `KeyCode` 名から `Vc` を除いたもの（`Space`, `A`, `F1` …） | 共通 | 実装済み（M2） | 修飾キーのみ（Ctrl 2 回押し）は §12 |
+| マウス操作（複数） | `triggers.mouse[]` | 配列 | `[{ gesture: click, button: middle, modifiers: ctrl }]` | 要素: `enabled`(bool, 既定 true) / `gesture`(`click` / `longPress` / `leftRightTogether` / `wheelClickRotate`) / `button`(`left` / `middle` / `x1` / `x2`) / `modifiers`(flags) | 共通 | 実装済み（`click` / `longPress` / `leftRightTogether` は M2、`wheelClickRotate` は M4 ステップ 4、2026-10-03） | SPEC §4.2。修飾キーなしの `left` クリックは選べない（UI で弾く）。`x1` / `x2` は Mac で Mission Control 等と競合する注記。`wheelClickRotate` は中ボタンを押しながらの回転でページ切替（盤面が出ていなければ出してから切替）。`button` は `middle` 固定で、UI ではボタンのドロップダウンを**非表示**にする（`leftRightTogether` と同じ扱い。SPEC §1.2 の原則）。中ボタンの押下・離上は下のアプリへ通す（回さずに離せば普通の中クリック） |
+| デスクトップ上でのみ有効 | `triggers.desktopOnly` | bool | false | | 共通 | 一部実装（Win は M2 済み。**Mac は Mac-1**） | SPEC §4.2 |
+| 長押し時間 | `triggers.longPressMs` | int (ms) | 400 | 200〜1000 | 共通 | 実装済み（M2） | |
+| 左右同時押しの判定時間 | `triggers.simultaneousWindowMs` | int (ms) | 100 | 50〜200 | 共通 | 実装済み（M2） | |
+
+## 常駐タブ（`resident`）
+
+| 項目名（UI） | JSON キー | 型 | 既定値 | 範囲・選択肢 | OS | 実装状況 | 備考 |
+|---|---|---|---|---|---|---|---|
+| 重ね順 | `resident.zOrder` | enum | `normal` | `topmost` / `normal` / `bottommost` | 共通 | 実装済み（M5 ステップ 3、2026-10-03） | SPEC §3.2。Mac の `bottommost` はデスクトップアイコン層の直上（SPEC §10.3）。`IWindowService.SetZOrder` で即時反映 |
+| 自動で隠す | `resident.autoHide` | bool | false | | 共通 | 実装済み（M5 ステップ 3、2026-10-03） | 画面端に収納・スライドイン（SPEC §3.2）。演出は EFFECTS.md `residentAutoHide` |
+| 位置をロック | `resident.lockPosition` | bool | false | | 共通 | 実装済み（M5 ステップ 3、2026-10-03） | ON のときドラッグで動かない（ヘッダーの隙間・タブ・空きスロット・枠の余白のいずれからも。SPEC §3.1 / §3.2） |
+| トリガーで盤面をカーソル位置へ移動 | `resident.moveToCursorOnTrigger` | bool | false | | 共通 | 実装済み（M5 ステップ 3、2026-10-03） | SPEC §3.4。演出は EFFECTS.md `residentMove` |
+| 前回の位置・サイズ | `resident.bounds` | `{x, y, width, height}` / null | null | 画面内 | 共通 | 実装済み（M5 ステップ 3、2026-10-03） | UI には出さない（自動保存のみ。移動終了から 500ms 後と終了時）。null は初回（画面中央に出す）。読み込み時に画面外なら画面内へ寄せる（Core `PopupPlacement` の補正を流用） |
+
+常駐タブの項目は表示モードがポップアップのときも表示する（切り替える前に設定しておけるように）。タブ先頭に「現在の表示モード: ○○」の注記を出す。
+
+## データタブ（`data`）
+
+| 項目名（UI） | JSON キー | 型 | 既定値 | 範囲・選択肢 | OS | 実装状況 | 備考 |
+|---|---|---|---|---|---|---|---|
+| バックアップ世代数 | `data.backupGenerations` | int | 10 | 0〜100 | 共通 | 実装済み（M1。UI は M5 ステップ 2） | 0 で世代バックアップなし（SPEC §9.3） |
+| 設定フォルダを開く（ボタン） | — | — | — | | 共通 | 実装済み（M5 ステップ 2、2026-10-03） | 値は持たない。`IShellService.Launch` にフォルダアイテム（`DataPaths.Root`）を渡して開く（OS 固有コードを増やさない） |
+| エクスポート / インポート（ボタン） | — | — | — | | 共通 | 実装済み（M5 ステップ 4。`background/` の同梱も実装済み、**ユーザー確認済み 2026-10-04**） | エクスポート = `settings.json` + `board.json` を 1 つの zip（`CPFileLauncher-backup-yyyyMMdd-HHmmss.zip`。2026-10-04 製品名の変更。旧名の zip もインポートできる）に保存（OS 標準の保存ダイアログ）。**背景画像が `background/` のコピー（相対パス参照）なら `background/<ファイル名>` も含める**（SPEC §3.7。絶対パス参照なら含めない）。`icons/` は含めない（キャッシュは再生成される。`iconOverride` は絶対パス参照のまま）。インポート = zip を選び、確認ダイアログの後に 2 ファイル（+ `background/`）を差し替えて**再起動**（既存の「再起動」処理を流用。読み込み済みの盤面・設定を生きたまま差し替える経路は作らない）。差し替え前の現行ファイルは `backup/` に退避 |
+| ポータブルモード（表示のみ） | — | — | — | | 共通 | 実装済み（M1、判定のみ） | `portable.flag` の有無。変更不可（SPEC §9.1） |
+
+## 詳細タブ（`advanced`）
+
+| 項目名（UI） | JSON キー | 型 | 既定値 | 範囲・選択肢 | OS | 実装状況 | 備考 |
+|---|---|---|---|---|---|---|---|
+| ログを出力する | `advanced.logging` | bool | false | | 共通 | 実装済み（M2。Debug ビルドは値に関わらず常に出力。即時反映は M5 ステップ 1: `AppLog.SetEnabled`） | `logs/` へ。起動時に 14 日より古いログを削除（設定項目にはしない） |
+| ログフォルダを開く（ボタン） | — | — | — | | 共通 | 未実装（M5 ステップ 1） | 値は持たない。Mac の確認でログを貼ってもらうときに使う。「設定フォルダを開く」と同じ経路 |
+| ハードウェアアクセラレーション | `advanced.hardwareAcceleration` | bool | true | | 共通 | 未実装（M5 ステップ 4） | 変更は再起動後に反映（Avalonia の描画オプションは起動時指定）。注記を出す。`Program.cs` が Avalonia 起動前に `settings.json` のこのキーだけを軽量に読み、OFF なら `Win32PlatformOptions` / `AvaloniaNativePlatformOptions` の `RenderingMode` を Software にする |
+| 設定をリセット（ボタン） | — | — | — | | 共通 | 未実装（M5 ステップ 4） | settings.json を既定に戻す（board.json は触らない）。確認ダイアログあり。`AppSettings` のインスタンスを新しい既定値に差し替えて全項目の変更通知を出す（即時反映。設定ウィンドウも描き直す） |
+
+## SPEC と実装のずれ（2026-10-03 時点）
+
+解消したらこの節から消す。2026-10-03 までに解消済み: `closeOnMouseLeave` の割当（M5 ステップ 2）、`animation` の用途（`spec/EFFECTS.md`）、`confirmMoveOnDrop` は一般タブ（ユーザー了承）、`lastPosition` の保存は `SettingsHub` 経由（M5 ステップ 1）、`defaultRows` / `defaultCols` の新規ページへの適用（M4 ステップ 2）、`wheelClickRotate`（M4 ステップ 4）、`board.*` の 2 トグルと削除確認トグルの撤去（M4 ステップ 2 / 4）。
+
+1. 旧 §7 の「アップデート確認」はモデルに存在しない（§13.2 T5 が決まるまで追加しない）。

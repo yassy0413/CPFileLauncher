@@ -1,0 +1,104 @@
+using FileLauncher.Core.Model;
+
+namespace FileLauncher.Core.Effects;
+
+/// <summary>
+/// 演出 1 つの定義。既定値と選べる種類は spec/EFFECTS.md の表と一致させる。表示名は App のリソース（Effect_&lt;Id&gt;）。
+/// </summary>
+/// IsAmbient = 盤面を出している間ずっと動く演出（時間は 1 周 / 1 周期）。Min/Max/DurationStepMs = 時間の範囲と刻み。UsesEasing = イージングを使うか。
+public sealed record EffectDefinition(string Id, EffectSpec Default, IReadOnlyList<EffectKind> AllowedKinds,
+    bool IsAmbient = false, int MinDurationMs = 0, int MaxDurationMs = EffectSpec.MaxDurationMs,
+    int DurationStepMs = 10, bool UsesEasing = true)
+{
+}
+
+/// <summary>
+/// 演出の一覧と解決（spec/EFFECTS.md）。settings.json には既定と違う演出だけを appearance.effects に保存する。
+/// </summary>
+public static class EffectCatalog
+{
+    public const string BoardShow = "boardShow";
+    public const string BoardHide = "boardHide";
+    public const string PageSwitch = "pageSwitch";
+    public const string TabHighlight = "tabHighlight";
+    public const string ItemHover = "itemHover";
+    public const string ItemPress = "itemPress";
+    public const string ItemLaunch = "itemLaunch";
+    public const string LabelHover = "labelHover";
+    public const string IconLoad = "iconLoad";
+    public const string DropTarget = "dropTarget";
+    public const string ToastShow = "toastShow";
+    public const string ToastHide = "toastHide";
+    public const string ResidentAutoHide = "residentAutoHide";
+    public const string ResidentMove = "residentMove";
+    public const string FrameOrb = "frameOrb";
+    public const string GlowPulse = "glowPulse";
+
+    private static EffectSpec Spec(EffectKind kind, int ms, EasingKind easing) => new() { Kind = kind, DurationMs = ms, Easing = easing };
+
+    private static readonly EffectKind[] ShowKinds = [EffectKind.None, EffectKind.Fade, EffectKind.Zoom, EffectKind.Slide, EffectKind.Glitch];
+    private static readonly EffectKind[] HideKinds = [EffectKind.None, EffectKind.Fade, EffectKind.Zoom, EffectKind.Slide, EffectKind.Glitch];
+    private static readonly EffectKind[] HighlightKinds = [EffectKind.None, EffectKind.Highlight, EffectKind.Glow];
+    private static readonly EffectKind[] FadeKinds = [EffectKind.None, EffectKind.Fade];
+    private static readonly EffectKind[] SlideKinds = [EffectKind.None, EffectKind.Slide];
+
+    public static IReadOnlyList<EffectDefinition> All { get; } =
+    [
+        new(BoardShow, Spec(EffectKind.Glitch, 150, EasingKind.Linear), ShowKinds), // 2026-10-03 ユーザー要望で 1.5 倍
+        new(BoardHide, Spec(EffectKind.Glitch, 150, EasingKind.Linear), HideKinds), // 2026-10-03 ユーザー要望: Out も In と同じグリッチ
+        new(PageSwitch, Spec(EffectKind.Fade, 80, EasingKind.EaseOut), [EffectKind.None, EffectKind.Fade, EffectKind.Slide]),
+        new(TabHighlight, Spec(EffectKind.Glow, 80, EasingKind.Linear), HighlightKinds),
+        new(ItemHover, Spec(EffectKind.Glow, 80, EasingKind.Linear), HighlightKinds),
+        new(ItemPress, Spec(EffectKind.Zoom, 60, EasingKind.EaseOut), [EffectKind.None, EffectKind.Zoom]),
+        new(ItemLaunch, Spec(EffectKind.Zoom, 150, EasingKind.EaseOut), [EffectKind.None, EffectKind.Zoom, EffectKind.Fade]),
+        new(LabelHover, Spec(EffectKind.Fade, 80, EasingKind.Linear), FadeKinds),
+        new(IconLoad, Spec(EffectKind.Fade, 100, EasingKind.Linear), FadeKinds),
+        new(DropTarget, Spec(EffectKind.Glow, 100, EasingKind.Linear), HighlightKinds),
+        new(ToastShow, Spec(EffectKind.Slide, 150, EasingKind.EaseOut), [EffectKind.None, EffectKind.Fade, EffectKind.Slide]),
+        new(ToastHide, Spec(EffectKind.Fade, 150, EasingKind.EaseIn), FadeKinds),
+        new(ResidentAutoHide, Spec(EffectKind.Slide, 150, EasingKind.EaseInOut), SlideKinds),
+        new(ResidentMove, EffectSpec.None, SlideKinds),
+        // 常時の演出（2026-10-04 ユーザー要望）。macOS では動いている間ずっと盤面全体の描き直しになり CPU を 20〜30% 使うので、
+        // どのテーマでも既定はなし（ユーザーが「演出の調整…」でオンにする。2026-10-04 ユーザー判断）
+        new(FrameOrb, EffectSpec.None, [EffectKind.None, EffectKind.Orb, EffectKind.OrbTwin],
+            IsAmbient: true, MinDurationMs: 2000, MaxDurationMs: 20000, DurationStepMs: 500, UsesEasing: false),
+        new(GlowPulse, EffectSpec.None, [EffectKind.None, EffectKind.Pulse, EffectKind.PulseStrong],
+            IsAmbient: true, MinDurationMs: 1000, MaxDurationMs: 10000, DurationStepMs: 250, UsesEasing: false),
+    ];
+
+    private static readonly Dictionary<string, EffectDefinition> ById = All.ToDictionary(d => d.Id);
+
+    public static EffectDefinition? Find(string id) => ById.GetValueOrDefault(id);
+
+    /// <summary>そのテーマでの既定値。</summary>
+    public static EffectSpec DefaultFor(string id) =>
+        ById.TryGetValue(id, out var def) ? def.Default : EffectSpec.None;
+
+    /// <summary>実際に使う値。アニメーション OFF なら None、上書きがあればそれ、無ければテーマの既定。</summary>
+    public static EffectSpec Resolve(AppearanceSettings appearance, string id)
+    {
+        if (!appearance.Animation) return EffectSpec.None;
+        if (appearance.Effects is { } overrides && overrides.TryGetValue(id, out var spec)) return spec;
+        return DefaultFor(id);
+    }
+
+    /// <summary>
+    /// 保存値を整える: 時間を演出ごとの範囲（ふつうは 0〜1000）に丸める、未知の ID・その演出で選べない種類は捨てる、そのテーマの既定と同じものは捨てる
+    /// （「既定と違うものだけ保存」を保つ）。
+    /// </summary>
+    public static Dictionary<string, EffectSpec> Normalize(Dictionary<string, EffectSpec>? effects)
+    {
+        var result = new Dictionary<string, EffectSpec>(StringComparer.Ordinal);
+        if (effects is null) return result;
+        foreach (var (id, raw) in effects)
+        {
+            if (raw is null || !ById.TryGetValue(id, out var def) || !def.AllowedKinds.Contains(raw.Kind)) continue;
+            int min = raw.Kind == EffectKind.None ? 0 : def.MinDurationMs;
+            var spec = raw with { DurationMs = Math.Clamp(raw.DurationMs, min, def.MaxDurationMs) };
+            // glitch はステップ関数、常時の演出は一定速度（イージングを使わない）
+            if (spec.Kind == EffectKind.Glitch || !def.UsesEasing) spec = spec with { Easing = EasingKind.Linear };
+            if (spec != def.Default) result[id] = spec;
+        }
+        return result;
+    }
+}

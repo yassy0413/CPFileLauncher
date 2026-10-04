@@ -1,0 +1,340 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Headless;
+using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Media;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
+using FileLauncher.App;
+using FileLauncher.Core.Effects;
+using FileLauncher.Core.Model;
+using FileLauncher.Core.Storage;
+using CoreModifiers = FileLauncher.Core.Model.KeyModifiers;
+
+namespace FileLauncher.Desktop.Tests;
+
+public sealed class SettingsUiTests : IDisposable
+{
+    private readonly string _dir = Path.Combine(Path.GetTempPath(), "FileLauncherUiTests", Guid.NewGuid().ToString("N"));
+    private readonly FakePlatform _platform = new();
+    private readonly SettingsHub _hub;
+    private readonly DataPaths _paths;
+
+    public SettingsUiTests()
+    {
+        Directory.CreateDirectory(_dir);
+        _paths = new DataPaths(_dir, IsPortable: false);
+        var store = new AppDataStore(_paths);
+        _hub = new SettingsHub(store, store.LoadAll().Settings.Value);
+    }
+
+    public void Dispose()
+    {
+        try { Directory.Delete(_dir, recursive: true); } catch (IOException) { }
+    }
+
+    private Avalonia.PixelPoint? _boardPosition;
+
+    private SettingsWindow OpenSettings()
+    {
+        var w = new SettingsWindow(new SettingsContext(_hub, _platform, _paths, () => _boardPosition, _ => { }, () => { }));
+        w.Show();
+        Dispatcher.UIThread.RunJobs();
+        return w;
+    }
+
+    private static T Find<T>(Window w) where T : Control =>
+        w.GetVisualDescendants().OfType<T>().First();
+
+    private static void SelectTab(Window w, string header)
+    {
+        var tabs = Find<TabControl>(w);
+        tabs.SelectedItem = tabs.Items.OfType<TabItem>().First(t => (t.Header as TextBlock)?.Text == header);
+        Dispatcher.UIThread.RunJobs();
+    }
+
+    [AvaloniaFact]
+    public void 設定画面のすべてのタブを開いても落ちない()
+    {
+        var w = OpenSettings();
+        var tabs = Find<TabControl>(w);
+        foreach (var tab in tabs.Items.OfType<TabItem>())
+        {
+            tabs.SelectedItem = tab;
+            Dispatcher.UIThread.RunJobs();
+        }
+        Assert.True(tabs.Items.Count >= 6);
+        w.Close();
+    }
+
+    [AvaloniaFact]
+    public void フックが止まっているときは記録欄へのキー入力でホットキーを記録する()
+    {
+        var w = OpenSettings();
+        SelectTab(w, Strings.Settings_Tab_Triggers);
+        var recorder = Find<HotkeyRecorder>(w);
+
+        recorder.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        w.KeyPressQwerty(PhysicalKey.K, RawInputModifiers.Control | RawInputModifiers.Alt);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(("K", CoreModifiers.Ctrl | CoreModifiers.Alt), (_hub.Current.Triggers.Hotkey.Key, _hub.Current.Triggers.Hotkey.Modifiers));
+    }
+
+    [AvaloniaFact]
+    public void 記録中にどの物理キーを押しても落ちない()
+    {
+        var w = OpenSettings();
+        SelectTab(w, Strings.Settings_Tab_Triggers);
+        var recorder = Find<HotkeyRecorder>(w);
+
+        foreach (var key in Enum.GetValues<PhysicalKey>().Where(k => k is not PhysicalKey.None and not PhysicalKey.Escape))
+        {
+            recorder.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            w.KeyPressQwerty(key, RawInputModifiers.Alt);
+            // 記録できなかったキーのあとは中止して次へ（記録が終わっていれば Esc は設定画面を閉じてしまうので押さない）
+            if (recorder.IsRecording) w.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+            Dispatcher.UIThread.RunJobs();
+        }
+    }
+
+    [AvaloniaFact]
+    public void フックが動いているときはフックで記録し_終わったらフックの記録を止める()
+    {
+        _platform.HookRunning = true;
+        var w = OpenSettings();
+        SelectTab(w, Strings.Settings_Tab_Triggers);
+        var recorder = Find<HotkeyRecorder>(w);
+
+        recorder.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.NotNull(_platform.Capture);
+        _platform.Capture!("Space", CoreModifiers.Ctrl);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(("Space", CoreModifiers.Ctrl), (_hub.Current.Triggers.Hotkey.Key, _hub.Current.Triggers.Hotkey.Modifiers));
+        Assert.Null(_platform.Capture);
+    }
+
+    [AvaloniaFact]
+    public void 記録を2回したあとEscで中止すると表示は最後に記録した値()
+    {
+        _platform.HookRunning = true;
+        var w = OpenSettings();
+        SelectTab(w, Strings.Settings_Tab_Triggers);
+        var recorder = Find<HotkeyRecorder>(w);
+
+        foreach (var key in new[] { "K", "J" })
+        {
+            recorder.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            _platform.Capture!(key, CoreModifiers.Ctrl);
+            Dispatcher.UIThread.RunJobs();
+        }
+        recorder.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        _platform.Capture!("Escape", CoreModifiers.None);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(HotkeyRecorder.Format(new HotkeySetting { Modifiers = CoreModifiers.Ctrl, Key = "J" }), recorder.Content);
+    }
+
+    [AvaloniaFact]
+    public void 設定画面を閉じると予約中の保存が書かれる()
+    {
+        var w = OpenSettings();
+        _hub.Update(s => s.Appearance.Opacity = 55, SettingsChange.Opacity);
+        w.Close();
+
+        var saved = new AppDataStore(_paths).LoadAll().Settings.Value;
+        Assert.Equal(55, saved.Appearance.Opacity);
+    }
+
+    [AvaloniaFact]
+    public void 盤面は不透明度と演出の設定を反映する()
+    {
+        var board = new BoardWindow();
+        var appearance = new AppearanceSettings { Opacity = 70 };
+
+        board.ApplyEffects(appearance);
+        board.Render(Board.CreateDefault(), appearance, 0);
+        Assert.Equal(0.7, board.Opacity, 3);
+        Assert.True(board.HasShowEffect);
+
+        appearance.Effects[EffectCatalog.BoardShow] = EffectSpec.None;
+        board.ApplyEffects(appearance);
+        Assert.False(board.HasShowEffect);
+
+        appearance.Effects.Clear();
+        appearance.Animation = false;
+        board.ApplyEffects(appearance);
+        Assert.False(board.HasShowEffect);
+    }
+
+    [AvaloniaFact]
+    public void ポップアップタブはキーボードとマウスの表示位置を別々に設定できる()
+    {
+        _boardPosition = new Avalonia.PixelPoint(300, 400);
+        var w = OpenSettings();
+        SelectTab(w, Strings.Settings_Tab_Popup);
+        var tab = Find<TabControl>(w);
+        var page = (Control)tab.SelectedContent!;
+        var combos = page.GetVisualDescendants().OfType<ComboBox>().ToList();
+        var numbers = page.GetVisualDescendants().OfType<NumericUpDown>().ToList();
+        var useButtons = page.GetVisualDescendants().OfType<Button>().Where(b => (b.Content as string) == Strings.Settings_Popup_UseCurrent).ToList();
+        Assert.Equal(4, numbers.Count);   // キーボード X/Y, マウス X/Y
+        Assert.Equal(2, useButtons.Count);
+
+        combos[0].SelectedIndex = 3; // キーボード = 固定座標
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(PopupPosition.Fixed, _hub.Current.Popup.Keyboard.Position);
+        Assert.Equal(PopupPosition.Cursor, _hub.Current.Popup.Mouse.Position);
+        Assert.True(numbers[0].IsEnabled && numbers[1].IsEnabled);
+        Assert.False(numbers[2].IsEnabled || numbers[3].IsEnabled);
+
+        useButtons[0].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal((300, 400), (_hub.Current.Popup.Keyboard.X, _hub.Current.Popup.Keyboard.Y));
+        Assert.Null(_hub.Current.Popup.Mouse.X);
+    }
+
+    private static Button ButtonOf(Window w, string content) =>
+        w.GetVisualDescendants().OfType<Button>().Single(b => (b.Content as string) == content);
+
+    [AvaloniaFact]
+    public void 設定をリセットすると確認の後に既定値へ戻り_キャンセルなら戻らない()
+    {
+        _hub.Update(s => { s.Appearance.Opacity = 50; s.Advanced.HardwareAcceleration = false; }, SettingsChange.Opacity);
+        var w = OpenSettings();
+        SelectTab(w, Strings.Settings_Tab_Advanced);
+        bool answer = false;
+        w.Confirm = (_, _, _) => Task.FromResult(answer);
+
+        ButtonOf(w, Strings.Settings_Advanced_Reset).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(50, _hub.Current.Appearance.Opacity);
+
+        answer = true;
+        ButtonOf(w, Strings.Settings_Advanced_Reset).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(80, _hub.Current.Appearance.Opacity);
+        Assert.True(_hub.Current.Advanced.HardwareAcceleration);
+        Assert.Contains(w.GetVisualDescendants().OfType<ToggleSwitch>(), t => t.IsChecked == true); // 画面も読み直す
+        w.Close();
+    }
+
+    [AvaloniaFact]
+    public void データタブにエクスポートとインポートがある()
+    {
+        var w = OpenSettings();
+        SelectTab(w, Strings.Settings_Tab_Data);
+        Assert.NotNull(ButtonOf(w, Strings.Settings_Data_Export));
+        Assert.NotNull(ButtonOf(w, Strings.Settings_Data_Import));
+        w.Close();
+    }
+
+    [AvaloniaFact]
+    public void 言語を今と違う値にすると今すぐ再起動が出て_保存される()
+    {
+        int restarts = 0;
+        var w = new SettingsWindow(new SettingsContext(_hub, _platform, _paths, () => null, _ => { }, () => { }, Restart: () => restarts++));
+        w.Show();
+        Dispatcher.UIThread.RunJobs();
+        var language = w.GetVisualDescendants().OfType<ComboBox>().First(); // 一般タブの先頭
+        Button Restart() => w.GetVisualDescendants().OfType<Button>().First(b => (b.Content as string) == Strings.Common_RestartNow);
+        Assert.False(Restart().IsVisible); // テストは英語で起動している（system → en）
+
+        language.SelectedIndex = 1; // 日本語
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("ja", _hub.Current.General.Language);
+        Assert.True(Restart().IsVisible);
+        Restart().RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal(1, restarts);
+
+        language.SelectedIndex = 2; // English = 今の表示言語
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(Restart().IsVisible);
+
+        _hub.Flush();
+        Assert.Contains("\"language\": \"en\"", File.ReadAllText(_paths.SettingsFile));
+        w.Close();
+    }
+
+    [AvaloniaFact]
+    public void どのタブでも項目が設定画面の右端を突き抜けない_英語() => AssertNoOverflow("en");
+
+    [AvaloniaFact]
+    public void どのタブでも項目が設定画面の右端を突き抜けない_日本語() => AssertNoOverflow("ja");
+
+    private void AssertNoOverflow(string culture)
+    {
+        // 長いファイル名の背景画像（2026-10-04 に背景画像の行が右へはみ出した）
+        _hub.Update(s => s.Appearance.Background.Image = "background/ChatGPT Image 2026年10月4日 14_30_00 とても長いファイル名.png", SettingsChange.None);
+        var saved = System.Globalization.CultureInfo.CurrentUICulture;
+        System.Globalization.CultureInfo.CurrentUICulture = new System.Globalization.CultureInfo(culture);
+        SettingsWindow w;
+        try { w = OpenSettings(); }
+        finally { System.Globalization.CultureInfo.CurrentUICulture = saved; }
+        var tabs = Find<TabControl>(w);
+        var bad = new List<string>();
+        foreach (var tab in tabs.Items.OfType<TabItem>())
+        {
+            tabs.SelectedItem = tab;
+            Dispatcher.UIThread.RunJobs();
+            foreach (var expander in w.GetVisualDescendants().OfType<Expander>()) expander.IsExpanded = true;
+            Dispatcher.UIThread.RunJobs();
+            var scroll = w.GetVisualDescendants().OfType<ScrollViewer>().First(v => v.IsEffectivelyVisible && v.Content is StackPanel);
+            double right = scroll.Viewport.Width + 0.5;
+            foreach (var c in ((Control)scroll.Content!).GetVisualDescendants().OfType<Control>())
+            {
+                if (!c.IsEffectivelyVisible || c.Bounds.Width <= 0 || c is TextBlock { TextWrapping: TextWrapping.Wrap }) continue;
+                if (c.TranslatePoint(new Avalonia.Point(c.Bounds.Width, 0), (Control)scroll.Content!) is { } p && p.X > right)
+                    bad.Add($"{(tab.Header as TextBlock)?.Text}: {c.GetType().Name} {(c as ContentControl)?.Content ?? (c as TextBlock)?.Text} → {p.X:F0} > {right:F0}");
+            }
+        }
+        w.Close();
+        Assert.True(bad.Count == 0, string.Join("\n", bad.Distinct().Take(20)));
+    }
+
+    [AvaloniaFact]
+    public void 配色のプリセットを選ぶと主色と副色が入り_入れ替えるとカスタムになる()
+    {
+        var w = OpenSettings();
+        SelectTab(w, Strings.Settings_Tab_Appearance);
+        var preset = w.GetVisualDescendants().OfType<ComboBox>().First(c => c.ItemsSource is List<int>);
+        Assert.Equal(0, preset.SelectedIndex); // 既定はシアン
+
+        preset.SelectedIndex = 1; // レッド
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(("#FF2E4D", "#37EBF3"), (_hub.Current.Appearance.Colors.Primary, _hub.Current.Appearance.Colors.Secondary));
+
+        var swap = w.GetVisualDescendants().OfType<Button>().Single(b => (b.Content as string) == "⇄");
+        swap.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(("#37EBF3", "#FF2E4D"), (_hub.Current.Appearance.Colors.Primary, _hub.Current.Appearance.Colors.Secondary));
+        Assert.Equal(FileLauncher.Core.Theming.ColorPresets.All.Count, preset.SelectedIndex); // カスタム
+        w.Close();
+    }
+
+    [AvaloniaTheory]
+    [InlineData("en")]
+    [InlineData("ja")]
+    public void 設定画面のタブはアウトラインで_7つとも1行に収まる(string culture)
+    {
+        var saved = System.Globalization.CultureInfo.CurrentUICulture;
+        System.Globalization.CultureInfo.CurrentUICulture = new System.Globalization.CultureInfo(culture);
+        SettingsWindow w;
+        try { w = OpenSettings(); }
+        finally { System.Globalization.CultureInfo.CurrentUICulture = saved; }
+        var tabs = w.GetVisualDescendants().OfType<TabItem>().ToList();
+        Assert.Equal(7, tabs.Count);
+        Assert.All(tabs, t => Assert.Equal(new Avalonia.Thickness(1), t.BorderThickness));
+        double top = tabs[0].Bounds.Y;
+        Assert.All(tabs, t => Assert.Equal(top, t.Bounds.Y)); // 折り返していない
+        var last = tabs[^1];
+        var right = last.TranslatePoint(new Avalonia.Point(last.Bounds.Width, 0), w)!.Value.X;
+        Assert.True(right <= w.Bounds.Width, $"{culture}: {right} > {w.Bounds.Width}");
+        w.Close();
+    }
+}

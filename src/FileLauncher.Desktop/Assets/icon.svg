@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- CPFileLauncher のアプリアイコン（2026-10-04 ユーザーが 3 案から選定。SPEC §3.9 H13）: 面取りした濃紺の板 + 3×3 のスロット（中央が光る）+ 角ブラケット。固定色（配色の設定には追従しない） -->
+  <defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <path d="M184 64H840L960 184V840L840 960H184L64 840V184Z" fill="#0B1220" stroke="#00E5FF" stroke-width="16"/>
+  <g fill="none" stroke="#00E5FF" stroke-opacity=".55" stroke-width="12">
+    <rect x="212" y="212" width="160" height="160"/><rect x="432" y="212" width="160" height="160"/><rect x="652" y="212" width="160" height="160"/>
+    <rect x="212" y="432" width="160" height="160"/><rect x="652" y="432" width="160" height="160"/>
+    <rect x="212" y="652" width="160" height="160"/><rect x="432" y="652" width="160" height="160"/><rect x="652" y="652" width="160" height="160"/>
+  </g>
+  <rect x="432" y="432" width="160" height="160" fill="#00E5FF" fill-opacity=".25" stroke="#00E5FF" stroke-width="16" filter="url(#glow)"/>
+  <path d="M470 512h84M512 470v84" stroke="#E6FBFF" stroke-width="16" filter="url(#glow)"/>
+  <path d="M120 300V184L184 120H300" fill="none" stroke="#00E5FF" stroke-width="22" filter="url(#glow)"/>
+  <path d="M904 724V840L840 904H724" fill="none" stroke="#FF2BD6" stroke-width="22" filter="url(#glow)"/>
+</svg>

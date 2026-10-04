@@ -1,0 +1,29 @@
+using FileLauncher.Core.Effects;
+using FileLauncher.Core.Model;
+
+namespace FileLauncher.App;
+
+/// <summary>enum の表示名（リソースのキー Enum_&lt;型名&gt;_&lt;値&gt;、spec/TERMS.md §4）と演出名（Effect_&lt;ID&gt;）。</summary>
+internal static class EnumNames
+{
+    /// <summary>表示名を持つ enum（StringsTests が全値のキーがあるか確かめる）。</summary>
+    internal static readonly Type[] Localized =
+    [
+        typeof(DisplayMode), typeof(BackgroundFit), typeof(AccentPreset), typeof(ClockMode), typeof(LabelMode), typeof(PopupPosition),
+        typeof(MouseGesture), typeof(MouseButtonKind), typeof(ZOrder), typeof(EffectKind), typeof(EasingKind), typeof(ItemColor),
+        typeof(ItemKind), typeof(LaunchMode),
+    ];
+
+    public static string Of<T>(T value) where T : struct, Enum =>
+        Strings.ResourceManager.GetString($"Enum_{typeof(T).Name}_{value}", Strings.Culture) ?? value.ToString();
+
+    /// <summary>色（null = なし）。</summary>
+    public static string Color(ItemColor? color) => color is { } c ? Of(c) : Strings.Enum_ItemColor_None;
+
+    /// <summary>演出名（spec/EFFECTS.md「演出名」列）。</summary>
+    public static string Effect(string id) => Strings.ResourceManager.GetString("Effect_" + id, Strings.Culture) ?? id;
+
+    /// <summary>コンボボックス用（表示名, 値）の一覧。</summary>
+    public static (string Text, T Value)[] Options<T>(params T[] values) where T : struct, Enum =>
+        values.Select(v => (Of(v), v)).ToArray();
+}

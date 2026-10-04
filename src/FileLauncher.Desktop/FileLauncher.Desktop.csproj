@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>CPFileLauncher</AssemblyName>
+    <Product>CPFileLauncher</Product>
+    <AssemblyTitle>CPFileLauncher</AssemblyTitle>
+    <!-- 製品のバージョン（「について」と macOS の Info.plist に出る。製品名・正式な版の付け方は SPEC §13.2 の TODO） -->
+    <Version>0.1.0</Version>
+    <!-- Windows の exe のアイコン（src/build/make-icons.sh が Assets/icon.svg から作る。SPEC §3.9 H13） -->
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <!-- フォルダ・プロジェクト名は FileLauncher.Desktop（.App で終わると macOS がアプリバンドルとみなすため）。名前空間は据え置き -->
+    <RootNamespace>FileLauncher.App</RootNamespace>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.22" Condition="'$(Configuration)' == 'Debug'" />
+    <!-- resx から Strings クラスを生成する（ビルド時だけ。配布物には入らない。SPEC §10.2） -->
+    <PackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="5.0.0-1.25277.114" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- サイバーパンクテーマの欧文フォント Chakra Petch（SIL OFL 1.1。ライセンス本文 OFL-ChakraPetch.txt を同梱） -->
+    <AvaloniaResource Include="Resources\Fonts\*.ttf" />
+    <AvaloniaResource Include="Assets\*.png" />
+    <None Include="Resources\Fonts\OFL-*.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- UI 文字列（英語が既定、日本語は衛星アセンブリ。SPEC §7「言語と UI 文字列」、訳語は spec/TERMS.md） -->
+    <EmbeddedResource Update="Resources\Strings.resx" ClassName="FileLauncher.App.Strings" EmitFormatMethods="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="FileLauncher.Desktop.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FileLauncher.Core\FileLauncher.Core.csproj" />
+    <ProjectReference Include="..\FileLauncher.Platform\FileLauncher.Platform.csproj" />
+    <ProjectReference Include="..\FileLauncher.Platform.Windows\FileLauncher.Platform.Windows.csproj" />
+    <ProjectReference Include="..\FileLauncher.Platform.MacOS\FileLauncher.Platform.MacOS.csproj" />
+  </ItemGroup>
+
+</Project>

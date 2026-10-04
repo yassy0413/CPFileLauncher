@@ -1,0 +1,74 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="IconSpike.MainWindow"
+        Title="IconSpike"
+        Width="1000" Height="760"
+        WindowStartupLocation="CenterScreen">
+
+  <DockPanel Margin="12">
+
+    <StackPanel DockPanel.Dock="Top" Spacing="8">
+      <TextBlock FontWeight="Bold" FontSize="16" Text="FileLauncher アイコン取得スパイク (Windows)" />
+      <TextBlock TextWrapping="Wrap"
+                 Text="「サンプルを追加」か、下の枠へ Explorer からドロップ。1 件ごとにタイルが出て、取得方式・実ピクセル・所要時間を表示します。" />
+
+      <WrapPanel>
+        <WrapPanel.Styles>
+          <Style Selector="Button, CheckBox, ComboBox, TextBlock">
+            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+          </Style>
+        </WrapPanel.Styles>
+        <TextBlock Text="サイズ" />
+        <ComboBox x:Name="SizeBox" SelectedIndex="1" Width="90">
+          <ComboBoxItem Content="32" />
+          <ComboBoxItem Content="48" />
+          <ComboBoxItem Content="64" />
+          <ComboBoxItem Content="96" />
+        </ComboBox>
+        <CheckBox x:Name="IconOnlyCheck" Content="アイコンのみ（サムネイル不可）" IsChecked="True" />
+        <CheckBox x:Name="CompareSysCheck" Content="SHGetFileInfo でも取得して並べる" IsChecked="True" />
+        <CheckBox x:Name="UseCacheCheck" Content="png キャッシュを使う" IsChecked="True" />
+        <CheckBox x:Name="DarkBgCheck" Content="タイル背景を暗く" />
+      </WrapPanel>
+
+      <WrapPanel>
+        <WrapPanel.Styles>
+          <Style Selector="Button">
+            <Setter Property="Margin" Value="0,0,8,8" />
+          </Style>
+        </WrapPanel.Styles>
+        <Button x:Name="SamplesButton" Content="サンプルを追加" />
+        <Button x:Name="ReloadButton" Content="全件再取得（キャッシュ読込の計測）" />
+        <Button x:Name="ClearTilesButton" Content="タイルを全消去" />
+        <Button x:Name="ClearCacheButton" Content="キャッシュ削除" />
+        <Button x:Name="OpenCacheButton" Content="キャッシュフォルダを開く" />
+      </WrapPanel>
+    </StackPanel>
+
+    <DockPanel DockPanel.Dock="Bottom" Height="200" Margin="0,8,0,0">
+      <WrapPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+        <Button x:Name="ClearLogButton" Content="ログをクリア" Margin="0,0,8,0" />
+        <Button x:Name="CopyLogButton" Content="ログをコピー" Margin="0,0,8,0" />
+        <TextBlock x:Name="StatusText" VerticalAlignment="Center" Foreground="Gray" />
+      </WrapPanel>
+      <TextBox x:Name="LogBox"
+               IsReadOnly="True"
+               AcceptsReturn="True"
+               TextWrapping="NoWrap"
+               FontFamily="Cascadia Mono, Consolas, monospace"
+               FontSize="12" />
+    </DockPanel>
+
+    <Border x:Name="DropZone" DockPanel.Dock="Top"
+            BorderBrush="Gray" BorderThickness="2" CornerRadius="6"
+            Padding="8" Margin="0,0,0,8" Background="#10808080">
+      <TextBlock x:Name="DropText" HorizontalAlignment="Center"
+                 Text="ここにファイル / フォルダ / .lnk / URL をドロップ（複数可）" />
+    </Border>
+
+    <ScrollViewer>
+      <WrapPanel x:Name="TilesPanel" />
+    </ScrollViewer>
+  </DockPanel>
+</Window>

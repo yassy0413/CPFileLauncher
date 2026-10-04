@@ -1,0 +1,43 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PlatformSpike.PopupWindow"
+        Title="PlatformSpike popup"
+        Width="360" Height="300"
+        CanResize="False"
+        SystemDecorations="None"
+        ShowInTaskbar="False"
+        Topmost="True"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
+        WindowStartupLocation="Manual">
+
+  <!-- 角丸・半透明の盤面。Transparent にできない環境では単色で表示される -->
+  <Border Background="#E6202020" CornerRadius="10" Padding="10"
+          BorderBrush="#80FFFFFF" BorderThickness="1">
+    <DockPanel>
+
+      <!-- カスタムタイトルバー: ドラッグで移動 -->
+      <Border x:Name="TitleBar" DockPanel.Dock="Top" Background="#30FFFFFF"
+              CornerRadius="6" Padding="8,4" Margin="0,0,0,8" Cursor="SizeAll">
+        <DockPanel>
+          <Button x:Name="CloseButton" DockPanel.Dock="Right" Content="✕"
+                  Padding="6,0" Background="Transparent" Foreground="White" />
+          <TextBlock Text="Page 1  (ドラッグで移動 / Esc で閉じる)" Foreground="White"
+                     VerticalAlignment="Center" />
+        </DockPanel>
+      </Border>
+
+      <!-- D&D 受け口 -->
+      <Border x:Name="DropZone" DockPanel.Dock="Bottom" Height="56" Margin="0,8,0,0"
+              Background="#30FFFFFF" CornerRadius="6"
+              BorderBrush="#80FFFFFF" BorderThickness="1">
+        <TextBlock x:Name="DropText" Text="ここに Explorer / Finder からファイルをドロップ"
+                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   TextWrapping="Wrap" TextAlignment="Center" />
+      </Border>
+
+      <!-- 盤面グリッド（3行×4列のダミーボタン） -->
+      <UniformGrid x:Name="BoardGrid" Rows="3" Columns="4" />
+    </DockPanel>
+  </Border>
+</Window>
