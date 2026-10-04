@@ -1,16 +1,28 @@
 #!/bin/zsh
 # アイコンの SVG（src/FileLauncher.Desktop/Assets/*.svg）から配布物用の画像を作る（macOS で実行。SPEC §3.9 H13）。
 #   AppIcon.icns（macOS の .app）/ app.ico（Windows の exe）/ app-256.png（窓のアイコン）/ tray-*.png（トレイ・メニューバー）
-# SVG の描画は Quick Look（qlmanage）、.icns は iconutil、.ico は PNG を詰めるだけの小さな Python。
+# SVG の描画は Quick Look（qlmanage）、透明度の復元は ImageMagick（brew install imagemagick）、.icns は iconutil、.ico は PNG を詰めるだけの小さな Python。
 set -euo pipefail
 ASSETS=${0:A:h:h}/FileLauncher.Desktop/Assets
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
-render() { # render <svg> <px> <out.png>
+ql() { # ql <svg> <px> <out.png>
   qlmanage -t -s "$2" -o "$TMP" "$1" > /dev/null 2>&1
   mv "$TMP/$(basename "$1").png" "$3"
   sips -z "$2" "$2" "$3" > /dev/null # Quick Look は 1 px ずれることがあるので大きさをそろえる
+}
+
+# Quick Look は透明の所を白で塗るので、白地と黒地の 2 回描いて差から透明度を戻す（白地 W・黒地 B のとき α = 1 - (W - B)、色 = B / α）。
+# ImageMagick 内蔵の SVG 描画はぼかし・線の一部を描けないので描画には使わず、合成だけに使う。
+render() { # render <svg> <px> <out.png>
+  mkdir -p "$TMP/black"
+  perl -0pe 's/(<svg\b[^>]*>)/$1<rect x="-100000" y="-100000" width="200000" height="200000" fill="#000"\/>/' "$1" > "$TMP/black/$(basename "$1")"
+  ql "$1" "$2" "$TMP/w.png"
+  ql "$TMP/black/$(basename "$1")" "$2" "$TMP/b.png"
+  magick "$TMP/b.png" "$TMP/w.png" -colorspace sRGB -fx "1-((v.r-u.r)+(v.g-u.g)+(v.b-u.b))/3" -channel R -separate +channel "$TMP/a.png"
+  magick "$TMP/b.png" "$TMP/a.png" -fx "v.r<0.004 ? 0 : min(1, u/v.r)" "$TMP/c.png"
+  magick "$TMP/c.png" "$TMP/a.png" -alpha off -compose CopyOpacity -composite -define png:color-type=6 "$3"
 }
 
 echo "==> アプリアイコン"
