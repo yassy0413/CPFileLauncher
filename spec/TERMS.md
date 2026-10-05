@@ -4,7 +4,7 @@ UI 文字列のリソース化（SPEC §7「言語と UI 文字列」/ §11。M5
 `src/FileLauncher.Desktop/Resources/Strings.resx`（英語、既定）と `Strings.ja.resx`（日本語）の訳語はこの表に合わせる。
 訳語を変えたいときは**先にこの表を直してから** resx を直す（設定項目の名前そのものは `spec/SETTINGS.md` が正、演出の日本語名は `spec/EFFECTS.md` の「演出名」列が正）。
 
-最終更新: 2026-10-04（**HUD 段階 A の語を実装・Mac でユーザー確認済みの値に合わせた**: ステータス行 = "Status line"、時刻の選択肢 = "Hours:minutes" 等、注記 2 件の文言、「日付（年/月/日）」= "Date (yyyy/MM/dd)" を追加。`PAGE` / `ITEMS` はリソースではなく Core の固定文字列（§5）。同日それ以前: **製品名 CPFileLauncher・サイバーパンク専用化・配色・HUD**（SPEC §1.3 / §3.6「配色」/ §3.9。2026-10-05 までに実装済み・Mac でユーザー確認済み）: 製品名を含む文言を CPFileLauncher に（§5 新設）、「テーマ」「基調色」を削除し「配色 / 主色 / 副色 / カスタム / 入れ替え」を追加、HUD の装飾語（PAGE / ITEMS / タグのコード）は翻訳しない規則、HUD の設定行の語を追加。同日それ以前: 常時の演出の注記 `AmbientNote` の文言を「CPU を多く使います（20〜30% 程度）。既定ではオフです。」に変更（ユーザー判断 案 A。明滅専用の注記は作らず共通の 1 文に統合）、`ReducedMotionNote` を採用済みに。同日それ以前: 新設。M5 ステップ 5 設計。英訳は **2026-10-04 に Mac の実物（`--lang en`）でユーザー確認済み**: 「推奨」列の語をそのまま採用し、resx もこの表どおり。「候補」列は将来差し替えるときの選択肢として残す。変えるときは先にこの表を直してから resx を直す）
+最終更新: 2026-10-05（**「フォルダを開く先」（SPEC §5.2、Windows のみ）の語を追加**: 設定の行名・選択肢 3 つ・注記、メニュー「新しいウィンドウで開く」。§3 に Windows 限定の文言では「Ctrl+クリック」を直接書いてよい旨。実装済み・Windows でユーザー確認済み（SPEC §13.3 C21）。2026-10-04: **HUD 段階 A の語を実装・Mac でユーザー確認済みの値に合わせた**: ステータス行 = "Status line"、時刻の選択肢 = "Hours:minutes" 等、注記 2 件の文言、「日付（年/月/日）」= "Date (yyyy/MM/dd)" を追加。`PAGE` / `ITEMS` はリソースではなく Core の固定文字列（§5）。同日それ以前: **製品名 CPFileLauncher・サイバーパンク専用化・配色・HUD**（SPEC §1.3 / §3.6「配色」/ §3.9。2026-10-05 までに実装済み・Mac でユーザー確認済み）: 製品名を含む文言を CPFileLauncher に（§5 新設）、「テーマ」「基調色」を削除し「配色 / 主色 / 副色 / カスタム / 入れ替え」を追加、HUD の装飾語（PAGE / ITEMS / タグのコード）は翻訳しない規則、HUD の設定行の語を追加。同日それ以前: 常時の演出の注記 `AmbientNote` の文言を「CPU を多く使います（20〜30% 程度）。既定ではオフです。」に変更（ユーザー判断 案 A。明滅専用の注記は作らず共通の 1 文に統合）、`ReducedMotionNote` を採用済みに。同日それ以前: 新設。M5 ステップ 5 設計。英訳は **2026-10-04 に Mac の実物（`--lang en`）でユーザー確認済み**: 「推奨」列の語をそのまま採用し、resx もこの表どおり。「候補」列は将来差し替えるときの選択肢として残す。変えるときは先にこの表を直してから resx を直す）
 
 ## 1. 英語の文体（Windows / macOS の標準に合わせる）
 
@@ -84,6 +84,7 @@ UI 文字列のリソース化（SPEC §7「言語と UI 文字列」/ §11。M5
 | 起動 | Launch | Open | |
 | 管理者として起動 | Run as administrator | | Windows のみ |
 | 格納フォルダを開く / Finder で表示 | Open file location（Win） / Show in Finder（Mac） | | OS 別キー。各 OS の標準表記 |
+| 新しいウィンドウで開く | Open in new window | Open in a new window | `Menu_OpenNewWindow`。**Windows のみ・フォルダアイテムのみ**（SPEC §6.3。設定「フォルダを開く先」に関係なく新しい Explorer ウィンドウ）。ショートカット表示 Ctrl+Enter。Explorer の「新しいウィンドウで開く」/ "Open in new window" と同じ語。2026-10-05 実装済み・Windows でユーザー確認済み |
 | 編集… | Edit… | | |
 | 複製 | Duplicate | | |
 | 削除 | Delete | Remove | |
@@ -102,6 +103,7 @@ UI 文字列のリソース化（SPEC §7「言語と UI 文字列」/ §11。M5
 |---|---|---|---|
 | 一般 / 表示 / ポップアップ / トリガー / 常駐 / データ / 詳細 | General / Appearance / Popup / Triggers / Pinned / Data / Advanced | 「表示」= Display | タブは 7 つを 560 px に収めるため短い語にする |
 | OS ログイン時に自動起動 | Start at login | Launch at login（Mac） | 両 OS で "Start at login" |
+| フォルダを開く先 | Open folders in | Folders open in | `Settings_General_FolderOpenTarget`。**Windows のみ**（SPEC §5.2、SETTINGS.md 一般タブ）。選択肢（`Enum_FolderOpenTarget_*`）: 開いている Explorer の新しいタブ = **New tab in the open Explorer window**（`ExistingTab`）/ 新しいウィンドウ = **New window**（`NewWindow`）/ Windows に任せる = **Let Windows decide**（`System`）。注記（`_Note`）: 「Ctrl+クリック（Ctrl+Enter）は、この設定に関係なく新しいウィンドウで開きます。タブの追加は Explorer の非公開の仕組みを使うため、Windows の更新で動かなくなったら「Windows に任せる」を選んでください。」= "Ctrl+click (or Ctrl+Enter) always opens a new window. Adding a tab relies on an undocumented Explorer feature; if a Windows update breaks it, choose “Let Windows decide”."。"Explorer" / "Windows" は固有名詞で大文字。2026-10-05 実装済み・Windows でユーザー確認済み（英語表示も確認済み） |
 | 移動時に確認（フォルダへの Shift+ドロップ） | Confirm before moving files | | |
 | ホイールでページを切り替える | Scroll wheel switches pages | | |
 | Alt+1〜9 でページを切り替える | {0} switches pages | | `{0}` = "Alt+1–9" / "⌥1–9"（`Loc.Shortcut`。§3） |
@@ -167,6 +169,7 @@ UI 文字列のリソース化（SPEC §7「言語と UI 文字列」/ §11。M5
 - **キーの名前・記号は翻訳しない**（`Ctrl` / `Alt` / `Shift` / `Win` と `⌃` / `⌥` / `⇧` / `⌘` は日本語 UI でも英語 UI でも同じ）。App 層の `Loc.Shortcut(modifiers, key)` が OS の流儀で組む: Win「Ctrl+Shift+Tab」、Mac「⌃⇧Tab」。文には `{0}` で埋める。
 - **OS で呼び名が違う語だけ** `_Win` / `_Mac` の 2 キーを持ち、`Loc.Os(win, mac)` で選ぶ: 格納フォルダを開く / Finder で表示、終了 / CPFileLauncher を終了、トレイアイコン / メニューバーアイコン（"tray icon" / "menu bar icon"）。
 - その OS に無い機能の文言はキーごと作らない（項目自体を出さないため。SPEC §1.2）。例: 管理者として起動（Win のみ）、権限の設定…（Mac のみ）はそれぞれ 1 キーだけ。
+- **片方の OS にしか出ない文言では、その OS のキー表記を文に直接書いてよい**（`Loc.Shortcut` で組まなくてよい）。例: 「フォルダを開く先」の注記の「Ctrl+クリック（Ctrl+Enter）」/ "Ctrl+click (or Ctrl+Enter)"（Windows だけに出る。2026-10-05）。両 OS に出る文は従来どおり `{0}` + `Loc.Shortcut`。
 
 ## 4. リソースキーの命名（`Strings.resx`）
 

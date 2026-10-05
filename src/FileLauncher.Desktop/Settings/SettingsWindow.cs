@@ -479,6 +479,14 @@ internal sealed class SettingsWindow : ChromeWindow
         // 使えない起動のしかた（Mac の dotnet run）では項目を出さない（2026-10-03 ユーザー判断。SPEC §1.2）
         if (canAutoStart) p.Children.Add(Row(Strings.Settings_General_AutoStart, autoStart));
 
+        // フォルダを開く先（Windows のみ。SPEC §5.2）。Mac には無い機能なので項目を出さない（§1.2）
+        if (OperatingSystem.IsWindows())
+        {
+            var folderTarget = Combo(EnumNames.Options(FolderOpenTarget.ExistingTab, FolderOpenTarget.NewWindow, FolderOpenTarget.System),
+                s => s.General.FolderOpenTarget, (s, v) => s.General.FolderOpenTarget = v, SettingsChange.None);
+            p.Children.Add(Row(Strings.Settings_General_FolderOpenTarget, folderTarget, Strings.Settings_General_FolderOpenTarget_Note));
+        }
+
         p.Children.Add(Row(Strings.Settings_General_ConfirmMove, Toggle(
             s => s.Editing.ConfirmMoveOnDrop, (s, v) => s.Editing.ConfirmMoveOnDrop = v, SettingsChange.None),
             Strings.Settings_General_ConfirmMove_Note));

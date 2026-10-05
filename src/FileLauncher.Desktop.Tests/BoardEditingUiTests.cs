@@ -23,7 +23,8 @@ internal sealed class FakeController : IBoardController
     public bool IsShown => true;
     public void Toggle(string source) { }
     public void ShowFromExternal(string source) { }
-    public void Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths) => Launched.Add(item);
+    public void Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths, bool newWindow = false) { Launched.Add(item); LastNewWindow = newWindow; }
+    public bool? LastNewWindow { get; private set; }
     // 確認ダイアログは開かずに答えを返す（Headless で ShowDialog を待たないため）
     public Task<T> RunModalAsync<T>(Func<Task<T>> dialog) =>
         typeof(T) == typeof(bool) ? Task.FromResult((T)(object)ConfirmResult) : dialog();
@@ -37,10 +38,12 @@ public sealed class BoardEditingUiTests : IDisposable
     private readonly Board _board;
     private readonly BoardWindow _window = new();
     private readonly FakeController _controller = new();
+    private readonly FakePlatform _platform = new();
     private readonly BoardEditor _editor;
     private readonly LauncherItem _a;
     private readonly LauncherItem _b;
     private int _invoked; // クリックで起動を求められた回数（起動そのものは盤面のコントローラの仕事）
+    private bool? _lastNewWindow;
 
     public BoardEditingUiTests()
     {
@@ -59,9 +62,9 @@ public sealed class BoardEditingUiTests : IDisposable
         _window.ApplyEffects(_hub.Current.Appearance);
         _window.Render(_board, _hub.Current.Appearance, 0);
         _window.Show();
-        _editor = new BoardEditor(_window, () => _controller, new FakePlatform(), _store, _hub, _board);
+        _editor = new BoardEditor(_window, () => _controller, _platform, _store, _hub, _board);
         _editor.Attach();
-        _window.ItemInvoked += _ => _invoked++;
+        _window.ItemInvoked += (_, newWindow) => { _invoked++; _lastNewWindow = newWindow; };
         Dispatcher.UIThread.RunJobs();
     }
 
@@ -157,6 +160,94 @@ public sealed class BoardEditingUiTests : IDisposable
         _editor.Flush();
         var saved = new AppDataStore(new DataPaths(_dir, IsPortable: false)).LoadAll().Board.Value;
         Assert.Equal(ItemColor.Purple, saved.Pages[0].Items.Single(i => i.Name == "a").Color);
+    }
+
+    // ---------------- フォルダを開く先（SPEC §5.2 / §6.2 / §6.3 / §6.6） ----------------
+
+    [AvaloniaFact]
+    public void Windowsでは動かさずにCtrlクリックすると新しいウィンドウで開く指示になり_修飾キーなしでは付かない()
+    {
+        var p = Center(0, 0);
+        _window.MouseDown(p, MouseButton.Left, RawInputModifiers.Control);
+        _window.MouseUp(p, MouseButton.Left, RawInputModifiers.Control);
+        Dispatcher.UIThread.RunJobs();
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.Equal(1, _invoked);
+            Assert.True(_lastNewWindow);
+        }
+        else
+        {
+            Assert.NotEqual(true, _lastNewWindow); // Mac の ⌃クリックは右クリック扱い
+        }
+
+        // ポインタの離上を伴わない Click に、前回の Ctrl が残らない（控えは 1 回で消える）
+        Slot(0, 0).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.NotEqual(true, _lastNewWindow);
+
+        int before = _invoked;
+        _window.MouseDown(p, MouseButton.Left);
+        _window.MouseUp(p, MouseButton.Left);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(before + 1, _invoked);
+        Assert.False(_lastNewWindow);
+    }
+
+    [AvaloniaFact]
+    public void Windowsでは選択セルでCtrlEnterを押すと新しいウィンドウで開く指示になる()
+    {
+        _window.Focus();
+        _window.KeyPressQwerty(PhysicalKey.ArrowDown, RawInputModifiers.None); // (0,0) = a
+        _window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.Control);
+        Dispatcher.UIThread.RunJobs();
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.Equal(1, _invoked);
+            Assert.True(_lastNewWindow);
+        }
+        else
+        {
+            Assert.Equal(0, _invoked);
+        }
+    }
+
+    private void OpenItemMenu(int row, int col)
+    {
+        _window.MouseDown(Center(row, col), MouseButton.Right);
+        _window.MouseUp(Center(row, col), MouseButton.Right);
+        Dispatcher.UIThread.RunJobs();
+    }
+
+    [AvaloniaFact]
+    public void 新しいウィンドウで開くはWindowsのフォルダアイテムのメニューにだけあり_選ぶと新しいウィンドウで起動する()
+    {
+        _a.Kind = ItemKind.Folder;
+        OpenItemMenu(0, 0);
+        var item = _editor.LastMenu!.Items.OfType<MenuItem>().SingleOrDefault(m => (string?)m.Header == Strings.Menu_OpenNewWindow);
+        if (!OperatingSystem.IsWindows())
+        {
+            Assert.Null(item);
+            return;
+        }
+        Assert.NotNull(item);
+        item!.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.Same(_a, _controller.Launched.Single());
+        Assert.True(_controller.LastNewWindow);
+
+        OpenItemMenu(0, 1); // b はファイル
+        Assert.DoesNotContain(_editor.LastMenu!.Items.OfType<MenuItem>(), m => (string?)m.Header == Strings.Menu_OpenNewWindow);
+    }
+
+    [AvaloniaFact]
+    public void 格納フォルダを開くは設定の開き先で開く()
+    {
+        _hub.Update(s => s.General.FolderOpenTarget = FolderOpenTarget.NewWindow, SettingsChange.None);
+        OpenItemMenu(0, 0);
+        MenuItemOf(OperatingSystem.IsMacOS() ? Strings.Menu_Reveal_Mac : Strings.Menu_Reveal_Win).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(("/a", FolderOpenTarget.NewWindow), _platform.Revealed.Single());
     }
 
     // ---------------- ページ（ステップ 2） ----------------

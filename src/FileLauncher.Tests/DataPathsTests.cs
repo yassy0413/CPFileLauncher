@@ -33,7 +33,8 @@ public class DataPathsTests
     [Fact]
     public void portableflagは実行ファイルCPFileLauncherの隣を探し_dotnetで動かしたときはアプリのディレクトリを探す()
     {
-        string app = Path.Combine("/Applications", "CPFileLauncher.app", "Contents", "MacOS");
+        // Windows では GetDirectoryName が "/" を "\" に直すので、区切りは実行中の OS のものを使う
+        string app = Path.Combine(Path.DirectorySeparatorChar + "Applications", "CPFileLauncher.app", "Contents", "MacOS");
         Assert.Equal(app, DataPaths.ExecutableDirectory(Path.Combine(app, "CPFileLauncher"), "/other"));
         Assert.Equal(@"C:\Tools", DataPaths.ExecutableDirectory(@"C:\Tools\CPFileLauncher.exe".Replace('\\', Path.DirectorySeparatorChar), @"C:\Tools").Replace(Path.DirectorySeparatorChar, '\\'));
         Assert.Equal("/repo/bin", DataPaths.ExecutableDirectory("/usr/local/share/dotnet/dotnet", "/repo/bin"));

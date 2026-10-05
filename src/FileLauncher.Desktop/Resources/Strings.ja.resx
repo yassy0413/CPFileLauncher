@@ -1120,4 +1120,22 @@
   <data name="Settings_Appearance_Hud_GridOpacity" xml:space="preserve">
     <value>グリッドの濃さ</value>
   </data>
+  <data name="Settings_General_FolderOpenTarget" xml:space="preserve">
+    <value>フォルダを開く先</value>
+  </data>
+  <data name="Settings_General_FolderOpenTarget_Note" xml:space="preserve">
+    <value>Ctrl+クリック（Ctrl+Enter）は、この設定に関係なく新しいウィンドウで開きます。タブの追加は Explorer の非公開の仕組みを使うため、Windows の更新で動かなくなったら「Windows に任せる」を選んでください。</value>
+  </data>
+  <data name="Enum_FolderOpenTarget_ExistingTab" xml:space="preserve">
+    <value>開いている Explorer の新しいタブ</value>
+  </data>
+  <data name="Enum_FolderOpenTarget_NewWindow" xml:space="preserve">
+    <value>新しいウィンドウ</value>
+  </data>
+  <data name="Enum_FolderOpenTarget_System" xml:space="preserve">
+    <value>Windows に任せる</value>
+  </data>
+  <data name="Menu_OpenNewWindow" xml:space="preserve">
+    <value>新しいウィンドウで開く</value>
+  </data>
 </root>

@@ -51,7 +51,7 @@ public partial class BoardWindow
             _ => null,
         };
         if (key is null || ItemHotkey.Find(_board.Pages[_pageIndex], key) is not { } item) return false;
-        ItemInvoked?.Invoke(item);
+        ItemInvoked?.Invoke(item, false);
         return true;
     }
 
@@ -66,7 +66,10 @@ public partial class BoardWindow
                 MoveSelection(e.Key, page);
                 return true;
             case Key.Enter when mods == InputModifiers.None && SelectedItem() is { } item:
-                ItemInvoked?.Invoke(item);
+                ItemInvoked?.Invoke(item, false);
+                return true;
+            case Key.Enter when mods == InputModifiers.Control && OperatingSystem.IsWindows() && SelectedItem() is { } item:
+                ItemInvoked?.Invoke(item, true); // 新しいウィンドウで開く（SPEC §6.6）
                 return true;
             case Key.Delete or Key.Back when mods == InputModifiers.None && SelectedItem() is { } item: // Mac の Delete は Back
                 DeleteRequested?.Invoke(item);

@@ -63,12 +63,25 @@ public sealed class GeneralSettings
 
     /// <summary>"system" / "ja" / "en"</summary>
     public string Language { get; set; } = "system";
+
+    /// <summary>フォルダを開く先（Windows のみ。macOS では無視。SPEC §5.2「フォルダを開く先」）。</summary>
+    public FolderOpenTarget FolderOpenTarget { get; set; } = FolderOpenTarget.ExistingTab;
 }
 
 public enum DisplayMode
 {
     Popup,
     Resident,
+}
+
+/// <summary>フォルダの開き方（SPEC §5.2）。</summary>
+public enum FolderOpenTarget
+{
+    /// <summary>開いている Explorer のいちばん手前のウィンドウに新しいタブを足す（無ければ新しいウィンドウ）。</summary>
+    ExistingTab,
+    NewWindow,
+    /// <summary>従来の ShellExecute（OS の設定に任せる）。</summary>
+    System,
 }
 
 public sealed class AppearanceSettings

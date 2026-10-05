@@ -134,6 +134,14 @@ Core（`FileLauncher.Tests`）は `AmbientEffectsCoreTests.cs`、Desktop は `Am
 - [ ] 未着手（設定画面）: `frameOrb` の行のスライダーが `Minimum 2000` / `Maximum 20000` / `TickFrequency 500` で、種類を `orb` にしたとき表示が「8.0 s」/ イージングが無効 / 注記 `Settings_Appearance_Effects_AmbientNote` はテーマによらず常に見える / `FakePlatform.ReducedMotion = true` で設定画面を開くと `Settings_Appearance_Effects_ReducedMotionNote` が見える / 「既定に戻す」で `Effects` から ID が消える / 「演出の調整…」の行数が `EffectCatalog.All.Count`。
 - [ ] 未着手: `PulseLayer.Refresh` が大きさ・テーマが同じなら焼き直さず、`FlBoardGlow` が変わる（基調色の切替）と焼き直す（画像の参照が変わることで確認。`Level = 0` のときは `Render` が何も描かない）。
 
+### フォルダを開く先（SPEC §5.2 / §6.2 / §6.3 / §6.6。2026-10-05 実装・Windows でユーザー確認済み。テストは `BoardEditingUiTests` 4 件・`ResidentTests` 1 件・`SettingsUiTests` 1 件・`FolderOpeningTests` 3 件。Windows のみの機能なので、OS で期待が分かれるテストは `OperatingSystem.IsWindows()` の分岐で両方の期待を書く）
+
+- [x] Ctrl を押したままフォルダアイテムを動かさずにクリック → `ItemInvoked` が `newWindow = true` で 1 回、`FakePlatform.LastFolderTarget == NewWindow`。Ctrl なし → `false` / `ExistingTab`。ファイルアイテムの Ctrl+クリック → 通常の起動（`Launched` に入る）。Ctrl+4 px 以上のドラッグ → 複製で `ItemInvoked` は出ない（既存）。Mac では ⌃クリック = 右クリックで `ContextMenuRequested`。
+- [x] 選択セルがフォルダのとき Ctrl+Enter → `newWindow = true`（Windows）。Mac では何も起きない。
+- [x] 右クリックメニュー: Windows でフォルダアイテムに `Strings.Menu_OpenNewWindow` があり「起動」の直後、ファイルアイテムには無い。Mac では無い。「格納フォルダを開く」で `FakePlatform.Revealed` に `(LinkPath ?? Target, 設定値)` が入る。
+- [x] 設定画面 一般タブ: Windows では `Strings.Settings_General_FolderOpenTarget` の行があり、`ComboBox` の 3 項目が `EnumNames.Of<FolderOpenTarget>` の順、「新しいウィンドウ」で `hub.Current.General.FolderOpenTarget == NewWindow`・`Changed(None)` 1 回・`Flush` で `"folderOpenTarget": "newWindow"`。Mac では行が無い。
+- [x] Core（`FileLauncher.Tests/FolderOpeningTests.cs`）: `Resolve` / `PickWindow`（cloak・不可視を飛ばす、最小化は選ぶ、無ければ null）/ 設定の JSON 往復（キーなし → `existingTab`）。
+
 ### 権限ガイド・通知
 
 - [ ] `PermissionGuideWindow` を `FakePlatform`（`HookRunning = false`）で開いて閉じても落ちない。状態表示の色が `FlError` / `FlSuccess` のトークン値。

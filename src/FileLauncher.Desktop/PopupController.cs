@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Avalonia;
 using Avalonia.Threading;
 using FileLauncher.Core.Input;
+using FileLauncher.Core.Items;
 using FileLauncher.Core.Model;
 using FileLauncher.Core.Popup;
 using FileLauncher.Core.Storage;
@@ -135,7 +136,7 @@ internal sealed class PopupController : IBoardController
         _window.Deactivated += (_, _) => { if (_active) OnDeactivated(); };
         _leaveTimer.Tick += (_, _) => OnLeaveTick();
         _window.EscapePressed += () => { if (_active) Hide("Esc", restoreFocus: true); };
-        _window.ItemInvoked += item => { if (_active) OnItemInvoked(item); };
+        _window.ItemInvoked += (item, newWindow) => { if (_active) Launch(item, null, newWindow); };
     }
 
     public void Activate()
@@ -370,13 +371,12 @@ internal sealed class PopupController : IBoardController
         Hide("deactivated", restoreFocus: false);
     }
 
-    private void OnItemInvoked(LauncherItem item) => Launch(item, null);
-
     /// <summary>起動（クリック・Drop-to-Open 共通）。失敗はトースト（SPEC §5.2）。</summary>
-    public void Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths)
+    public void Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths, bool newWindow = false)
     {
-        var result = _platform.Shell.Launch(item, droppedPaths);
-        AppLog.Info($"launch '{item.Name}'{(droppedPaths is { Count: > 0 } ? $" with {droppedPaths.Count} file(s)" : "")} → {(result.Success ? "ok" : result.Error)}");
+        var folderTarget = FolderOpening.Resolve(_settings.General.FolderOpenTarget, newWindow);
+        var result = _platform.Shell.Launch(item, droppedPaths, folderTarget);
+        AppLog.Info($"launch '{item.Name}'{(droppedPaths is { Count: > 0 } ? $" with {droppedPaths.Count} file(s)" : "")}{(item.Kind == ItemKind.Folder ? $" folder={folderTarget}" : "")} → {(result.Success ? "ok" : result.Error)}");
         if (!result.Success)
         {
             Toast.Show(Strings.FormatToast_LaunchFailed(item.Name, Loc.LaunchError(result)));

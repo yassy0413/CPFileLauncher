@@ -20,7 +20,7 @@ internal sealed class MacShellService : IShellService
     /// <summary>open が失敗を返すのを待つ上限。成功時は 100ms 前後で終わる。</summary>
     private static readonly TimeSpan OpenTimeout = TimeSpan.FromSeconds(2);
 
-    public LaunchResult Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths = null)
+    public LaunchResult Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths = null, FolderOpenTarget folderTarget = FolderOpenTarget.System) // folderTarget は macOS では無視（SPEC §5.2）
     {
         string target = LaunchArgs.ExpandPath(item.Target);
         bool hasDrops = droppedPaths is { Count: > 0 };
@@ -71,7 +71,7 @@ internal sealed class MacShellService : IShellService
         return RunOpen([target]);
     }
 
-    public LaunchResult RevealInFileManager(string path)
+    public LaunchResult RevealInFileManager(string path, FolderOpenTarget folderTarget = FolderOpenTarget.System)
     {
         path = LaunchArgs.ExpandPath(path);
         if (!File.Exists(path) && !Directory.Exists(path)) return LaunchResult.Fail(LaunchFailure.NotFound, path);

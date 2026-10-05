@@ -22,7 +22,8 @@ internal interface IBoardController
     /// <summary>トレイ / メニュー / 2 重起動から「盤面を表示」。</summary>
     void ShowFromExternal(string source);
 
-    void Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths);
+    /// <param name="newWindow">フォルダを設定に関係なく新しいウィンドウで開く（Ctrl+クリック等。SPEC §5.2）。</param>
+    void Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths, bool newWindow = false);
 
     /// <summary>盤面の上にダイアログを出す間、閉じる条件を止める。</summary>
     Task<T> RunModalAsync<T>(Func<Task<T>> dialog);

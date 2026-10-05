@@ -67,6 +67,24 @@ public sealed class ResidentTests : IDisposable
     }
 
     [AvaloniaFact]
+    public void フォルダは設定の開き先で開き_新しいウィンドウの指示があれば設定に関係なく新しいウィンドウ()
+    {
+        var r = NewResident();
+        r.Activate();
+        var item = new LauncherItem { Name = "x", Target = "/tmp", Kind = ItemKind.Folder };
+
+        r.Launch(item, null);
+        Assert.Equal(FolderOpenTarget.ExistingTab, _platform.LastFolderTarget); // 既定
+
+        _hub.Update(s => s.General.FolderOpenTarget = FolderOpenTarget.System, SettingsChange.None);
+        r.Launch(item, null);
+        Assert.Equal(FolderOpenTarget.System, _platform.LastFolderTarget);
+
+        r.Launch(item, null, newWindow: true);
+        Assert.Equal(FolderOpenTarget.NewWindow, _platform.LastFolderTarget);
+    }
+
+    [AvaloniaFact]
     public void 位置をロックするとドラッグで動かせなくなる()
     {
         var r = NewResident();

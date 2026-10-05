@@ -14,10 +14,15 @@ internal sealed class WindowsShellService : IShellService
     private const int ErrorCancelled = 1223; // UAC で「いいえ」
 
     private readonly StaWorker _sta;
+    private readonly ExplorerTabs _explorer;
 
-    public WindowsShellService(StaWorker sta) => _sta = sta;
+    public WindowsShellService(StaWorker sta, ExplorerTabs explorer)
+    {
+        _sta = sta;
+        _explorer = explorer;
+    }
 
-    public LaunchResult Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths = null)
+    public LaunchResult Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths = null, FolderOpenTarget folderTarget = FolderOpenTarget.System)
     {
         var psi = new ProcessStartInfo { UseShellExecute = true };
         string target = LaunchArgs.ExpandPath(item.Target);
@@ -37,6 +42,12 @@ internal sealed class WindowsShellService : IShellService
             default:
                 if (!IsNetworkPath(target) && !File.Exists(target) && !Directory.Exists(target))
                     return LaunchResult.Fail(LaunchFailure.NotFound, target);
+                if (item.Kind == ItemKind.Folder && folderTarget != FolderOpenTarget.System)
+                {
+                    // 既存のタブ / 新しいウィンドウ（SPEC §5.2）。ExplorerSTA で続け、ここでは待たない
+                    _explorer.OpenFolder(target, null, folderTarget, item.LaunchMode);
+                    return LaunchResult.Ok;
+                }
                 psi.FileName = target;
                 if (item.Kind != ItemKind.Folder)
                 {
@@ -59,10 +70,16 @@ internal sealed class WindowsShellService : IShellService
         return Start(psi);
     }
 
-    public LaunchResult RevealInFileManager(string path)
+    public LaunchResult RevealInFileManager(string path, FolderOpenTarget folderTarget = FolderOpenTarget.System)
     {
         path = LaunchArgs.ExpandPath(path);
         if (!File.Exists(path) && !Directory.Exists(path)) return LaunchResult.Fail(LaunchFailure.NotFound, path);
+        if (folderTarget != FolderOpenTarget.System && Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(path)) is { } parent)
+        {
+            // 親フォルダを開いて path を選択する（フォルダ自身が対象でも同じ）
+            _explorer.OpenFolder(parent, path, folderTarget, LaunchMode.Normal);
+            return LaunchResult.Ok;
+        }
         return Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true });
     }
 

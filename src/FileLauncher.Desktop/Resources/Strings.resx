@@ -1177,4 +1177,22 @@ The current files are kept in backup/.</value>
   <data name="Settings_Appearance_Hud_GridOpacity" xml:space="preserve">
     <value>Grid strength</value>
   </data>
+  <data name="Settings_General_FolderOpenTarget" xml:space="preserve">
+    <value>Open folders in</value>
+  </data>
+  <data name="Settings_General_FolderOpenTarget_Note" xml:space="preserve">
+    <value>Ctrl+click (or Ctrl+Enter) always opens a new window. Adding a tab relies on an undocumented Explorer feature; if a Windows update breaks it, choose “Let Windows decide”.</value>
+  </data>
+  <data name="Enum_FolderOpenTarget_ExistingTab" xml:space="preserve">
+    <value>New tab in the open Explorer window</value>
+  </data>
+  <data name="Enum_FolderOpenTarget_NewWindow" xml:space="preserve">
+    <value>New window</value>
+  </data>
+  <data name="Enum_FolderOpenTarget_System" xml:space="preserve">
+    <value>Let Windows decide</value>
+  </data>
+  <data name="Menu_OpenNewWindow" xml:space="preserve">
+    <value>Open in new window</value>
+  </data>
 </root>

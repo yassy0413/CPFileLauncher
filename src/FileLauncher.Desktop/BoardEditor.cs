@@ -282,7 +282,7 @@ internal sealed class BoardEditor
             } : null,
             Reveal: item =>
             {
-                var r = _platform.Shell.RevealInFileManager(item.LinkPath ?? item.Target);
+                var r = _platform.Shell.RevealInFileManager(item.LinkPath ?? item.Target, _settings.General.FolderOpenTarget);
                 if (!r.Success) Toast.Show(Strings.FormatToast_RevealFailed(item.Name, Loc.LaunchError(r)));
             },
             Edit: item => Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = EditItemAsync(item)),
@@ -308,6 +308,7 @@ internal sealed class BoardEditor
             OpenSettings: () => Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenSettings?.Invoke()),
             About: ShowAbout is { } about ? () => Avalonia.Threading.Dispatcher.UIThread.Post(about) : null,
             Quit: () => Quit?.Invoke(),
+            OpenNewWindow: OperatingSystem.IsWindows() ? item => _controller().Launch(item, null, newWindow: true) : null,
             Pages: new PageActions(
                 NewPage: index =>
                 {

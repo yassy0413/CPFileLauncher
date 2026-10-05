@@ -1,0 +1,16 @@
+# 改行の形式を固定する（Windows と Mac の間の受け渡しで差分が出ないように）。
+# 既定は LF。Windows の道具が CRLF を要るものだけ CRLF にする。
+* text=auto eol=lf
+
+# Windows 用のスクリプト
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# バイナリ（改行を変換しない）
+*.png binary
+*.ico binary
+*.icns binary
+*.ttf binary
+*.otf binary
+*.zip binary

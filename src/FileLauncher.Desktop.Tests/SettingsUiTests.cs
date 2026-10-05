@@ -225,6 +225,28 @@ public sealed class SettingsUiTests : IDisposable
     }
 
     [AvaloniaFact]
+    public void フォルダを開く先はWindowsの一般タブにだけあり_選ぶと保存される()
+    {
+        var w = OpenSettings();
+        var combo = w.GetVisualDescendants().OfType<ComboBox>()
+            .SingleOrDefault(c => c.ItemsSource is IEnumerable<string> items && items.Contains(EnumNames.Of(FolderOpenTarget.NewWindow)));
+        if (!OperatingSystem.IsWindows())
+        {
+            Assert.Null(combo);
+            w.Close();
+            return;
+        }
+        Assert.NotNull(combo);
+        Assert.Equal(0, combo!.SelectedIndex); // 既定 = 既存のタブ
+        combo.SelectedIndex = 1;
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(FolderOpenTarget.NewWindow, _hub.Current.General.FolderOpenTarget);
+        _hub.Flush();
+        Assert.Contains("\"folderOpenTarget\": \"newWindow\"", File.ReadAllText(_paths.SettingsFile));
+        w.Close();
+    }
+
+    [AvaloniaFact]
     public void データタブにエクスポートとインポートがある()
     {
         var w = OpenSettings();

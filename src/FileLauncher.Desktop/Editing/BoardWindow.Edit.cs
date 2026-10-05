@@ -63,6 +63,27 @@ public partial class BoardWindow
     private static bool IsCopyModifier(InputModifiers m) =>
         OperatingSystem.IsMacOS() ? m.HasFlag(InputModifiers.Alt) : m.HasFlag(InputModifiers.Control);
 
+    /// <summary>「新しいウィンドウで開く」の修飾キー（Windows の Ctrl だけ。Mac の ⌃クリックは右クリック。SPEC §6.2）。</summary>
+    private static bool IsNewWindowModifier(InputModifiers m) =>
+        OperatingSystem.IsWindows() && m.HasFlag(InputModifiers.Control);
+
+    /// <summary>
+    /// 直前のポインタ離上の修飾キー。Button.Click は修飾キーを持たず、Button の Click は同じ要素の instance handler より
+    /// 先に発火するので、ウィンドウで Tunnel のうちに控えておく。
+    /// </summary>
+    private InputModifiers _releaseModifiers;
+
+    /// <summary>
+    /// 控えた修飾キーを 1 回だけ使う（使ったら消す）。ポインタの離上を伴わない Click（自動操作など）に、
+    /// 前回のクリックの Ctrl が残って「新しいウィンドウ」になるのを防ぐ。
+    /// </summary>
+    private InputModifiers TakeReleaseModifiers()
+    {
+        var m = _releaseModifiers;
+        _releaseModifiers = InputModifiers.None;
+        return m;
+    }
+
     /// <summary>スロット（アイテム / 空き）にドラッグと右クリックの受け口を付ける。RenderPage から呼ぶ。</summary>
     private void AttachSlotInput(Button slot, LauncherItem? item, (int Row, int Col) cell)
     {
@@ -99,6 +120,7 @@ public partial class BoardWindow
     {
         Root.AddHandler(PointerMovedEvent, (_, e) => { if (_dragging) OnDragMoved(e); }, Avalonia.Interactivity.RoutingStrategies.Bubble, handledEventsToo: true);
         Root.AddHandler(PointerReleasedEvent, (_, e) => { if (_dragging) OnDragReleased(e); }, Avalonia.Interactivity.RoutingStrategies.Bubble, handledEventsToo: true);
+        AddHandler(PointerReleasedEvent, (_, e) => _releaseModifiers = e.KeyModifiers, Avalonia.Interactivity.RoutingStrategies.Tunnel, handledEventsToo: true);
         Root.PointerCaptureLost += (_, _) => { if (_dragging && !_movingCapture) CancelDrag(); };
     }
 

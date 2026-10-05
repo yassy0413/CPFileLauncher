@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Threading;
 using FileLauncher.Core.Effects;
 using FileLauncher.Core.Input;
+using FileLauncher.Core.Items;
 using FileLauncher.Core.Model;
 using FileLauncher.Core.Popup;
 using FileLauncher.Platform;
@@ -61,7 +62,7 @@ internal sealed class ResidentController : IBoardController
             _window.SwitchPageBy(delta);
         });
         _window.EscapePressed += () => { if (_active) ReturnFocus("Esc"); };
-        _window.ItemInvoked += item => { if (_active) Launch(item, null); };
+        _window.ItemInvoked += (item, newWindow) => { if (_active) Launch(item, null, newWindow); };
         _window.PositionChanged += (_, _) => { if (_active && !_moving && !_collapsed) ScheduleSave(); };
         _window.Deactivated += (_, _) => { if (_active) OnBoardDeactivated(); };
         _saveTimer.Tick += (_, _) => SaveBounds();
@@ -207,10 +208,11 @@ internal sealed class ResidentController : IBoardController
 
     // ---------------- 起動・ダイアログ ----------------
 
-    public void Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths)
+    public void Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths, bool newWindow = false)
     {
-        var result = _platform.Shell.Launch(item, droppedPaths);
-        AppLog.Info($"launch '{item.Name}' (resident) → {(result.Success ? "ok" : result.Error)}");
+        var folderTarget = FolderOpening.Resolve(Settings.General.FolderOpenTarget, newWindow);
+        var result = _platform.Shell.Launch(item, droppedPaths, folderTarget);
+        AppLog.Info($"launch '{item.Name}' (resident){(item.Kind == ItemKind.Folder ? $" folder={folderTarget}" : "")} → {(result.Success ? "ok" : result.Error)}");
         if (!result.Success)
         {
             Toast.Show(Strings.FormatToast_LaunchFailed(item.Name, Loc.LaunchError(result)));

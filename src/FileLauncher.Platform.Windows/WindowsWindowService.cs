@@ -41,7 +41,10 @@ public sealed class WindowsWindowService : IWindowService
     /// SetForegroundWindow が拒否される（フォアグラウンドロック）。前面ウィンドウのスレッドに
     /// 入力キューを一時接続すると前面化が許可される（SPEC §3.3、PlatformSpike F で確認）。
     /// </summary>
-    public bool BringToForeground(nint windowHandle)
+    public bool BringToForeground(nint windowHandle) => ForceForeground(windowHandle);
+
+    /// <summary><see cref="BringToForeground"/> の本体。Explorer の前面化（ExplorerTabs）でも使う。</summary>
+    internal static bool ForceForeground(nint windowHandle)
     {
         if (windowHandle == 0) return false;
         if (GetForegroundWindow() == windowHandle) return true;

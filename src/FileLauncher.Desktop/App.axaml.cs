@@ -59,16 +59,8 @@ public partial class App : Application
     {
         var store = _store = new AppDataStore(_paths = DataPaths.Resolve(DataPaths.ExecutableDirectory(Environment.ProcessPath, AppContext.BaseDirectory)));
 
-        // 2 重起動なら既存インスタンスに「盤面を表示」を送って終了
-        _instance = new SingleInstance(store.Paths.Root);
-        if (!_instance.TryAcquire())
-        {
-            _instance.SignalExisting();
-            _instance.Dispose();
-            _instance = null;
-            desktop.Shutdown();
-            return;
-        }
+        // 単一インスタンスのロックは Program.Main で取得済み（2 重起動はそこで終了している）
+        _instance = Program.Instance ?? throw new InvalidOperationException("SingleInstance not acquired"); // i18n:ignore
 
         var (settingsResult, boardResult) = store.LoadAll();
         var settings = settingsResult.Value;
@@ -112,7 +104,7 @@ public partial class App : Application
             SetDisplayMode = mode => _hub?.Update(s => s.General.DisplayMode = mode, SettingsChange.DisplayMode),
             OpenSettings = OpenSettings,
             Quit = () => Quit(desktop),
-            ShowAbout = () => AboutWindow.Show(_platform.Shell, store.Paths.Root, store.Paths.IsPortable),
+            ShowAbout = () => AboutWindow.Show(_platform.Shell, store.Paths.Root, store.Paths.IsPortable, _hub!.Current.General.FolderOpenTarget),
         };
         editor.Attach();
         _board.SettingsRequested += OpenSettings;
@@ -258,7 +250,7 @@ public partial class App : Application
             var platform = _platform;
             _settingsWindow = new SettingsWindow(new SettingsContext(_hub, platform, _paths!,
                 () => _current?.IsShown == true && _board is not null ? _board.Position : null,
-                dir => platform.Shell.Launch(new LauncherItem { Kind = ItemKind.Folder, Target = dir, Name = Path.GetFileName(dir) }),
+                dir => platform.Shell.Launch(new LauncherItem { Kind = ItemKind.Folder, Target = dir, Name = Path.GetFileName(dir) }, null, _hub!.Current.General.FolderOpenTarget),
                 ShowPermissionGuide,
                 FlushAll: () => { _editor?.Flush(); _hub?.Flush(); },
                 ImportAndRestart: ImportAndRestart,

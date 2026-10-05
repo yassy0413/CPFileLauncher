@@ -47,8 +47,19 @@ internal sealed class FakePlatform : IPlatformServices, IInputHookService, IHotk
     // アイコン・シェル
     public Task<IconPixels?> GetIconAsync(LauncherItem item, int sizePx, bool allowThumbnail, CancellationToken cancellationToken = default) =>
         Task.FromResult<IconPixels?>(null);
-    public LaunchResult Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths = null) { Launched.Add(item.Target); return LaunchResult.Ok; }
-    public LaunchResult RevealInFileManager(string path) => LaunchResult.Ok;
+    public LaunchResult Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths = null, FolderOpenTarget folderTarget = FolderOpenTarget.System)
+    {
+        Launched.Add(item.Target);
+        LastFolderTarget = folderTarget;
+        return LaunchResult.Ok;
+    }
+    public LaunchResult RevealInFileManager(string path, FolderOpenTarget folderTarget = FolderOpenTarget.System)
+    {
+        Revealed.Add((path, folderTarget));
+        return LaunchResult.Ok;
+    }
+    public FolderOpenTarget? LastFolderTarget { get; private set; }
+    public List<(string Path, FolderOpenTarget Target)> Revealed { get; } = new();
     public ShortcutInfo? ReadShortcut(string path) => null;
 
     // ウィンドウ

@@ -58,7 +58,8 @@ public partial class BoardWindow : Window
 
     internal IconService? Icons { get; set; }
 
-    public event Action<LauncherItem>? ItemInvoked;
+    /// <summary>アイテムの起動。bool は「新しいウィンドウで開く」（Windows の Ctrl+クリック / Ctrl+Enter。SPEC §5.2）。</summary>
+    public event Action<LauncherItem, bool>? ItemInvoked;
     public event Action? EscapePressed;
 
     /// <summary>盤面表示中の Ctrl+, / ⌘,（SPEC §7 設定画面の入口）。</summary>
@@ -603,7 +604,11 @@ public partial class BoardWindow : Window
             button.PointerExited += (_, _) => Release();
         }
         ToolTip.SetTip(button, missing ? Strings.FormatBoard_ItemMissing_Tooltip(item.Target) : $"{item.Name}\n{item.Target}");
-        button.Click += (_, _) => { if (!ConsumeSuppressedClick()) ItemInvoked?.Invoke(item); };
+        button.Click += (_, _) =>
+        {
+            bool newWindow = IsNewWindowModifier(TakeReleaseModifiers()); // 抑止したクリックでも控えは消す
+            if (!ConsumeSuppressedClick()) ItemInvoked?.Invoke(item, newWindow);
+        };
         return button;
     }
 

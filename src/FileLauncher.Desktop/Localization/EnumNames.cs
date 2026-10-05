@@ -11,7 +11,7 @@ internal static class EnumNames
     [
         typeof(DisplayMode), typeof(BackgroundFit), typeof(AccentPreset), typeof(ClockMode), typeof(LabelMode), typeof(PopupPosition),
         typeof(MouseGesture), typeof(MouseButtonKind), typeof(ZOrder), typeof(EffectKind), typeof(EasingKind), typeof(ItemColor),
-        typeof(ItemKind), typeof(LaunchMode),
+        typeof(ItemKind), typeof(LaunchMode), typeof(FolderOpenTarget),
     ];
 
     public static string Of<T>(T value) where T : struct, Enum =>

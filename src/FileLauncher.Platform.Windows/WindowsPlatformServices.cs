@@ -10,13 +10,15 @@ public sealed class WindowsPlatformServices : IPlatformServices
 {
     private readonly SharpHookInputService _input;
     private readonly StaWorker _sta = new("ShellSTA");
+    // Explorer のタブ操作はアイコン取得と別のスレッド（タブの出現待ちでアイコン取得を止めない。SPEC §10.3）
+    private readonly StaWorker _explorerSta = new("ExplorerSTA");
 
     public WindowsPlatformServices()
     {
         Desktop = new WindowsDesktopDetector();
         _input = new SharpHookInputService(Desktop.IsDesktopAt);
         Icons = new WindowsIconProvider(_sta);
-        Shell = new WindowsShellService(_sta);
+        Shell = new WindowsShellService(_sta, new ExplorerTabs(_explorerSta));
     }
 
     public IInputHookService InputHook => _input;
@@ -33,6 +35,7 @@ public sealed class WindowsPlatformServices : IPlatformServices
     {
         _input.Dispose();
         _sta.Dispose();
+        _explorerSta.Dispose();
     }
 }
 

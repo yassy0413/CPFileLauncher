@@ -13,7 +13,7 @@ internal static class AboutWindow
 {
     private static Window? _open; // 開いていれば前に出すだけ
 
-    internal static Window Show(IShellService shell, string dataRoot, bool isPortable)
+    internal static Window Show(IShellService shell, string dataRoot, bool isPortable, FolderOpenTarget folderTarget = FolderOpenTarget.System)
     {
         if (_open is { } existing) { existing.Activate(); return existing; }
 
@@ -28,7 +28,7 @@ internal static class AboutWindow
         var openData = new Button { Content = Strings.Common_Open };
         openData.Click += (_, _) =>
         {
-            var r = shell.Launch(new LauncherItem { Name = "data", Target = dataRoot, Kind = ItemKind.Folder });
+            var r = shell.Launch(new LauncherItem { Name = "data", Target = dataRoot, Kind = ItemKind.Folder }, null, folderTarget);
             if (!r.Success) Toast.Show(Strings.FormatAbout_OpenDataFailed(Loc.LaunchError(r)));
         };
         var ok = Dialogs.ActionButton(Strings.Common_OK, isDefault: true);

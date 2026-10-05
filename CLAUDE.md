@@ -70,6 +70,6 @@ Windows & macOS 対応のファイル／アプリランチャー（ベンチマ�
 
 ## 次にやること（優先順）
 
-1. Windows 機で一括確認（`issue/MAC_SUPPORT.md` Mac-0 と SPEC §13.3 C9〜C16）: まず `cd src && dotnet build FileLauncher.sln && dotnet test FileLauncher.sln`（ResxSourceGenerator が Windows で動くか）→ M3 / SharpHook 8 / M4・M5 以降の機能。
-2. M6（`issue/M6_DISTRIBUTION_WINDOWS.md`）: 単一 exe + ReadyToRun の配布物と非機能要件の計測（Windows 機が要る）。
+1. Windows 機で一括確認（`issue/MAC_SUPPORT.md` Mac-0 と SPEC §13.3 C9〜C20）: ビルド・テストは 2026-10-05 に Windows で通った（Core 179 / Desktop 85）。残りはユーザーの GUI 確認（M3 / SharpHook 8 / M4・M5 以降の機能）。
+2. M6（`issue/M6_DISTRIBUTION_WINDOWS.md`）: `src/build/publish-win.ps1` で `bin/win-x64|win-arm64/CPFileLauncher.exe` を作れる（2026-10-05）。残りは 200 件での非機能要件の計測（ユーザー）。
 3. Mac: `issue/MAC_SUPPORT.md` の Mac-1 / Mac-2 の残り（権限なし起動の確認、デスクトップ判定、Retina の C1）。完了したマイルストーンの issue ファイルは削除する。

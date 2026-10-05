@@ -75,10 +75,12 @@ public interface IIconProvider
 public interface IShellService
 {
     /// <param name="droppedPaths">Drop-to-Open でドロップされたパス。%1 / $1 に展開する。</param>
-    LaunchResult Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths = null);
+    /// <param name="folderTarget">フォルダ種別の開き方（SPEC §5.2「フォルダを開く先」）。フォルダ以外と macOS では無視。
+    /// <see cref="FolderOpenTarget.ExistingTab"/> の処理は非同期に続き、失敗は新しいウィンドウへフォールバックする（戻り値は「始められたか」）。</param>
+    LaunchResult Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths = null, FolderOpenTarget folderTarget = FolderOpenTarget.System);
 
-    /// <summary>格納フォルダを開き、対象を選択状態にする。</summary>
-    LaunchResult RevealInFileManager(string path);
+    /// <summary>格納フォルダを開き、対象を選択状態にする。folderTarget は <see cref="Launch"/> と同じ（macOS では無視）。</summary>
+    LaunchResult RevealInFileManager(string path, FolderOpenTarget folderTarget = FolderOpenTarget.System);
 
     /// <summary>.lnk（Win）/ エイリアス（Mac）を読む。ショートカットでなければ null。</summary>
     ShortcutInfo? ReadShortcut(string path);
