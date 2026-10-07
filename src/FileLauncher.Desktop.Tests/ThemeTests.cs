@@ -23,7 +23,7 @@ public sealed class ThemeTests
     }
 
     [AvaloniaFact]
-    public void 盤面には発光の余白34が付く()
+    public void 盤面には発光の余白40が付く()
     {
         var board = new BoardWindow();
         var appearance = new AppearanceSettings();
@@ -31,7 +31,7 @@ public sealed class ThemeTests
         board.Render(Board.CreateDefault(), appearance, 0);
         board.Show();
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal(34, Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(board).OfType<FrameChrome>().Single().GetMargin());
+        Assert.Equal(40, Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(board).OfType<FrameChrome>().Single().GetMargin());
         board.AllowClose = true;
         board.Close();
     }

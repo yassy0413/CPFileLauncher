@@ -5,6 +5,7 @@
 正となる文書: **`spec/EFFECTS.md`「常時の演出の詳細」**（パラメータ・規則・方式・「CPU の計測と既定の判断」）、SPEC §3.1 / §3.6（見た目）/ §10.3（`PrefersReducedMotion`）/ §11（CPU の目標と計測値）/ §12（軽くする方法）/ §13.3 C17、`spec/SETTINGS.md`「演出の調整…」、`spec/TERMS.md`（訳語）、`issue/UI_TESTS.md`「常時の演出」（テスト観点）。
 
 設計日: 2026-10-04（designer）。**ステップ 1〜3・5 実装済み、CPU 計測済み、ユーザー判断（案 A: 2 つとも既定なし）反映済み（同日）。仕様・テスト・文言は同期済み。** 残りはユーザーの見た目の確認（ステップ 4。値の確定は任意）だけで、済んだらこのファイルを削除し、SPEC §13.3 C17（Windows 側）だけを残す。
+**2026-10-06: 枠の発光を八角形に沿わせる修正（実装・Mac 確認済み、`issue/CHAMFER_GLOW.md` は完了・削除。明滅が焼く形・光の玉の経路・余白 34 → 40 が変わる）が入るので、ステップ 4 の見た目の確認はその修正後に行う。** ステップ 4 の文面は同日、テーマ廃止（2026-10-04、サイバーパンク専用・配色 = 主色 / 副色）後の形に直した。
 
 ---
 
@@ -14,7 +15,7 @@
 - 種類: `frameOrb` = none / `orb`（1 個、主色）/ `orbTwin`（2 個、主色 + 副色が対角）。`glowPulse` = none / `pulse`（弱、発光 +45%）/ `pulseStrong`（強、+90%）。「時間」= 1 周 / 1 周期の長さ（秒表示。スライダーの初期位置は 8000 / 4000）。イージングは使わない。
 - 既定（**2026-10-04 ユーザー判断 案 A、確定**）: **2 つともどのテーマでも `none`**。ユーザーが「演出の調整…」でオンにする扱い。2 行の下の共通の注記 `Settings_Appearance_Effects_AmbientNote` を「光の玉と発光の明滅は、盤面が見えている間ずっと動き、CPU を多く使います（20〜30% 程度）。既定ではオフです。」に変更し、明滅専用の注記（`PulseCpuNote`）は削除。`glowPulse` の行は引き続きサイバーパンクのときだけ出す。オンにしたときは SPEC §11 の CPU 目標の対象外。
 - 動く条件: 種類が none 以外 かつ アニメーション ON かつ 盤面が見えている かつ 常駐の収納中でない かつ 表示 / 非表示演出中でない かつ OS の「視差効果を減らす」がオフ（ステップ 5、採用済み）。表示演出の後に 250 ms でフェードイン、非表示演出の開始で即座に消える。止まっている間はフレーム要求を出さない（CPU 0）。
-- 方式（実装後の形）: `OrbLayer : Canvas` + 玉 1 個 = 部品 `OrbSprite`（`RenderTransform` で動かす）、`PulseLayer : Control`（`FlBoardGlow` を `RenderTargetBitmap` に焼き、`Level` を描画時の `PushOpacity` で掛ける。2% 以上変わったときだけ更新）、`AmbientAnimator`（`TopLevel.RequestAnimationFrame`、16 ms 以上）。数式は Core（`OrbPath` / `AmbientMath`）。
+- 方式（実装後の形）: `OrbLayer : Canvas` + 玉 1 個 = 部品 `OrbSprite`（`RenderTransform` で動かす）、`PulseLayer : Control`（枠の発光を `RenderTargetBitmap` に焼き、`Level` を描画時の `PushOpacity` で掛ける。2% 以上変わったときだけ更新。**2026-10-06 設計: 焼く元は `FlBoardGlow` の矩形の `Border` から、盤面と同じ八角形のリング描画 `NeonGlowPlan` に変える**、`issue/CHAMFER_GLOW.md`）、`AmbientAnimator`（`TopLevel.RequestAnimationFrame`、16 ms 以上）。数式は Core（`OrbPath`（2026-10-06 から八角形の経路も）/ `AmbientMath`、形は `Octagon`、発光の断面は `NeonProfile`）。
 - 対象にしないもの（v1）: 文字の発光、タブ・セル・ホバーの発光、トースト、設定画面・ダイアログの枠、内側（区切り線など）の玉。理由は EFFECTS.md。
 - CPU（SPEC §11）: 既定構成（常時の演出なし）で表示中 3% 以下・隠した後 0.5% 以下を満たす。オン時は目標外。軽くする方法（別の透明ウィンドウに玉を描く、コマ数を落とす、文字の発光の描き方の見直し）は SPEC §12。
 
@@ -40,8 +41,8 @@
 ## ステップ 3: 設定画面 — 完了
 
 - [x] `SettingsWindow.EffectRow`: スライダーの範囲・刻みを `EffectDefinition` から、`IsAmbient` なら秒表示、イージングの有効 / 無効は `UsesEasing`。
-- [x] `EffectsExpander`: `glowPulse` の行を `Theme == Cyberpunk` のときだけ可視（テーマ変更の `RefreshAll` で切替）。2 行の後ろに `AmbientNote`（常に）、`PrefersReducedMotion` が true なら `ReducedMotionNote`。
-- [x] テスト: `AmbientEffectsTests`「設定画面の発光の明滅の行はサイバーパンクのときだけ出る」。
+- [x] `EffectsExpander`: `glowPulse` の行を `Theme == Cyberpunk` のときだけ可視（テーマ変更の `RefreshAll` で切替）→ **2026-10-04 のテーマ廃止で常に可視**。2 行の後ろに `AmbientNote`（常に）、`PrefersReducedMotion` が true なら `ReducedMotionNote`。
+- [x] テスト: `AmbientEffectsTests`「設定画面の発光の明滅の行はサイバーパンクのときだけ出る」→ テーマ廃止で「行が常に見える + `AmbientNote` がある」の検証に書き換え済み（`issue/UI_TESTS.md`）。
 
 ## 実装メモと CPU の計測（2026-10-04、Mac `.app` Release、`top` の % CPU、盤面表示中）
 
@@ -55,12 +56,12 @@
 
 ## ステップ 4: Mac でのユーザー確認（残り。見た目の確認で閉じられる）
 
-Release `.app`（`publish-mac.sh`）で確認する。CPU の計測は済んでいるので、ここでは見た目だけ。
+Release `.app`（`publish-mac.sh`）で確認する。CPU の計測は済んでいるので、ここでは見た目だけ。**`issue/CHAMFER_GLOW.md`（枠の発光を八角形に沿わせる。2026-10-06 設計）の実装後に行う**（明滅の焼く形・玉の経路・余白が変わるため。CHAMFER_GLOW のステップ 5 と同じ回で見てよい）。見た目はサイバーパンク専用（2026-10-04）で、色は配色（主色・副色）で変える。
 
-- [ ] 既定: 新規の settings.json（または「すべて既定に戻す」）でサイバーパンクの盤面を出しても玉も明滅も動かない。「演出の調整…」の末尾 2 行の下に注記「光の玉と発光の明滅は…CPU を多く使います（20〜30% 程度）。既定ではオフです。」がある。
-- [ ] 光の玉をオンにして: (1) サイバーパンクで `frameOrb` を「1 個」にすると、盤面を出したときグリッチの後に玉が現れ（250 ms のフェードイン）、枠の上を時計回りに 8 秒で 1 周、尾が付く。(2) Esc で消すとき玉が先に消え、グリッチに映り込まない。(3) 基調色をレッドにすると玉と暈が赤くなる（「2 個」なら 2 個目が水色）。(4) 背景画像ありで玉が画像の上に見える。不透明度 50% で玉も薄くなる。(5) 常駐 + 自動で隠すで、収納中は止まり、出てくると再開する。常駐のトリガー前面化（グリッチ）の間だけ止まる。(6) Retina で玉の大きさ・位置が論理 px どおり（枠線の中心に乗る）。(7) ダークで「1 個」にすると細い枠を玉が走り、`glowPulse` の行が出ない。(8) 「アニメーション」OFF で止まる。(9) システム設定 → アクセシビリティ → ディスプレイ → 「視差効果を減らす」オンで止まり、設定画面の末尾に注記が出る。
-- [ ] 明滅をオンにして: サイバーパンクで `glowPulse` を「弱」にすると枠の発光が 4 秒周期で呼吸する。基調色を変えると発光の色が追従する（焼き直し）。盤面の大きさ（ページの行列数）を変えても発光の形が合う。「なし」に戻すと静的な発光だけが残る。
-- [ ] 値の確定（**任意**。今の「仮」の値で良ければ飛ばす）: 玉の大きさ（芯 2.5 / 暈 9 px）・尾（48 px、10 点）・速さ（スライダー初期値 8 秒）・明滅の強さ（0.45 / 0.9）と周期（初期値 4 秒）を見て変えたければ、`spec/EFFECTS.md` の表の「仮」を確定値に書き換え、`EffectCatalog` / `OrbSprite` / `AmbientAnimator` の定数を合わせる。変えなければ EFFECTS.md の「仮」を「2026-10-04 確認済み」に書き換えるだけ。
+- [ ] 既定: 新規の settings.json（または「すべて既定に戻す」）で盤面を出しても玉も明滅も動かない。「演出の調整…」の末尾 2 行（`frameOrb` / `glowPulse` は常に出る）の下に注記「光の玉と発光の明滅は…CPU を多く使います（20〜30% 程度）。既定ではオフです。」がある。
+- [ ] 光の玉をオンにして: (1) `frameOrb` を「1 個」にすると、盤面を出したときグリッチの後に玉が現れ（250 ms のフェードイン）、枠線の中心を時計回りに 8 秒で 1 周、尾が付く。**角では面取りの斜辺の上を通る**（横切らない。CHAMFER_GLOW）。(2) Esc で消すとき玉が先に消え、グリッチに映り込まない。(3) 配色をレッド（プリセット）にすると玉と暈が主色の赤になる（「2 個」なら 2 個目が副色の水色）。主色をカスタムで動かしても追従する。(4) 背景画像ありで玉が画像の上に見える。不透明度 50% で玉も薄くなる。(5) 常駐 + 自動で隠すで、収納中は止まり、出てくると再開する。常駐のトリガー前面化（グリッチ）の間だけ止まる。(6) Retina で玉の大きさ・位置が論理 px どおり（枠線の中心に乗る）。(7) 「アニメーション」OFF で止まる。(8) システム設定 → アクセシビリティ → ディスプレイ → 「視差効果を減らす」オンで止まり、設定画面の末尾に注記が出る。
+- [ ] 明滅をオンにして: `glowPulse` を「弱」にすると枠の発光が 4 秒周期で呼吸する。**形は八角形のまま**（角で四角く光らない。窓の端で切れない。CHAMFER_GLOW）。配色を変えると発光の色が追従する（焼き直し）。盤面の大きさ（ページの行列数）を変えても発光の形が合う。「なし」に戻すと静的な発光だけが残る。「強」+ `orbTwin` が 2026-10-06 の報告の組み合わせなので、これも一度見る。
+- [ ] 値の確定（**任意**。今の「仮」の値で良ければ飛ばす）: 玉の大きさ（芯 2.5 / 暈 9 px）・尾（48 px、10 点）・速さ（スライダー初期値 8 秒）・明滅の強さ（0.45 / 0.9）と周期（初期値 4 秒）を見て変えたければ、`spec/EFFECTS.md` の表の「仮」を確定値に書き換え、`EffectCatalog` / `OrbSprite` / `AmbientAnimator` の定数を合わせる。変えなければ EFFECTS.md の「仮」を「確認済み」に書き換えるだけ。
 - [ ] 任意: ユーザーに「内側の玉」（ヘッダー区切り線の往復）と「他の発光（タブ・選択セル・設定画面の枠）の明滅」が要るかを聞く → 要るなら SPEC §12 の候補として残す（v1 では着手しない）。
 
 ## ステップ 5: OS の「視差効果を減らす」に従う — 採用・完了（2026-10-04 ユーザー判断）
@@ -87,7 +88,8 @@ Release `.app`（`publish-mac.sh`）で確認する。CPU の計測は済んで�
 - **`PulseLayer` は `Frame` の `BoxShadow` を変えない**（アニメーション OFF の見た目を今のまま保つため）。`BoxShadow` の値や色を毎フレーム変える方式は採らない（再ラスタライズで重い）。
 - **`OrbLayer` 全体を `InvalidateVisual` しない**。動かすのは `OrbSprite` の `RenderTransform` と `SetTail` だけ。`OrbSprite.Render` 内でブラシを `new` しない（`SetColor` のときだけ）。`Pen` も使わない（塗りだけ）。
 - **`PulseLayer` の要素 `Opacity` を 1 未満にしない**（上を玉が通るたびに層全体の合成になる）。明るさは `Level` → `PushOpacity`。更新は `AmbientAnimator.PulseStep`（2%）以上の差があるときだけ。
-- `PulseLayer.Refresh` は盤面の大きさが決まってから（`DispatcherPriority.Loaded`）。焼き直しの判定は大きさ・`RenderScaling`・`FlBoardGlow` の値の比較なので、基調色の切替は `FlBoardGlow` が変わることで追従する。
+- `PulseLayer.Refresh` は盤面の大きさが決まってから（`DispatcherPriority.Loaded`）。焼き直しの判定は大きさ・`RenderScaling`・`FlBoardGlow` の値（・2026-10-06 から面取り・余白）の比較なので、配色の切替は `FlBoardGlow` が変わることで追従する。
+- **焼く元は `NeonGlowPlan`**（2026-10-06 設計、`issue/CHAMFER_GLOW.md`）。`PulseLayer` に独自の描き方を持たせない（静的な発光と「同じ形」はコード共有で保証する）。`Chamfer = 0` のときだけ従来の `Border` を焼く。
 - `RequestAnimationFrame` のコールバックは UI スレッドで来る。`Stop()` 後に遅れて来た 1 回は `IsRunning` を見て何もしない。
 - ヘッドレステストでは `RequestAnimationFrame` が呼ばれない。`AmbientRunning` は `IsRunning` フラグで判定し、位置・明るさは `Ambient.Tick(ms)` で進める（`PulseLayer.Level` を見る）。既定が `none` なので、テストでは `Effects` に `orb` / `pulse` を明示的に入れる。
 - グリッチの静止画（`GlitchPlayer`）は `Frame` だけを撮る。`AmbientRoot` を `Frame` の中に入れないこと。

@@ -53,6 +53,8 @@ public sealed class AppSettings
         Appearance.Colors.Normalize();
         Appearance.Hud ??= new();
         Appearance.Hud.GridOpacity = Math.Clamp(Appearance.Hud.GridOpacity, 0, 10);
+        Appearance.Hud.ScanlineOpacity = (int)Math.Round(Math.Clamp(Appearance.Hud.ScanlineOpacity, 0, 50) / 5.0, MidpointRounding.AwayFromZero) * 5;
+        if (!HudSettings.ScanlinePitches.Contains(Appearance.Hud.ScanlinePitch)) Appearance.Hud.ScanlinePitch = 3;
     }
 }
 
@@ -177,6 +179,18 @@ public sealed class HudSettings
 
     /// <summary>グリッドの線の濃さ %（主色の不透明度。0〜10、既定 3。2026-10-04 ユーザー要望）。</summary>
     public int GridOpacity { get; set; } = 3;
+
+    /// <summary>静止した走査線（主色の横線。SPEC §3.9 H14。2026-10-07 ユーザーが実物で選んで採用）。</summary>
+    public bool Scanlines { get; set; } = true;
+
+    /// <summary>走査線の濃さ %（0〜50、5 刻み、既定 25）。</summary>
+    public int ScanlineOpacity { get; set; } = 25;
+
+    /// <summary>走査線の間隔 px（<see cref="ScanlinePitches"/> のどれか、既定 3）。</summary>
+    public int ScanlinePitch { get; set; } = 3;
+
+    /// <summary>選択できる走査線の間隔（px）。</summary>
+    public static readonly int[] ScanlinePitches = [2, 3, 4];
 }
 
 public enum ClockMode

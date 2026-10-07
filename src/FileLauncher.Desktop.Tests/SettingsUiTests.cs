@@ -247,6 +247,31 @@ public sealed class SettingsUiTests : IDisposable
     }
 
     [AvaloniaFact]
+    public void 走査線の行は外観タブにあり_オフで濃さと間隔が無効になり_間隔を選ぶと保存される()
+    {
+        var w = OpenSettings();
+        var tabs = w.GetVisualDescendants().OfType<TabControl>().First();
+        tabs.SelectedItem = tabs.Items.OfType<TabItem>().First(t => (t.Header as TextBlock)?.Text == Strings.Settings_Tab_Appearance);
+        Dispatcher.UIThread.RunJobs();
+        var pitch = w.GetVisualDescendants().OfType<ComboBox>()
+            .Single(c => c.ItemsSource is IEnumerable<string> items && items.Contains(Strings.FormatCommon_PixelValue(4)));
+        Assert.Equal(1, pitch.SelectedIndex); // 既定 3 px
+        pitch.SelectedIndex = 2;
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(4, _hub.Current.Appearance.Hud.ScanlinePitch);
+        _hub.Flush();
+        Assert.Contains("\"scanlinePitch\": 4", File.ReadAllText(_paths.SettingsFile));
+
+        var row = w.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == Strings.Settings_Appearance_Hud_Scanlines);
+        var toggle = row.GetVisualAncestors().OfType<Grid>().First().GetVisualDescendants().OfType<ToggleSwitch>().Single();
+        toggle.IsChecked = false;
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(_hub.Current.Appearance.Hud.Scanlines);
+        Assert.False(pitch.IsEnabled);
+        w.Close();
+    }
+
+    [AvaloniaFact]
     public void データタブにエクスポートとインポートがある()
     {
         var w = OpenSettings();

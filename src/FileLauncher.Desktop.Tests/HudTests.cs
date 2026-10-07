@@ -93,4 +93,24 @@ public sealed class HudTests
         Assert.False(off.GetVisualDescendants().OfType<GridLayer>().Single().IsVisible);
         foreach (var w in new[] { on, off }) { w.AllowClose = true; w.Close(); }
     }
+
+    [AvaloniaFact]
+    public void 走査線は既定で25パーセント3px間隔で出て_設定で消せて間隔も変わる()
+    {
+        var on = Board(new AppearanceSettings());
+        var off = Board(new AppearanceSettings { Hud = new HudSettings { Scanlines = false } });
+        var wide = Board(new AppearanceSettings { Hud = new HudSettings { ScanlinePitch = 4, ScanlineOpacity = 10 } });
+        foreach (var w in new[] { on, off, wide }) w.Show();
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(on.ScanlineLayer.IsVisible);
+        Assert.Equal(0.25, on.ScanlineLayer.Opacity, 3);
+        Assert.Equal(3, on.ScanlineLayer.Pitch);
+        Assert.False(off.ScanlineLayer.IsVisible);
+        Assert.Equal((4.0, 0.1), (wide.ScanlineLayer.Pitch, Math.Round(wide.ScanlineLayer.Opacity, 3)));
+        // グリッドの上・タブとスロットの下
+        var surface = (Grid)on.ScanlineLayer.Parent!;
+        Assert.Equal(surface.Children.IndexOf(surface.Children.OfType<GridLayer>().Single()) + 1, surface.Children.IndexOf(on.ScanlineLayer));
+        Assert.True(surface.Children.IndexOf(on.ScanlineLayer) < surface.Children.IndexOf(surface.Children.OfType<DockPanel>().Single()));
+        foreach (var w in new[] { on, off, wide }) { w.AllowClose = true; w.Close(); }
+    }
 }

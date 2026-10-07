@@ -5,13 +5,17 @@ using FileLauncher.Core.Effects;
 namespace FileLauncher.App;
 
 /// <summary>
-/// 常時の演出（光の玉・発光の明滅）を毎フレーム進める（spec/EFFECTS.md「常時の演出の詳細」）。
+/// 常時の演出（光の玉・発光の明滅・走査線の帯）を毎フレーム進める（spec/EFFECTS.md「常時の演出の詳細」）。
 /// TopLevel.RequestAnimationFrame で動き、止まっている間はフレームを要求しない（CPU 0）。更新は 16 ms 以上の間隔。
 /// </summary>
-internal sealed class AmbientAnimator(TopLevel topLevel, OrbLayer orbs, PulseLayer pulse)
+internal sealed class AmbientAnimator(TopLevel topLevel, OrbLayer orbs, PulseLayer pulse, ScanBeamLayer beam)
 {
     private const double MinFrameMs = 16;
     private const double PulseStep = 0.02;
+    private const double WeakPeak = 0.45, StrongPeak = 0.9;
+
+    /// <summary>明滅で発光が最も明るくなる倍率（静的な発光 + 明滅「強」の画像）。発光の広がりの終わり（窓の余白）の計算に使う。</summary>
+    public const double MaxPulseGain = 1 + StrongPeak;
     private readonly Stopwatch _clock = new();
     private double _lastMs = double.NegativeInfinity;
 
@@ -49,7 +53,8 @@ internal sealed class AmbientAnimator(TopLevel topLevel, OrbLayer orbs, PulseLay
     {
         _lastMs = elapsedMs;
         orbs.Advance(elapsedMs);
-        double peak = PulseSpec.Kind switch { EffectKind.Pulse => 0.45, EffectKind.PulseStrong => 0.9, _ => 0 };
+        beam.Advance(elapsedMs);
+        double peak = PulseSpec.Kind switch { EffectKind.Pulse => WeakPeak, EffectKind.PulseStrong => StrongPeak, _ => 0 };
         double level = peak <= 0 ? 0 : AmbientMath.PulseLevel(elapsedMs, PulseSpec.DurationMs, peak);
         // 明滅の層は盤面全体に掛かるので、変えるたびに盤面全体が描き直しになる。目に見える差（2%）が出たときだけ変える
         if (Math.Abs(level - pulse.Level) >= PulseStep || (level == 0) != (pulse.Level == 0)) pulse.Level = level;

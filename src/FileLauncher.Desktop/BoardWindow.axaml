@@ -118,6 +118,8 @@
               Background="{DynamicResource FlBoardBackground}" CornerRadius="{DynamicResource FlBoardCornerRadius}" />
       <!-- 背景グリッド（HUD 段階 C。SPEC §3.9）: 面・背景画像・覆いの上、タブとスロットの下 -->
       <local:GridLayer x:Name="BackgroundGrid" Stroke="{DynamicResource FlHudGrid}" />
+      <!-- 静止した走査線（SPEC §3.9 H14）: グリッドの上、タブとスロットの下 -->
+      <local:ScanlineLayer x:Name="Scanlines" Stroke="{DynamicResource FlHudScanline}" />
       <DockPanel Margin="6">
         <!-- ヘッダー: ページタブ。タブ以外の部分をドラッグするとウィンドウ移動 -->
         <Border x:Name="Header" DockPanel.Dock="Top" Height="30" Background="Transparent" Margin="0,0,0,3">

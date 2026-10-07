@@ -49,7 +49,7 @@
 - [ ] 存在しないパスのアイテムはアイコンが薄表示（`Opacity 0.4`）で警告バッジが付く。
 - [ ] Esc で閉じる要求（`CloseRequested` 相当のイベント）が出る。`Ctrl+,`（Win）で `SettingsRequested` が出る。
 - [ ] ページタブをクリックすると `PageIndex` が変わる。
-- [x] 余白（`FlGlowMargin`）: ウィンドウが `盤面 + 34 × 2` 大きい（SPEC §3.6「発光のウィンドウ余白」。2026-10-04 のテーマ廃止で「ダークに戻すと 0」の半分は削除し、`ThemeTests` の該当テストは 34 固定の検証に書き換える）。
+- [x] 余白（`FlGlowMargin`）: ウィンドウが `盤面 + 40 × 2` 大きい（2026-10-06 に 34 → 40）（SPEC §3.6「発光のウィンドウ余白」。2026-10-04 のテーマ廃止で「ダークに戻すと 0」の半分は削除し、`ThemeTests` の該当テストは 34 固定の検証に書き換える）。**2026-10-06 設計で 34 → 40**（`issue/CHAMFER_GLOW.md`。`ThemeTests.盤面には発光の余白34が付く` を 40 に直し名前も変える。トーストは新トークン `FlToastMargin` = 34 のまま）。
 - [x] ステータス行（SPEC §3.9 H1、HUD 段階 A。実装済み 2026-10-04、`HudTests` 2 件 + Core `CyberColorsTests` の `StatusLine` 検証）: `hud.statusBar = true` で `Height` が OFF より 17 大きく、`StatusBar` の文字が `PAGE 01/01` / `ITEMS n`（アイテム数どおり）/ 日時（`clock = minutes` + `date` で `yyyy/MM/dd HH:mm` の形）。`SwitchPageTo(1)` で `PAGE 02/0N`。`clock = off` + `date = false` で右の `TextBlock` が非表示でタイマーが動かない。`Show()` で時刻のタイマーが動き、`Hide()` / `AmbientSuspended = true` で止まる。Core `StatusLine.Format` はゼロ埋め・100 ページ以上・`seconds`・`off`・日付 + 時刻・日付だけ、`NextTick` は分 / 秒 / 日付だけ（次の 0:00）。
 - [ ] ステータス行の日付（`appearance.hud.date`。2026-10-04 追加。Core は上で済み、UI は未）: `clock = off` + `date = true` で右の `TextBlock` に `yyyy/MM/dd` だけが出てタイマーが動いている（間隔は翌 0:00 まで）。`date = false` で `HH:mm` だけ。設定画面の表示タブで「ステータス行」を OFF にすると「時刻」と「日付（年/月/日）」の両方が無効表示になる（`SettingsUiTests`）。
 - [x] 空きスロットの角マーカー（H2。実装済み 2026-10-04、`HudTests` 1 件）: `.empty` スロットの中身に `CornerTicks` があり全周の枠線は描かない、`Button.slot.empty` の `Bounds` 全体がヒットテストに掛かる（空きスロットの中心への `MouseDown` × 2 で `RegisterRequested` 相当のイベント）。
@@ -77,6 +77,18 @@
 - [ ] 設定画面のタブの細目（未）: 選択中の `BorderBrush` が `FlAccent` の値で `Background` が `FlAccentSoft`、未選択は `FlTabOutline` / `PART_SelectedPipe` が非表示 / `FontSize == 14`。
 - [x] 面取り（段階 D。2026-10-04 正式採用、`ChromeWindowTests.面取りの枠は八角形の面と線で描き_中身も同じ形で切り抜く`）: `ChromeWindow` を出すと `Chrome.Chamfer == FrameChrome.DefaultChamfer`（10）、八角形 `Face` が可視で `Data` があり、`Frame.BorderBrush` が透明 / `Chamfer = 0` にすると `Face` が非表示で `OutlineBrush`（`Frame.BorderBrush`）が透明でない。
 - [ ] 面取りの細目（未）: `_content.Clip` が八角形（`Chamfer = 0` で null）/ 角ブラケットの `Data` が面取り時は 4 点の折れ線、0 では L 字 / `SetSurfaceVisible(false)` で `SurfaceBrush`（`Face.Fill`）が透明、`true` に戻すと `FlBoardBackground` に結び直る / 盤面（`BoardWindow`）でも `Chrome.Chamfer == 10`。
+
+### 八角形に沿う枠の発光（SPEC §3.6「発光の作り方」の「枠の発光」/ §3.9 H8。2026-10-06 設計・実装、`issue/CHAMFER_GLOW.md`）
+
+Core は `FileLauncher.Tests/NeonProfileTests.cs`（描画なし）、Desktop は `NeonGlowTests.cs`（**描画ありフィクスチャ** = `UseSkia` + `UseHeadlessDrawing = false`。黒地の窓に面を透明にした `FrameChrome`（240 × 160、`Chamfer` 10、角ブラケットは隠す）を置いて `CaptureRenderedFrame` し、主色シアンの G（= 不透明度 × 229）を読む。ヘッドレスは scale 1 だけ。scale 2 は Mac の実機確認（issue ステップ 5）で見る）。静的な層は配置の丸め（枠の太さ 1.5 → 整数）で最大 0.5 px ずれるので、画素の比較は ±4 と ±20% の大きい方で許容する。
+
+- [x] Core `NeonProfile`: `Erfcは0で1_3で十分小さく_単調に減る` / `σはAvaloniaのBoxShadowと同じ換算` / `合成は辺で各層の半分を重ねた値で_外へ単調に減る` / `盤面の発光は明滅の強で明るくしても30px以内で消えきる`（`Extent(…, 1.9)` が 24〜30）/ `帯は外側から内側へ隙間なく並び_帯の中央の合成で塗る`（**入れ子の塗り `Rings` は採らず、重ならない帯 `Bands` にした**: 入れ子に重ねると外側の薄い部分で 1 枚ごとの増分が 8 bit の刻みより小さくなり、計算より早く消えた。2026-10-06 実装時に画素テストで発見）。
+- [x] Core `Octagon`: `八角形は8点で上辺の始まりから時計回り_面取りは辺の半分に丸める` / `オフセットした八角形の斜辺は元の斜辺から距離dだけ離れる`。
+- [x] Core `OrbPath.Octagon`: `光の玉の八角形の経路は枠の辺の上を時計回りに一周する`（周長・始点・右上の斜辺の中点・1 周で戻る・全点が辺の上）。既存の角丸矩形のテストもそのまま通る。
+- [x] Desktop 構造: `面取りでは発光をBorderのBoxShadowでなく八角形の層で描き_面取りなしでは従来どおり`。
+- [x] Desktop 画素: `発光は辺から外へ単調に弱まり_窓の余白の内側で消えきる`（窓の端の 2 px 手前で ≤ 1、余白の規則 `Extent + 2 ≤ GetMargin()` も）/ `角で四角く光らず_斜辺の外も辺と同じ断面で光る`（切り落とした角が辺の 1 px 外の半分未満、斜辺の法線上の 3 点が上辺の同じ距離の値と一致）/ `内側の光は枠線のすぐ内側に染みて内へ弱まる` / `明滅の画像は静的な発光と同じ八角形の形`（`PulseLayer.BakedImage` と窓の画素が 5 点で一致）。
+- [x] Desktop `OrbLayer`: `玉は面取りした角で斜辺の上を通る`、既存の `玉は枠線に沿って一周の半分で反対側へ進み_明滅は半周期で最大になる`（始点・半周の位置を面取りの枠線の中心 = 1.5 + 0.75 px に更新）。
+- [x] 地の色を消す（背景画像あり）ときに結び付けが残り、表示時のリソースの解決で地の色に戻っていた不具合を修正（`FrameChrome.BindSurface`。画素テストで発見）。
 
 ### 盤面の編集（M4。2026-10-03 完了、SPEC §6.2〜§6.7）
 
@@ -132,7 +144,21 @@ Core（`FileLauncher.Tests`）は `AmbientEffectsCoreTests.cs`、Desktop は `Am
 - [x] → 直す: 設定画面: `glowPulse` の行が見える / `Settings_Appearance_Effects_AmbientNote` がある（旧「設定画面の発光の明滅の行はサイバーパンクのときだけ出る」。2026-10-04 のテーマ廃止で「ダークにすると見えない」の半分を削り、常に見える検証に）。
 - [ ] 未着手: `PlayHideAsync` を始めた瞬間に `AmbientRunning == false`（完了を待たない）/ `orbTwin` で 2 個目が半周先 / `pulseStrong` で `Level` 0.9 / `Tick(4000)`（周期 4000）で `Level ≈ 0`。
 - [ ] 未着手（設定画面）: `frameOrb` の行のスライダーが `Minimum 2000` / `Maximum 20000` / `TickFrequency 500` で、種類を `orb` にしたとき表示が「8.0 s」/ イージングが無効 / 注記 `Settings_Appearance_Effects_AmbientNote` はテーマによらず常に見える / `FakePlatform.ReducedMotion = true` で設定画面を開くと `Settings_Appearance_Effects_ReducedMotionNote` が見える / 「既定に戻す」で `Effects` から ID が消える / 「演出の調整…」の行数が `EffectCatalog.All.Count`。
-- [ ] 未着手: `PulseLayer.Refresh` が大きさ・テーマが同じなら焼き直さず、`FlBoardGlow` が変わる（基調色の切替）と焼き直す（画像の参照が変わることで確認。`Level = 0` のときは `Render` が何も描かない）。
+- [ ] 未着手: `PulseLayer.Refresh` が大きさ・配色が同じなら焼き直さず、`FlBoardGlow` が変わる（配色の切替）と焼き直す（`BakedImage` の参照が変わることで確認。`Level = 0` のときは `Render` が何も描かない）。2026-10-06 から焼き直しの判定に `Chamfer` と余白も入る（`issue/CHAMFER_GLOW.md`）。
+- [x] 2026-10-06 実装（`NeonGlowTests` / `AmbientEffectsTests.玉は面取りした角で斜辺の上を通る`）: 玉の経路が八角形（`OrbPath.Octagon`）で斜辺に乗る / `PulseLayer` の焼いた画像が静的な発光（`NeonGlowLayer`）と同じ断面。観点は上の「八角形に沿う枠の発光」節。
+
+### 走査線（SPEC §3.9 H14「走査線の仕様」、EFFECTS.md `scanBeam`。2026-10-07 設計・同日ユーザー判断で確定（静止 ON・25% / 帯 **既定 ON** `beam / 4000` / 間隔 2・3・4 px 既定 3 / 帯はスロットの上）、`issue/SCANLINES.md`。未実装）
+
+静止した走査線は `HudTests`（`ScanlineLayer` を `BoardWindow` から内部公開して見る）、帯は `AmbientEffectsTests`（`BoardWindow.ScanBeam` を内部公開し、`Ambient.Tick(ms)` で進めて子の `TranslateTransform.Y` を見る）、設定画面は `SettingsUiTests`、Core は `FileLauncher.Tests`。文言は `Strings.*` 参照。描画なしフィクスチャで足りる（画素は見ない）。**帯が既定 ON になるので、「既定では常時の演出が動かない」を前提にしている既存テストを先に直す**（下の「既存テストの書き換え」）。
+
+- [ ] Core `AppSettings.Normalize`: `scanlineOpacity` を 0〜50・5 刻みに丸める（53 → 50、12 → 10、13 → 15、−5 → 0）/ `scanlinePitch` が 2 / 3 / 4 以外（0、1、5、−3）なら 3 に戻り、2 と 4 はそのまま / キーなし → `scanlines = true` / `scanlineOpacity = 25` / `scanlinePitch = 3`（JSON 往復）。
+- [ ] Core `EffectCatalog`: **`scanBeam` の既定が `beam / 4000 / linear`**（`DefaultFor(ScanBeam)`、`Resolve` が `Effects` 空で `IsActive`）/ `Normalize` が `beam / 4000` を捨て（既定と同じ）、`none` は残し、500 → 2000、20000 → 12000 に丸め、`easing` が `linear` に / `beam` を `boardShow` に書くと捨てられる / `IsAmbient = true`、`DurationStepMs = 500` / `Animation = false` なら `Resolve` が `None`。
+- [ ] Core `AmbientMath.SweepOffset(phase, faceHeight, bandHeight)`: phase 0 → `−bandHeight`、phase 0.5 → `(faceHeight − bandHeight) / 2`、phase 1 → `faceHeight`（帯の上端が面の下端）。
+- [ ] Desktop `HudTests`: `hud.scanlines = true`（既定）で `ScanlineLayer.IsVisible` かつ `Opacity == 0.25` かつ `Pitch == 3`、`scanlines = false` で非表示、`scanlineOpacity = 0` で非表示、`50` で `Opacity == 0.5`、`scanlinePitch = 4` で `Pitch == 4` / `Frame` の中の `Grid` で `GridLayer` の直後・`DockPanel` の前の子にある / `IsHitTestVisible == false` / ウィンドウの `Width` / `Height` が走査線の ON / OFF・間隔で変わらない。
+- [ ] Desktop `AmbientEffectsTests`: **既定（`Effects` 空）で `Render` → `Show()` すると `AmbientRunning == true`（帯だけで動く。玉・明滅は `none` のまま = `Orbs` の 2 個が非表示、`PulseLayer.Level == 0`）、`Hide()` で false** / `scanBeam = none` を明示すると既定では動かない（既存テストの前提の置き換え）/ `Tick(0)` で帯の `TranslateTransform.Y == −60`、`Tick(2000)` で `(面の高さ − 60) / 2`、`Tick(4000)` で `−60` に戻る（折り返し）/ 帯の `Rectangle.Width == ScanBeamLayer.Bounds.Width`、`Height == 60` / `AmbientRoot` の子の順が `PulseLayer` → `ScanBeamLayer` → `OrbLayer`（既存の「層の順」テストを拡張）/ `ScanBeamLayer.Clip` が `Chamfer > 0` で非 null（`FrameChrome.FaceClip` と同じインスタンス）/ `ScanBeamLayer` が `Frame` の子孫ではない（グリッチの静止画に写らないことの構造的な保証）/ `Animation = false`・`AmbientSuspended`・`ReducedMotion` で帯も止まる（既存テストに帯の観点を足す）。
+- [ ] Desktop `SettingsUiTests`: 表示タブに「走査線」ToggleSwitch、「走査線の濃さ」`Slider`（`Minimum 0` / `Maximum 50` / `TickFrequency 5`）、「走査線の間隔」`ComboBox`（3 項目、表示が `string.Format(Strings.Common_PixelValue, 2/3/4)`、既定で 3 px が選択）があり、走査線を OFF にするとスライダーと `ComboBox` が無効・ON で戻る / スライダーの変更で `Changed(Hud)` が 1 回出て `ScanlineOpacity` が変わる、`ComboBox` で 2 px を選ぶと `ScanlinePitch == 2`・`Changed(Hud)` 1 回 / 「演出の調整…」に `Strings.Effect_scanBeam` の行があり、種類 `ComboBox` の選択肢が none / beam の 2 つで**既定の選択が `beam`**、スライダーが `2000`〜`12000` で表示が「4.0 s」、イージングが無効、「既定に戻す」が既定（`beam`）では無効で `none` にすると有効 / 注記 `Settings_Appearance_Effects_AmbientNote` が見える（文言は `Strings` 参照なので既存テストのまま）。
+- [ ] 自動で掛かるもの: `StringsTests`（`Effect_scanBeam` / `Enum_EffectKind_Beam` / `Settings_Appearance_Hud_Scanlines(_Note)` / `Settings_Appearance_Hud_ScanlineOpacity` / `Settings_Appearance_Hud_ScanlinePitch` / `Common_PixelValue` が両 resx にあり、`{0}` の引数集合が一致）、`ThemeTests`（`FlHudScanline` が `TokenKeys` に入り辞書にある）、`NoHardcodedJapaneseTests`（`ScanlinePreview.cs` を削除したので `i18n:ignore` の行が減る）。
+- [ ] **既存テストの書き換え**（帯の既定 ON に伴う）: Core `AmbientEffectsCoreTests.常時の演出はどのテーマでも既定で動かず_時間は演出ごとの範囲に丸める` → 「光の玉と明滅は既定で動かず_走査線の帯だけ既定で動き_時間は演出ごとの範囲に丸める」（`frameOrb` / `glowPulse` = none、`scanBeam` = beam / 4000 を検証）/ Desktop `AmbientEffectsTests.既定では動かず_アニメーションOFFや収納中やOSの設定でも止まる` → 既定で動く（帯）ことを検証する形に直し、「`scanBeam = none` なら既定では動かない」を 1 件足す。`Effects` 空のまま `Show()` している他のテスト（`HudTests` の時刻タイマー、`GlitchTests`、`BackgroundTests` 等）は `AmbientRunning` を見ていなければそのままでよいが、**`RequestAnimationFrame` が呼ばれないヘッドレスでも `Start()` で `Stopwatch` が動く**ので、`AmbientRunning` が true になって困るテストが無いか `dotnet test` で確かめる。
 
 ### フォルダを開く先（SPEC §5.2 / §6.2 / §6.3 / §6.6。2026-10-05 実装・Windows でユーザー確認済み。テストは `BoardEditingUiTests` 4 件・`ResidentTests` 1 件・`SettingsUiTests` 1 件・`FolderOpeningTests` 3 件。Windows のみの機能なので、OS で期待が分かれるテストは `OperatingSystem.IsWindows()` の分岐で両方の期待を書く）
 

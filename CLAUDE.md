@@ -20,6 +20,7 @@ Windows & macOS 対応のファイル／アプリランチャー（ベンチマ�
   - **M2（トレイ常駐・ポップアップ盤面・トリガー）完了**（Windows、2026-10-02 ユーザー確認済み）。
   - **M3（Windows）は実装済み・ユーザー確認待ち**。SharpHook 8 更新後の Windows 再確認も未（`issue/MAC_SUPPORT.md` Mac-0）。
   - **サイバーパンク化 完了**（Mac、2026-10-05 ユーザー確認済み。SPEC §3.6〜§3.9）: テーマの選択を廃止し配色（主色・副色、プリセット 5 組）、製品名 CPFileLauncher、HUD（ステータス行 + 日付・空きスロットの角マーカー・タイトル行のタグ・コンソール風トースト・背景グリッド・枠線だけのタブ・面取り）、窓のグリッチ、アイコン（`src/build/make-icons.sh` で SVG から生成）。常時の演出（光の玉・明滅）は CPU が重いので既定オフ。
+  - **枠の発光を八角形（面取り）に沿わせた**（Mac、2026-10-06 ユーザー確認済み。SPEC §3.9 H8 / §13.3 C22）: 枠の発光は `BoxShadow` ではなく `Themes/NeonGlowLayer`（`NeonGlowPlan`、Core `NeonProfile` / `Octagon`）。明滅 `PulseLayer` も同じものを焼く。窓の余白 40（トーストは 34）。八角形の座標式は Core `Octagon` 以外に書かない。
   - **M4（盤面の編集）完了**（Mac、2026-10-03 ユーザー確認済み）: 盤面内 D&D（移動 / 入替 / 複製 / 盤面外で削除）、右クリックメニュー、編集ダイアログ、ページ操作、キーボード操作、ホイールクリック + 回転、元に戻す（1 段階）、「について」。**削除はどの操作でも確認ダイアログを出さない**（救済は「元に戻す」）。**盤面の変更は必ず `BoardEditor` の `Commit` を通す**（元に戻すの基準がずれるため。SPEC §6.7）。
   - **フレームレスの設定画面・ダイアログと盤面の背景画像 完了**（Mac、2026-10-04 ユーザー確認済み。SPEC §3.7 / §3.8）: 盤面と窓の枠は `Themes/FrameChrome`、設定画面・ダイアログの基底は `Themes/ChromeWindow`（新しい窓はこれを使う。`Themed.Window` は廃止）。背景画像はデータフォルダの `background/` にコピーして相対パスで参照する。盤面は、アイテム以外の所（タブ・空きスロット・余白）のドラッグでも動かせる。
   - **M5（設定画面・常駐・演出・リソース化）完了**（Mac。Windows での確認は `issue/MAC_SUPPORT.md` / SPEC §13.3 に移した）。**Mac の `.app`（Mac-4）**: `src/build/publish-mac.sh` で `bin/osx-arm64/CPFileLauncher.app`（ReadyToRun、キーチェーンのコード署名証明書で署名、bundle id `com.palmjoy.cpfilelauncher`）。設定画面などの窓は `WindowActivation.ShowAndActivate` で開く（Mac は閉じたら直前のアプリへフォーカスを返す）。

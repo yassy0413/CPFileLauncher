@@ -1124,7 +1124,7 @@ The current files are kept in backup/.</value>
     <value>Strong</value>
   </data>
   <data name="Settings_Appearance_Effects_AmbientNote" xml:space="preserve">
-    <value>Light orb and glow pulse run the whole time the board is visible and use a lot of CPU (about 20–30%). They are off by default.</value>
+    <value>Light orb, glow pulse, and scan beam run the whole time the board is visible and use a lot of CPU (about 20–30%). All but the scan beam are off by default.</value>
   </data>
   <data name="Settings_Appearance_Effects_ReducedMotionNote" xml:space="preserve">
     <value>Stopped because the system’s reduce-motion setting is on.</value>
@@ -1194,5 +1194,26 @@ The current files are kept in backup/.</value>
   </data>
   <data name="Menu_OpenNewWindow" xml:space="preserve">
     <value>Open in new window</value>
+  </data>
+  <data name="Settings_Appearance_Hud_Scanlines" xml:space="preserve">
+    <value>Scanlines</value>
+  </data>
+  <data name="Settings_Appearance_Hud_Scanlines_Note" xml:space="preserve">
+    <value>Thin horizontal lines in the primary color behind the slots.</value>
+  </data>
+  <data name="Settings_Appearance_Hud_ScanlineOpacity" xml:space="preserve">
+    <value>Scanline strength</value>
+  </data>
+  <data name="Settings_Appearance_Hud_ScanlinePitch" xml:space="preserve">
+    <value>Scanline spacing</value>
+  </data>
+  <data name="Common_PixelValue" xml:space="preserve">
+    <value>{0} px</value>
+  </data>
+  <data name="Effect_scanBeam" xml:space="preserve">
+    <value>Scan beam</value>
+  </data>
+  <data name="Enum_EffectKind_Beam" xml:space="preserve">
+    <value>Beam</value>
   </data>
 </root>

@@ -4,7 +4,7 @@ using Avalonia.Media;
 
 namespace FileLauncher.App;
 
-/// <summary>盤面の背景グリッド（HUD 段階 C。SPEC §3.9 H6）。24 px 間隔の細線（FlHudGrid = 主色 7%）。静的（大きさ・色が変わったときだけ描き直す）。</summary>
+/// <summary>盤面の背景グリッド（HUD 段階 C。SPEC §3.9 H6）。24 px 間隔の細線（FlHudGrid = 主色。濃さは設定 gridOpacity）。静的（大きさ・色が変わったときだけ描き直す）。</summary>
 internal sealed class GridLayer : Control
 {
     public static readonly StyledProperty<IBrush?> StrokeProperty = AvaloniaProperty.Register<GridLayer, IBrush?>(nameof(Stroke));

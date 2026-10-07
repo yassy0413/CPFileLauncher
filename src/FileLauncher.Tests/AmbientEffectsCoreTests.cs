@@ -1,5 +1,6 @@
 using FileLauncher.Core.Effects;
 using FileLauncher.Core.Model;
+using FileLauncher.Core.Storage;
 
 namespace FileLauncher.Tests;
 
@@ -41,10 +42,20 @@ public sealed class AmbientEffectsCoreTests
     }
 
     [Fact]
-    public void 常時の演出はどのテーマでも既定で動かず_時間は演出ごとの範囲に丸める()
+    public void 光の玉と明滅は既定で動かず_走査線の帯だけ既定で動き_時間は演出ごとの範囲に丸める()
     {
         Assert.Equal(EffectKind.None, EffectCatalog.DefaultFor(EffectCatalog.FrameOrb).Kind); // CPU を多く使うので既定なし
         Assert.Equal(EffectKind.None, EffectCatalog.DefaultFor(EffectCatalog.GlowPulse).Kind); // 重いので既定なし
+        // 帯は 2026-10-07 のユーザー判断で既定 ON（唯一の例外）
+        Assert.Equal(new EffectSpec { Kind = EffectKind.Beam, DurationMs = 4000, Easing = EasingKind.Linear }, EffectCatalog.DefaultFor(EffectCatalog.ScanBeam));
+        var beam = EffectCatalog.Normalize(new()
+        {
+            [EffectCatalog.ScanBeam] = new EffectSpec { Kind = EffectKind.Beam, DurationMs = 4000 }, // 既定と同じは保存しない
+        });
+        Assert.Empty(beam);
+        var off = EffectCatalog.Normalize(new() { [EffectCatalog.ScanBeam] = EffectSpec.None }); // 止めたことは保存する
+        Assert.Equal(EffectKind.None, off[EffectCatalog.ScanBeam].Kind);
+        Assert.Equal(12000, EffectCatalog.Normalize(new() { [EffectCatalog.ScanBeam] = new EffectSpec { Kind = EffectKind.Beam, DurationMs = 99999 } })[EffectCatalog.ScanBeam].DurationMs);
 
         var n = EffectCatalog.Normalize(new()
         {
@@ -55,5 +66,49 @@ public sealed class AmbientEffectsCoreTests
         Assert.Equal(new EffectSpec { Kind = EffectKind.OrbTwin, DurationMs = 20000, Easing = EasingKind.Linear }, n[EffectCatalog.FrameOrb]);
         Assert.Equal(1000, n[EffectCatalog.GlowPulse].DurationMs);
         Assert.False(n.ContainsKey(EffectCatalog.BoardShow));
+        Assert.False(EffectCatalog.Normalize(new() { [EffectCatalog.BoardShow] = new EffectSpec { Kind = EffectKind.Beam, DurationMs = 100 } }).ContainsKey(EffectCatalog.BoardShow));
+    }
+
+    [Fact]
+    public void 走査線の帯は面の上の外から入り_下の外へ抜ける()
+    {
+        Assert.Equal(-60, AmbientMath.SweepOffset(0, 300, 60));
+        Assert.Equal(120, AmbientMath.SweepOffset(0.5, 300, 60));
+        Assert.Equal(300, AmbientMath.SweepOffset(1, 300, 60));
+    }
+
+    [Theory]
+    [InlineData(53, 50)]
+    [InlineData(12, 10)]
+    [InlineData(13, 15)]
+    [InlineData(-5, 0)]
+    public void 走査線の濃さは0から50の5刻みに丸める(int raw, int expected)
+    {
+        var s = new AppSettings();
+        s.Appearance.Hud.ScanlineOpacity = raw;
+        s.Normalize();
+        Assert.Equal(expected, s.Appearance.Hud.ScanlineOpacity);
+    }
+
+    [Theory]
+    [InlineData(0, 3)]
+    [InlineData(1, 3)]
+    [InlineData(5, 3)]
+    [InlineData(-3, 3)]
+    [InlineData(2, 2)]
+    [InlineData(4, 4)]
+    public void 走査線の間隔は2_3_4以外なら3に戻す(int raw, int expected)
+    {
+        var s = new AppSettings();
+        s.Appearance.Hud.ScanlinePitch = raw;
+        s.Normalize();
+        Assert.Equal(expected, s.Appearance.Hud.ScanlinePitch);
+    }
+
+    [Fact]
+    public void 走査線のキーが無い設定は既定のONと25パーセントと3pxになる()
+    {
+        var s = System.Text.Json.JsonSerializer.Deserialize<AppSettings>("{\"appearance\": {\"hud\": {}}}", JsonDefaults.Options)!;
+        Assert.Equal((true, 25, 3), (s.Appearance.Hud.Scanlines, s.Appearance.Hud.ScanlineOpacity, s.Appearance.Hud.ScanlinePitch));
     }
 }

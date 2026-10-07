@@ -14,4 +14,8 @@ public static class AmbientMath
     /// <summary>明滅の強さ（0〜peak）。サイン波（0 から始まり半周期で peak）。</summary>
     public static double PulseLevel(double elapsedMs, int periodMs, double peak) =>
         peak * (1 - Math.Cos(2 * Math.PI * Phase(elapsedMs, periodMs))) / 2;
+
+    /// <summary>走査線の帯の上端の y（帯が面の上の外から入り、下の外へ抜ける。phase 0〜1 で一定速度）。</summary>
+    public static double SweepOffset(double phase, double faceHeight, double bandHeight) =>
+        -bandHeight + phase * (faceHeight + bandHeight);
 }

@@ -117,8 +117,8 @@ internal static class AppTheme
     }
 
     /// <summary>テーマの数値トークン（ウィンドウの大きさの計算など、コードで値が要るもの）。</summary>
-    public static double GlowMargin(IResourceHost host) =>
-        host.TryFindResource("FlGlowMargin", (host as IThemeVariantHost)?.ActualThemeVariant ?? ThemeVariant.Default, out var v) && v is double d ? d : 0;
+    public static double GlowMargin(IResourceHost host, string key = "FlGlowMargin") =>
+        host.TryFindResource(key, (host as IThemeVariantHost)?.ActualThemeVariant ?? ThemeVariant.Default, out var v) && v is double d ? d : 0;
 
     // ---------------- ライト / ダーク（Fluent の値への写像） ----------------
 
@@ -223,16 +223,21 @@ internal static class AppTheme
             ["MenuFlyoutSeparatorBackground"] = B(A(p.Accent, 0x33)),
             ["OverlayCornerRadius"] = new CornerRadius(2),
             ["FlToastErrorGlow"] = Neon(Color.Parse("#FF3B5C"), near: 3, mid: 12, far: 26),
-            ["FlGlowMargin"] = 34.0, // いちばん外の光（ぼかし 32）+ 2
-            ["FlGlowMarginThickness"] = new Thickness(34),
+            // 枠の発光が消えきる距離 NeonProfile.Extent(FlBoardGlow, 明滅「強」1.9 倍)（約 27）+ 2 以上。8 px の余裕を含む（SPEC §3.6）
+            ["FlGlowMargin"] = 40.0,
+            ["FlGlowMarginThickness"] = new Thickness(40),
+            // トーストの発光は矩形の BoxShadow のまま（ぼかし 26）。位置を変えないため従来の 34 に据え置く
+            ["FlToastMargin"] = 34.0,
+            ["FlToastMarginThickness"] = new Thickness(34),
             ["FlChromeShadow"] = Neon(p.Accent, near: 4, mid: 14, far: 32, inner: 0x26),
-            ["FlChromeMargin"] = 34.0,
-            ["FlChromeMarginThickness"] = new Thickness(34),
+            ["FlChromeMargin"] = 40.0,
+            ["FlChromeMarginThickness"] = new Thickness(40),
             ["FlFontFamily"] = ChakraPetch,
             // HUD（SPEC §3.9）
             ["FlMonoFontFamily"] = ShareTechMono,
             ["FlHudText"] = B(A(p.Accent, 0xB3)),
             ["FlHudGrid"] = B(p.Accent), // 濃さは設定 appearance.hud.gridOpacity（GridLayer.Opacity。既定 3%）
+            ["FlHudScanline"] = B(p.Accent), // 濃さは設定 appearance.hud.scanlineOpacity（ScanlineLayer.Opacity。既定 25%）
             ["FlTabOutline"] = B(A(p.TextMuted, 0x80)),
             ["FlHudHeight"] = 16.0,
             ["FlItemBandWidth"] = 3.0,

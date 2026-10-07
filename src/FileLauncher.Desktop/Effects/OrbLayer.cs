@@ -16,7 +16,10 @@ internal sealed class OrbLayer : Canvas
     private readonly OrbSprite _first = new(), _second = new();
     private OrbPath? _path;
     private Size _pathSize;
-    private double _pathRadius, _pathInset;
+    private double _pathRadius, _pathInset, _pathChamfer = -1;
+
+    /// <summary>枠の面取り（BoardWindow が FrameChrome.Chamfer を入れる）。0 なら角丸矩形の経路。</summary>
+    public double Chamfer { get; set; }
     private Color? _accent, _accent2;
     private readonly List<(double X, double Y)> _positions = [];
 
@@ -67,18 +70,24 @@ internal sealed class OrbLayer : Canvas
 
     private (double X, double Y) Offset((double X, double Y) p) => (p.X + _pathInset, p.Y + _pathInset);
 
-    /// <summary>枠線の中心線に沿った経路（大きさ・角丸が変わったときだけ作り直す）。</summary>
+    /// <summary>
+    /// 枠線の中心線に沿った経路（大きさ・角丸・面取りが変わったときだけ作り直す）。面取りの枠線は FrameChrome の八角形の Path で、
+    /// Frame の枠の太さ t の内側の、さらに t/2 内側が中心線（面取りの量は同じ）。
+    /// </summary>
     private OrbPath PathFor(Size size)
     {
         double thickness = Token<Thickness>("FlBoardBorderThickness").Left;
         double radius = Token<CornerRadius>("FlBoardCornerRadius").TopLeft;
-        double inset = thickness / 2;
-        if (_path is null || size != _pathSize || radius != _pathRadius || inset != _pathInset)
+        double inset = Chamfer > 0 ? thickness * 1.5 : thickness / 2;
+        if (_path is null || size != _pathSize || radius != _pathRadius || inset != _pathInset || Chamfer != _pathChamfer)
         {
-            _path = new OrbPath(size.Width - thickness, size.Height - thickness, Math.Max(0, radius - inset));
+            _path = Chamfer > 0
+                ? OrbPath.Octagon(size.Width - inset * 2, size.Height - inset * 2, Chamfer)
+                : OrbPath.RoundedRect(size.Width - thickness, size.Height - thickness, Math.Max(0, radius - inset));
             _pathSize = size;
             _pathRadius = radius;
             _pathInset = inset;
+            _pathChamfer = Chamfer;
         }
         return _path;
     }

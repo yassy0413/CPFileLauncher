@@ -12,10 +12,11 @@ namespace FileLauncher.Desktop.Tests;
 /// <summary>常時の演出（光の玉 frameOrb・発光の明滅 glowPulse。spec/EFFECTS.md「常時の演出の詳細」）。</summary>
 public sealed class AmbientEffectsTests
 {
-    private static (BoardWindow Board, AppearanceSettings Appearance) Board(bool orbOn = true, bool show = true)
+    private static (BoardWindow Board, AppearanceSettings Appearance) Board(bool orbOn = true, bool show = true, bool beamOn = true)
     {
         var appearance = new AppearanceSettings();
         appearance.Effects[EffectCatalog.BoardShow] = EffectSpec.None; // 表示演出の待ちを無くす
+        if (!beamOn) appearance.Effects[EffectCatalog.ScanBeam] = EffectSpec.None; // 帯は既定 ON
         // 常時の演出は既定でオフなので、テストではオンにする（ダークは既定のまま = 動かないことを見る）
         if (orbOn) appearance.Effects[EffectCatalog.FrameOrb] = new EffectSpec { Kind = EffectKind.Orb, DurationMs = 8000, Easing = EasingKind.Linear };
         var board = new BoardWindow();
@@ -50,9 +51,43 @@ public sealed class AmbientEffectsTests
     }
 
     [AvaloniaFact]
+    public void 既定では走査線の帯だけが動き_帯をなしにすると動かない()
+    {
+        var (board, appearance) = Board(orbOn: false);
+        Assert.True(board.AmbientRunning); // 帯は既定 ON（2026-10-07 ユーザー判断）
+        board.Ambient.Tick(0);
+        Assert.True(board.ScanBeam.BandVisible);
+        Assert.Empty(board.Orbs.OrbPositions);
+        Assert.Equal(0, board.PulseLayer.Level);
+
+        appearance.Effects[EffectCatalog.ScanBeam] = EffectSpec.None;
+        board.ApplyEffects(appearance);
+        Assert.False(board.AmbientRunning);
+        Close(board);
+    }
+
+    [AvaloniaFact]
+    public void 走査線の帯は面の上の外から下の外へ流れ_面の形で切り抜かれる()
+    {
+        var (board, _) = Board(orbOn: false);
+        var beam = board.ScanBeam;
+        double h = beam.Bounds.Height;
+        board.Ambient.Tick(0);
+        Assert.Equal(-ScanBeamLayer.BandHeight, beam.BandY, 3);
+        board.Ambient.Tick(2000); // 4 秒で 1 回 → 半分
+        Assert.Equal((h - ScanBeamLayer.BandHeight) / 2, beam.BandY, 3);
+        var chrome = board.GetVisualDescendants().OfType<FrameChrome>().Single();
+        Assert.NotNull(chrome.FaceClip);
+        Assert.Same(chrome.FaceClip, beam.Clip);
+        Assert.True(beam.Clip!.FillContains(new Avalonia.Point(h / 2, h / 2)));
+        Assert.False(beam.Clip.FillContains(new Avalonia.Point(1, 1))); // 面取りで切り落とした角
+        Close(board);
+    }
+
+    [AvaloniaFact]
     public void 既定では動かず_アニメーションOFFや収納中やOSの設定でも止まる()
     {
-        var (dark, _) = Board(orbOn: false);
+        var (dark, _) = Board(orbOn: false, beamOn: false);
         Assert.False(dark.AmbientRunning);
         Close(dark);
 
@@ -85,14 +120,29 @@ public sealed class AmbientEffectsTests
         var orbs = board.Orbs;
         board.Ambient.Tick(0);
         var (x0, y0) = Assert.Single(orbs.OrbPositions);
-        Assert.True(y0 < 2, $"始点は上辺: {x0},{y0}");
+        Assert.InRange(y0, 2, 2.5); // 始点は上辺（面取りの枠線の中心 = Frame の枠 1.5 + 線の半分 0.75）
 
         board.Ambient.Tick(4000); // 8 秒で 1 周 → 半分
         var (x1, y1) = Assert.Single(orbs.OrbPositions);
-        Assert.True(y1 > orbs.Bounds.Height - 2, $"半周で下辺: {x1},{y1}");
+        Assert.InRange(orbs.Bounds.Height - y1, 2, 2.5); // 半周で下辺
 
         board.Ambient.Tick(2000); // 明滅 4 秒周期 → 半周期で最大（弱 = 0.45）
         Assert.Equal(0.45, board.PulseLayer.Level, 2);
+        Close(board);
+    }
+
+    [AvaloniaFact]
+    public void 玉は面取りした角で斜辺の上を通る()
+    {
+        var (board, _) = Board();
+        var orbs = board.Orbs;
+        double inset = 2.25, c = FrameChrome.DefaultChamfer, w = orbs.Bounds.Width - inset * 2;
+        double perimeter = 2 * (w + orbs.Bounds.Height - inset * 2) - 8 * c + 4 * c * Math.Sqrt(2);
+        double ms = (w - 2 * c + c * Math.Sqrt(2) / 2) / perimeter * 8000; // 右上の斜辺の中点に着く時刻
+        board.Ambient.Tick(0);
+        board.Ambient.Tick(ms);
+        var (x, y) = Assert.Single(orbs.OrbPositions);
+        Assert.Equal(w - c, (x - inset) - (y - inset), 1); // 右上の斜辺 x − y = w − c の上
         Close(board);
     }
 

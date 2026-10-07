@@ -1067,7 +1067,7 @@
     <value>強</value>
   </data>
   <data name="Settings_Appearance_Effects_AmbientNote" xml:space="preserve">
-    <value>光の玉と発光の明滅は、盤面が見えている間ずっと動き、CPU を多く使います（20〜30% 程度）。既定ではオフです。</value>
+    <value>光の玉・発光の明滅・走査線の帯は、盤面が見えている間ずっと動き、CPU を多く使います（20〜30% 程度）。走査線の帯以外は既定ではオフです。</value>
   </data>
   <data name="Settings_Appearance_Effects_ReducedMotionNote" xml:space="preserve">
     <value>OS の「視差効果を減らす」設定がオンのため停止しています。</value>
@@ -1137,5 +1137,26 @@
   </data>
   <data name="Menu_OpenNewWindow" xml:space="preserve">
     <value>新しいウィンドウで開く</value>
+  </data>
+  <data name="Settings_Appearance_Hud_Scanlines" xml:space="preserve">
+    <value>走査線</value>
+  </data>
+  <data name="Settings_Appearance_Hud_Scanlines_Note" xml:space="preserve">
+    <value>スロットの下に主色の横線を敷きます。</value>
+  </data>
+  <data name="Settings_Appearance_Hud_ScanlineOpacity" xml:space="preserve">
+    <value>走査線の濃さ</value>
+  </data>
+  <data name="Settings_Appearance_Hud_ScanlinePitch" xml:space="preserve">
+    <value>走査線の間隔</value>
+  </data>
+  <data name="Common_PixelValue" xml:space="preserve">
+    <value>{0} px</value>
+  </data>
+  <data name="Effect_scanBeam" xml:space="preserve">
+    <value>走査線の帯</value>
+  </data>
+  <data name="Enum_EffectKind_Beam" xml:space="preserve">
+    <value>帯</value>
   </data>
 </root>

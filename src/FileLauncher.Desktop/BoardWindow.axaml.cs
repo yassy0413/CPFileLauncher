@@ -127,11 +127,17 @@ public partial class BoardWindow : Window
     public BoardWindow()
     {
         InitializeComponent();
-        // 常時の演出（明滅 → 光の玉）はグリッチの静止画・ドラッグのゴーストより下（spec/EFFECTS.md「常時の演出の詳細」）
+        // 常時の演出（明滅 → 走査線の帯 → 光の玉）はグリッチの静止画・ドラッグのゴーストより下（spec/EFFECTS.md「常時の演出の詳細」）。
+        // Frame の外（Overlays）なのでグリッチの静止画には写らない
         _pulseLayer = new PulseLayer();
+        _beamLayer = new ScanBeamLayer();
         _orbLayer = new OrbLayer();
-        _ambientRoot = new Grid { IsHitTestVisible = false, IsVisible = false, Opacity = 0, Children = { _pulseLayer, _orbLayer } };
-        _ambient = new AmbientAnimator(this, _orbLayer, _pulseLayer);
+        _pulseLayer.Chamfer = _orbLayer.Chamfer = Chrome.Chamfer; // 発光・玉の形を枠（八角形）に合わせる。起動後は変わらない
+        _ambientRoot = new Grid { IsHitTestVisible = false, IsVisible = false, Opacity = 0, Children = { _pulseLayer, _beamLayer, _orbLayer } };
+        _ambient = new AmbientAnimator(this, _orbLayer, _pulseLayer, _beamLayer);
+        // 帯は面（八角形）の中だけ。Overlays 自体は玉の暈のために切り抜かない
+        _beamLayer.Clip = Chrome.FaceClip;
+        Chrome.FaceClipChanged += (_, _) => _beamLayer.Clip = Chrome.FaceClip;
         // 明滅の画像は大きさ・テーマ（基調色の切替もテーマの入れ直しで来る）が変わったら焼き直す
         _pulseLayer.SizeChanged += (_, _) => { if (_ambient.IsRunning) _pulseLayer.Refresh(); };
         ActualThemeVariantChanged += (_, _) =>
@@ -215,6 +221,7 @@ public partial class BoardWindow : Window
         _iconEffect = EffectCatalog.Resolve(appearance, EffectCatalog.IconLoad);
         _dropEffect = EffectCatalog.Resolve(appearance, EffectCatalog.DropTarget);
         _orbLayer.Spec = EffectCatalog.Resolve(appearance, EffectCatalog.FrameOrb);
+        _beamLayer.Spec = EffectCatalog.Resolve(appearance, EffectCatalog.ScanBeam);
         _ambient.PulseSpec = EffectCatalog.Resolve(appearance, EffectCatalog.GlowPulse);
         _pulseLayer.IsVisible = _ambient.PulseSpec.IsActive;
         UpdateAmbient();
@@ -311,6 +318,7 @@ public partial class BoardWindow : Window
 
     private readonly PulseLayer _pulseLayer;
     private readonly OrbLayer _orbLayer;
+    private readonly ScanBeamLayer _beamLayer;
     private readonly Grid _ambientRoot;
     private readonly AmbientAnimator _ambient;
     private int _transitions; // 表示・非表示・グリッチの演出中（その間は止める）
@@ -330,6 +338,8 @@ public partial class BoardWindow : Window
     internal bool AmbientRunning => _ambient.IsRunning;
     internal AmbientAnimator Ambient => _ambient;
     internal OrbLayer Orbs => _orbLayer;
+    internal ScanBeamLayer ScanBeam => _beamLayer;
+    internal ScanlineLayer ScanlineLayer => Scanlines;
     internal PulseLayer PulseLayer => _pulseLayer;
 
     private async Task DuringTransition(Task transition)
@@ -349,7 +359,7 @@ public partial class BoardWindow : Window
     {
         if (_ambient is null) return; // 構築中（InitializeComponent の途中で IsVisible が変わる）
         if (_appearance is not null) UpdateClock(); // 時刻のタイマーも同じ条件（見えている・収納中でない）で動かす
-        bool any = _orbLayer.Spec.IsActive || _ambient.PulseSpec.IsActive;
+        bool any = _orbLayer.Spec.IsActive || _ambient.PulseSpec.IsActive || _beamLayer.Spec.IsActive;
         bool run = any && IsVisible && !_ambientSuspended && _transitions == 0 && ReducedMotion?.Invoke() != true;
         if (run == _ambient.IsRunning) return;
         if (run)
@@ -492,6 +502,9 @@ public partial class BoardWindow : Window
         double border = this.TryFindResource("FlBoardBorderThickness", ActualThemeVariant, out var bt) && bt is Thickness t ? t.Left : 1;
         BackgroundGrid.IsVisible = _appearance.Hud.Grid && _appearance.Hud.GridOpacity > 0;
         BackgroundGrid.Opacity = _appearance.Hud.GridOpacity / 100.0;
+        Scanlines.IsVisible = _appearance.Hud.Scanlines && _appearance.Hud.ScanlineOpacity > 0;
+        Scanlines.Opacity = _appearance.Hud.ScanlineOpacity / 100.0;
+        Scanlines.Pitch = _appearance.Hud.ScanlinePitch;
         bool status = _appearance.Hud.StatusBar;
         StatusBar.IsVisible = status;
         UpdateStatus();

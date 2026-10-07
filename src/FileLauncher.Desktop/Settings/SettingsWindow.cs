@@ -137,6 +137,17 @@ internal sealed class SettingsWindow : ChromeWindow
         void UpdateGridEnabled() => gridOpacity.IsEnabled = _hub.Current.Appearance.Hud.Grid;
         grid.IsCheckedChanged += (_, _) => UpdateGridEnabled();
         _refreshers.Add(UpdateGridEnabled);
+        // 静止した走査線（SPEC §3.9 H14）
+        var scanlines = Toggle(s => s.Appearance.Hud.Scanlines, (s, v) => s.Appearance.Hud.Scanlines = v, SettingsChange.Hud);
+        p.Children.Add(Row(Strings.Settings_Appearance_Hud_Scanlines, scanlines, Strings.Settings_Appearance_Hud_Scanlines_Note));
+        var scanlineOpacity = ValueSlider(0, 50, 5, "%", s => s.Appearance.Hud.ScanlineOpacity, (s, v) => s.Appearance.Hud.ScanlineOpacity = v, SettingsChange.Hud);
+        p.Children.Add(Row(Sub(Strings.Settings_Appearance_Hud_ScanlineOpacity), scanlineOpacity));
+        var scanlinePitch = Combo(HudSettings.ScanlinePitches.Select(px => (Strings.FormatCommon_PixelValue(px), px)).ToArray(),
+            s => s.Appearance.Hud.ScanlinePitch, (s, v) => s.Appearance.Hud.ScanlinePitch = v, SettingsChange.Hud);
+        p.Children.Add(Row(Sub(Strings.Settings_Appearance_Hud_ScanlinePitch), scanlinePitch));
+        void UpdateScanlinesEnabled() => scanlineOpacity.IsEnabled = scanlinePitch.IsEnabled = _hub.Current.Appearance.Hud.Scanlines;
+        scanlines.IsCheckedChanged += (_, _) => UpdateScanlinesEnabled();
+        _refreshers.Add(UpdateScanlinesEnabled);
         void UpdateClockEnabled() => clock.IsEnabled = date.IsEnabled = _hub.Current.Appearance.Hud.StatusBar;
         statusBar.IsCheckedChanged += (_, _) => UpdateClockEnabled();
         _refreshers.Add(UpdateClockEnabled);

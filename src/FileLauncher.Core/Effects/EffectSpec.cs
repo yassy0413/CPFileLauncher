@@ -26,6 +26,9 @@ public enum EffectKind
 
     /// <summary>常時の演出専用: 枠の発光の明滅（強）。</summary>
     PulseStrong,
+
+    /// <summary>常時の演出専用: 走査線の帯が面を上から下へ流れ続ける（scanBeam）。</summary>
+    Beam,
 }
 
 /// <summary>イージング（spec/EFFECTS.md「イージング」）。</summary>

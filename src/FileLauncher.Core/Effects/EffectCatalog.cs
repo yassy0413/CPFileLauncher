@@ -33,6 +33,7 @@ public static class EffectCatalog
     public const string ResidentMove = "residentMove";
     public const string FrameOrb = "frameOrb";
     public const string GlowPulse = "glowPulse";
+    public const string ScanBeam = "scanBeam";
 
     private static EffectSpec Spec(EffectKind kind, int ms, EasingKind easing) => new() { Kind = kind, DurationMs = ms, Easing = easing };
 
@@ -64,17 +65,20 @@ public static class EffectCatalog
             IsAmbient: true, MinDurationMs: 2000, MaxDurationMs: 20000, DurationStepMs: 500, UsesEasing: false),
         new(GlowPulse, EffectSpec.None, [EffectKind.None, EffectKind.Pulse, EffectKind.PulseStrong],
             IsAmbient: true, MinDurationMs: 1000, MaxDurationMs: 10000, DurationStepMs: 250, UsesEasing: false),
+        // 走査線の帯（SPEC §3.9 H14）。既定 ON は 2026-10-07 ユーザー判断で、上の「常時の演出は既定なし」の唯一の例外
+        new(ScanBeam, Spec(EffectKind.Beam, 4000, EasingKind.Linear), [EffectKind.None, EffectKind.Beam],
+            IsAmbient: true, MinDurationMs: 2000, MaxDurationMs: 12000, DurationStepMs: 500, UsesEasing: false),
     ];
 
     private static readonly Dictionary<string, EffectDefinition> ById = All.ToDictionary(d => d.Id);
 
     public static EffectDefinition? Find(string id) => ById.GetValueOrDefault(id);
 
-    /// <summary>そのテーマでの既定値。</summary>
+    /// <summary>既定値。</summary>
     public static EffectSpec DefaultFor(string id) =>
         ById.TryGetValue(id, out var def) ? def.Default : EffectSpec.None;
 
-    /// <summary>実際に使う値。アニメーション OFF なら None、上書きがあればそれ、無ければテーマの既定。</summary>
+    /// <summary>実際に使う値。アニメーション OFF なら None、上書きがあればそれ、無ければ既定。</summary>
     public static EffectSpec Resolve(AppearanceSettings appearance, string id)
     {
         if (!appearance.Animation) return EffectSpec.None;

@@ -27,7 +27,7 @@ internal static class Toast
     public static void Show(string message, bool error = true, int seconds = 5)
     {
         AppLog.Info($"toast: {message}");
-        // 見た目はテーマのトークン（SPEC §3.6 トースト）。外側の余白は発光がウィンドウの縁で切れないため（FlGlowMargin）
+        // 見た目はテーマのトークン（SPEC §3.6 トースト）。外側の余白は発光がウィンドウの縁で切れないため（FlToastMargin）
         static DynamicResourceExtension Res(string key) => new(key);
         var stripe = new Border { [!Border.BackgroundProperty] = Res(error ? "FlError" : "FlAccent"), [!Layoutable.WidthProperty] = Res("FlToastStripeWidth") };
         DockPanel.SetDock(stripe, Dock.Left);
@@ -40,7 +40,7 @@ internal static class Toast
             [!Border.BackgroundProperty] = Res(error ? "FlToastErrorBackground" : "FlToastBackground"),
             [!Border.BorderBrushProperty] = Res("FlToastBorder"),
             [!Border.BoxShadowProperty] = Res(error ? "FlToastErrorGlow" : "FlToastGlow"),
-            [!Layoutable.MarginProperty] = Res("FlGlowMarginThickness"),
+            [!Layoutable.MarginProperty] = Res("FlToastMarginThickness"),
             Child = new DockPanel
             {
                 Children =
@@ -68,7 +68,7 @@ internal static class Toast
                 },
             },
         };
-        double glow = Application.Current is { } app ? AppTheme.GlowMargin(app) : 0;
+        double glow = Application.Current is { } app ? AppTheme.GlowMargin(app, "FlToastMargin") : 0;
         var window = new Window
         {
             SystemDecorations = SystemDecorations.None,

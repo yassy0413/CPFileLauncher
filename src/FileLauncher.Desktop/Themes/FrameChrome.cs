@@ -30,8 +30,23 @@ internal sealed class FrameChrome : Grid
     /// </summary>
     public static double DefaultChamfer { get; set; } = 10;
 
-    private readonly Grid _content = new();       // Frame の中身: 面取りの面（八角形）+ Body
+    private readonly Grid _layers = new() { ClipToBounds = false }; // Frame の中身: 外側の発光 → _content
+    private readonly Grid _content = new();       // 面取りの面（八角形）→ 内側の発光 → Body
     private readonly Path _face = new() { IsHitTestVisible = false };
+    private readonly NeonGlowLayer _outerGlow = new(NeonGlowLayer.GlowPart.Outer);
+    private readonly NeonGlowLayer _innerGlow = new(NeonGlowLayer.GlowPart.Inner);
+    private const int BodyIndex = 2;
+
+    /// <summary>
+    /// 面（中身の切り抜きと同じ形）を Frame / Overlays の座標で表したもの。Overlays に置く層（走査線の帯）を面の中だけに切り抜くのに使う。
+    /// </summary>
+    public Geometry? FaceClip { get; private set; }
+
+    public event EventHandler? FaceClipChanged;
+
+    /// <summary>面取りのときの外側 / 内側の発光（八角形に沿う。テスト用）。</summary>
+    internal NeonGlowLayer OuterGlow => _outerGlow;
+    internal NeonGlowLayer InnerGlow => _innerGlow;
 
     /// <summary>面取りのときに面と枠線を描く八角形（テスト用）。</summary>
     internal Path Face => _face;
@@ -51,8 +66,11 @@ internal sealed class FrameChrome : Grid
         Frame[!Border.BorderThicknessProperty] = Themed.Res("FlBoardBorderThickness");
         _face[!Shape.StrokeProperty] = Themed.Res("FlBoardBorder");
         _content.Children.Add(_face);
+        _content.Children.Add(_innerGlow);
         _content.SizeChanged += (_, _) => UpdateChamferGeometry();
-        Frame.Child = _content;
+        _layers.Children.Add(_outerGlow);
+        _layers.Children.Add(_content);
+        Frame.Child = _layers;
         Children.Add(Frame);
         // 4 隅の角ブラケット（枠線から 2 px 外側。左上・右下 = 主色、右上・左下 = 副色。サイバーパンクのみ）
         _brackets[0] = Bracket("FlAccent", new Thickness(-3, -3, 0, 0), HorizontalAlignment.Left, VerticalAlignment.Top);
@@ -86,10 +104,10 @@ internal sealed class FrameChrome : Grid
     [Content]
     public Control? Body
     {
-        get => _content.Children.Count > 1 ? _content.Children[1] : null;
+        get => _content.Children.Count > BodyIndex ? _content.Children[BodyIndex] : null;
         set
         {
-            while (_content.Children.Count > 1) _content.Children.RemoveAt(1);
+            while (_content.Children.Count > BodyIndex) _content.Children.RemoveAt(BodyIndex);
             if (value is not null) _content.Children.Add(value);
         }
     }
@@ -112,56 +130,66 @@ internal sealed class FrameChrome : Grid
     private void Bind()
     {
         this[!MarginProperty] = Themed.Res(_marginKey);
-        Frame[!Border.BoxShadowProperty] = Themed.Res(_shadowKey);
+        _outerGlow.IsVisible = _innerGlow.IsVisible = _chamfer > 0;
         if (_chamfer > 0)
         {
-            // 面と枠線は八角形の Path で描く（Border は角を斜めに切れない）。発光の BoxShadow は Border（矩形）に残す
-            Frame.Background = Brushes.Transparent;
+            // 面と枠線は八角形の Path で描く（Border は角を斜めに切れない）。発光も BoxShadow（矩形）ではなく八角形に沿うリング描画
+            Frame.ClearValue(Border.BoxShadowProperty);
+            _outerGlow[!NeonGlowLayer.ShadowsProperty] = Themed.Res(_shadowKey);
+            _innerGlow[!NeonGlowLayer.ShadowsProperty] = Themed.Res(_shadowKey);
+            BindSurface(null);
+            Frame.ClearValue(Border.BorderBrushProperty);
             Frame.BorderBrush = Brushes.Transparent;
             _face.IsVisible = true;
-            if (_surfaceVisible) _face[!Shape.FillProperty] = Themed.Res(_backgroundKey);
-            else _face.Fill = Brushes.Transparent;
+            BindSurface(_face);
         }
         else
         {
             _face.IsVisible = false;
             _content.Clip = null;
+            Frame[!Border.BoxShadowProperty] = Themed.Res(_shadowKey);
             Frame[!Border.BorderBrushProperty] = Themed.Res("FlBoardBorder");
-            if (_surfaceVisible) Frame[!Border.BackgroundProperty] = Themed.Res(_backgroundKey);
-            else Frame.Background = Brushes.Transparent;
+            BindSurface(Frame);
         }
     }
 
-    /// <summary>八角形（面取り c）。</summary>
-    private static Geometry Octagon(double x, double y, double w, double h, double c)
+    private IDisposable? _surfaceBinding;
+
+    /// <summary>
+    /// 面の色を target（八角形の Path か Frame）に結ぶ。地の色を描かないときと、もう片方は透明。前の結び付けは必ず外す
+    /// （DynamicResource を残したまま値を上書きすると、表示時のリソースの解決や配色の変更で地の色に戻る）。
+    /// </summary>
+    private void BindSurface(AvaloniaObject? target)
     {
-        c = Math.Min(c, Math.Min(w, h) / 2);
-        var g = new StreamGeometry();
-        using (var ctx = g.Open())
-        {
-            ctx.BeginFigure(new Point(x + c, y), true);
-            ctx.LineTo(new Point(x + w - c, y));
-            ctx.LineTo(new Point(x + w, y + c));
-            ctx.LineTo(new Point(x + w, y + h - c));
-            ctx.LineTo(new Point(x + w - c, y + h));
-            ctx.LineTo(new Point(x + c, y + h));
-            ctx.LineTo(new Point(x, y + h - c));
-            ctx.LineTo(new Point(x, y + c));
-            ctx.EndFigure(true);
-        }
-        return g;
+        _surfaceBinding?.Dispose();
+        _surfaceBinding = null;
+        _face.Fill = Brushes.Transparent;
+        Frame.Background = Brushes.Transparent;
+        if (!_surfaceVisible || target is null) return;
+        var property = target == _face ? Shape.FillProperty : Border.BackgroundProperty;
+        _surfaceBinding = target.Bind(property, this.GetResourceObservable(_backgroundKey));
     }
+
+    /// <summary>八角形（面取り c。形は Core Octagon）。</summary>
+    private static Geometry Octagon(double x, double y, double w, double h, double c) => NeonGlowPlan.Octagon(new Rect(x, y, w, h), c);
 
     /// <summary>面（線の太さの半分だけ内側）と中身の切り抜きを今の大きさで作り直す。</summary>
     private void UpdateChamferGeometry()
     {
-        if (_chamfer <= 0) return;
         var size = _content.Bounds.Size;
         if (size.Width < 1 || size.Height < 1) return;
         double t = this.TryFindResource("FlBoardBorderThickness", out var v) && v is Thickness th ? th.Left : 1;
+        // 中身は Frame の枠の太さ t の内側にある
+        var face = new Rect(_layers.Bounds.Position, size);
+        FaceClip = _chamfer > 0
+            ? Octagon(face.X, face.Y, face.Width, face.Height, _chamfer)
+            : new RectangleGeometry(face, Frame.CornerRadius.TopLeft, Frame.CornerRadius.TopLeft);
+        FaceClipChanged?.Invoke(this, EventArgs.Empty);
+        if (_chamfer <= 0) return;
         _face.StrokeThickness = t;
         _face.Data = Octagon(t / 2, t / 2, size.Width - t, size.Height - t, _chamfer);
         _content.Clip = Octagon(0, 0, size.Width, size.Height, _chamfer);
+        _outerGlow.Chamfer = _innerGlow.Chamfer = _chamfer;
     }
 
     /// <summary>角ブラケット: 角丸のときは L 字（腕 10 px）、面取りのときは斜辺に沿って折れた線（腕 6 px + 斜辺）。</summary>

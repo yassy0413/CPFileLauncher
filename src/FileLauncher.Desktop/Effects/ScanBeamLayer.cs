@@ -1,0 +1,68 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
+using Avalonia.Media;
+using Avalonia.Styling;
+using FileLauncher.Core.Effects;
+
+namespace FileLauncher.App;
+
+/// <summary>
+/// 走査線の帯（演出 scanBeam。SPEC §3.9 H14、spec/EFFECTS.md「常時の演出の詳細」）。主色の縦グラデーションの帯が面を上から下へ流れ続ける。
+/// 動かすのは帯の TranslateTransform だけ（層全体を描き直さない）。ブラシは主色が変わったときだけ作り直す。
+/// </summary>
+internal sealed class ScanBeamLayer : Canvas
+{
+    public const double BandHeight = 60;
+
+    private readonly Rectangle _band = new() { Height = BandHeight, IsHitTestVisible = false, IsVisible = false };
+    private readonly TranslateTransform _move = new();
+    private Color? _accent;
+
+    public ScanBeamLayer()
+    {
+        IsHitTestVisible = false;
+        ClipToBounds = true;
+        _band.RenderTransform = _move;
+        Children.Add(_band);
+        SizeChanged += (_, e) => _band.Width = e.NewSize.Width;
+    }
+
+    public EffectSpec Spec { get; set; } = EffectSpec.None;
+
+    public double Phase { get; private set; }
+
+    /// <summary>帯の上端の y（テスト用）。</summary>
+    internal double BandY => _move.Y;
+
+    internal bool BandVisible => _band.IsVisible;
+
+    public void Advance(double elapsedMs)
+    {
+        Phase = AmbientMath.Phase(elapsedMs, Spec.DurationMs);
+        _band.IsVisible = Spec.Kind == EffectKind.Beam && Bounds.Height >= 1;
+        if (!_band.IsVisible) return;
+        UpdateColor();
+        _move.Y = AmbientMath.SweepOffset(Phase, Bounds.Height, BandHeight);
+    }
+
+    private void UpdateColor()
+    {
+        var variant = (TopLevel.GetTopLevel(this) as IThemeVariantHost)?.ActualThemeVariant ?? ThemeVariant.Default;
+        var c = this.TryFindResource("FlAccent", variant, out var v) && v is ISolidColorBrush b ? b.Color : Colors.Cyan;
+        if (c == _accent) return;
+        _accent = c;
+        // 上端は透明、下へ行くほど明るい（85% で α28、下端 α60）
+        _band.Fill = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
+            GradientStops =
+            {
+                new GradientStop(Color.FromArgb(0, c.R, c.G, c.B), 0),
+                new GradientStop(Color.FromArgb(28, c.R, c.G, c.B), 0.85),
+                new GradientStop(Color.FromArgb(60, c.R, c.G, c.B), 1),
+            },
+        }.ToImmutable();
+    }
+}
