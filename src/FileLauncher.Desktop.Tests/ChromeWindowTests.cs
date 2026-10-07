@@ -161,4 +161,16 @@ public sealed class ChromeWindowTests
         Assert.NotEqual(Avalonia.Media.Colors.Transparent, ((Avalonia.Media.ISolidColorBrush)w.Chrome.OutlineBrush!).Color);
         w.Close();
     }
+
+    [AvaloniaFact]
+    public void 高さを中身に合わせる窓は面取りの枠の図形に引き伸ばされない()
+    {
+        // 面の八角形（Path）が一度大きく描かれた後も、窓は中身の高さまで縮む（2026-10-08 ページの設定が縦に伸びた）
+        var w = new ChromeWindow { BodyWidth = 300, Body = new Border { Height = 100 } };
+        w.Show();
+        Dispatcher.UIThread.RunJobs();
+        double margin = w.GetVisualDescendants().OfType<FrameChrome>().First().GetMargin();
+        Assert.InRange(w.Height, 0, 100 + ChromeWindow.TitleBarHeight + 1 + margin * 2 + 4);
+        w.Close();
+    }
 }

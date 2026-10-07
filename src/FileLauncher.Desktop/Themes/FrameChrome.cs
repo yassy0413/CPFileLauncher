@@ -65,7 +65,9 @@ internal sealed class FrameChrome : Grid
         Frame[!Border.CornerRadiusProperty] = Themed.Res("FlBoardCornerRadius");
         Frame[!Border.BorderThicknessProperty] = Themed.Res("FlBoardBorderThickness");
         _face[!Shape.StrokeProperty] = Themed.Res("FlBoardBorder");
-        _content.Children.Add(_face);
+        // 面の八角形は Canvas に入れて大きさの計算に加えない（Path は図形の大きさを「必要な大きさ」として返すので、
+        // 一度大きく描いた後は中身に合わせて縮む窓（SizeToContent）が縮まなくなった。2026-10-08 ページの設定が縦に伸びた）
+        _content.Children.Add(new Canvas { IsHitTestVisible = false, Children = { _face } });
         _content.Children.Add(_innerGlow);
         _content.SizeChanged += (_, _) => UpdateChamferGeometry();
         _layers.Children.Add(_outerGlow);

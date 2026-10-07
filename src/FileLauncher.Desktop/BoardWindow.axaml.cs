@@ -124,6 +124,7 @@ public partial class BoardWindow : Window
 
         Header.PointerPressed += (_, e) =>
         {
+            if (OperatingSystem.IsMacOS() && e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Control)) return; // Mac の ⌃クリックはページのメニュー（AttachBackgroundInput）
             if (AllowMove && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) BeginMoveDrag(e);
         };
         KeyDown += (_, e) =>

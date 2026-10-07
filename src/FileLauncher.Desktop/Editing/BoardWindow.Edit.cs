@@ -170,15 +170,36 @@ public partial class BoardWindow
         _ => null,
     };
 
-    /// <summary>盤面の背景・ヘッダーの右クリック。</summary>
+    /// <summary>盤面の背景の右クリック。ページタブの列の空き部分は、今のページのタブを右クリックしたのと同じページのメニュー。</summary>
     private void AttachBackgroundInput()
     {
+        // タブの上の右クリックはタブ自身が先に処理する（Handled）。ここに来るのはタブの無い所だけ
+        Header.AddHandler(PointerReleasedEvent, (_, e) =>
+        {
+            if (e.Handled || e.InitialPressMouseButton != MouseButton.Right) return;
+            RequestCurrentPageMenu();
+            e.Handled = true;
+        }, Avalonia.Interactivity.RoutingStrategies.Bubble);
+        // Mac の ⌃クリック（ウィンドウ移動のドラッグより先に見る）
+        Header.AddHandler(PointerPressedEvent, (_, e) =>
+        {
+            if (e.Handled || !OperatingSystem.IsMacOS() || !e.GetCurrentPoint(Header).Properties.IsLeftButtonPressed || !e.KeyModifiers.HasFlag(InputModifiers.Control)) return;
+            RequestCurrentPageMenu();
+            e.Handled = true;
+        }, Avalonia.Interactivity.RoutingStrategies.Bubble);
+
         Frame.AddHandler(PointerReleasedEvent, (_, e) =>
         {
             if (e.Handled || e.InitialPressMouseButton != MouseButton.Right) return;
             ContextMenuRequested?.Invoke(new SlotContext(SlotContextKind.Background, null, null, _pageIndex, Frame));
             e.Handled = true;
         }, Avalonia.Interactivity.RoutingStrategies.Bubble);
+    }
+
+    private void RequestCurrentPageMenu()
+    {
+        Control anchor = _pageIndex < TabsPanel.Children.Count ? TabsPanel.Children[_pageIndex] : Header;
+        ContextMenuRequested?.Invoke(new SlotContext(SlotContextKind.Tab, null, null, _pageIndex, anchor));
     }
 
     private void OnSlotPressed(Button slot, LauncherItem? item, (int Row, int Col) cell, PointerPressedEventArgs e)

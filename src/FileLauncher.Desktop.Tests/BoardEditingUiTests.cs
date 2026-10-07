@@ -294,6 +294,20 @@ public sealed class BoardEditingUiTests : IDisposable
 
     private MenuItem MenuItemOf(string header) => _editor.LastMenu!.Items.OfType<MenuItem>().Single(m => (string?)m.Header == header);
 
+    [AvaloniaFact]
+    public void タブの列の空き部分を右クリックすると今のページのメニューが出る()
+    {
+        var header = _window.GetVisualDescendants().OfType<Border>().Single(b => b.Name == "Header");
+        var p = header.TranslatePoint(new Point(header.Bounds.Width - 4, header.Bounds.Height / 2), _window)!.Value; // タブの右の空き
+        _window.MouseDown(p, MouseButton.Right);
+        _window.MouseUp(p, MouseButton.Right);
+        Dispatcher.UIThread.RunJobs();
+        var headers = _editor.LastMenu!.Items.OfType<MenuItem>().Select(m => (string?)m.Header).ToList();
+        Assert.Contains(Strings.Menu_PageSettings, headers);
+        Assert.Contains(Strings.Menu_NewPage, headers);
+        Assert.DoesNotContain(Strings.Menu_NewItem, headers); // 盤面の背景のメニューではない
+    }
+
     private void OpenTabMenu(int index)
     {
         var tab = Tab(index);
