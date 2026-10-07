@@ -39,6 +39,20 @@ public class AppDataStoreTests : IDisposable
     }
 
     [Fact]
+    public void 廃止したhardwareAccelerationが残った設定も読め_次の保存で消える()
+    {
+        File.WriteAllText(_dir.File("settings.json"),
+            """{ "schemaVersion": 3, "advanced": { "logging": true, "hardwareAcceleration": false } }""");
+        var store = NewStore();
+        var (settings, _) = store.LoadAll();
+        Assert.Equal(LoadStatus.Loaded, settings.Status);
+        Assert.True(settings.Value.Advanced.Logging);
+
+        store.SaveSettings(settings.Value);
+        Assert.DoesNotContain("hardwareAcceleration", File.ReadAllText(_dir.File("settings.json")));
+    }
+
+    [Fact]
     public void 盤面の既定の行列数は設定に従う()
     {
         var store = NewStore();

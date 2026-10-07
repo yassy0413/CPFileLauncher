@@ -235,11 +235,11 @@ internal static class AppTheme
             ["FlFontFamily"] = ChakraPetch,
             // HUD（SPEC §3.9）
             ["FlMonoFontFamily"] = ShareTechMono,
-            ["FlHudText"] = B(A(p.Accent, 0xB3)),
+            ["FlHudText"] = B(A(p.Accent, 0xE6)), // 9 px・70% は Windows の等倍・ソフトウェア描画で読みづらかった（2026-10-07）
             ["FlHudGrid"] = B(p.Accent), // 濃さは設定 appearance.hud.gridOpacity（GridLayer.Opacity。既定 3%）
             ["FlHudScanline"] = B(p.Accent), // 濃さは設定 appearance.hud.scanlineOpacity（ScanlineLayer.Opacity。既定 25%）
             ["FlTabOutline"] = B(A(p.TextMuted, 0x80)),
-            ["FlHudHeight"] = 16.0,
+            ["FlHudHeight"] = 18.0,
             ["FlItemBandWidth"] = 3.0,
             ["FlItemBandOpacity"] = 1.0,
             ["FlItemBandGlowBlur"] = 8.0,

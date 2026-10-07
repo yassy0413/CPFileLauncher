@@ -13,6 +13,13 @@ public static class BackgroundImageStore
 
     public static readonly string[] Extensions = [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp"];
 
+    /// <summary>背景画像にできる拡張子か（SPEC §3.7「対応形式」。大文字小文字を区別しない。ファイルの存在は見ない）。</summary>
+    public static bool IsSupported(string path) =>
+        Extensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>ドロップされたパスのうち最初の対応ファイル（SPEC §3.7「ドロップで設定」。無ければ null）。</summary>
+    public static string? FirstSupported(IEnumerable<string> paths) => paths.FirstOrDefault(IsSupported);
+
     /// <summary>background/ のコピーを指している値か（設定に書く区切りは常に "/"）。</summary>
     public static bool IsManaged(string? value) =>
         value is not null && (value.StartsWith(Prefix, StringComparison.Ordinal) || value.StartsWith(Folder + "\\", StringComparison.Ordinal));

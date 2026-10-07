@@ -111,21 +111,4 @@ public sealed class DataArchiveTests : IDisposable
         using (var notZip = new MemoryStream(Encoding.UTF8.GetBytes("plain text")))
             Assert.Equal(ArchiveError.NotZip, Assert.Throws<ArchiveException>(() => DataArchive.Read(notZip)).Kind);
     }
-
-    [Fact]
-    public void ハードウェアアクセラレーションの先読みは_falseのときだけOFFになる()
-    {
-        Directory.CreateDirectory(_dir);
-        string file = Path.Combine(_dir, "settings.json");
-        Assert.True(SettingsPeek.HardwareAcceleration(file)); // ファイルなし
-
-        File.WriteAllText(file, """{ "advanced": { "logging": true } }""");
-        Assert.True(SettingsPeek.HardwareAcceleration(file)); // キーなし
-
-        File.WriteAllText(file, """{ "advanced": { "hardwareAcceleration": false } }""");
-        Assert.False(SettingsPeek.HardwareAcceleration(file));
-
-        File.WriteAllText(file, """{ "advanced": { "hardwareAcceleration": fal""");
-        Assert.True(SettingsPeek.HardwareAcceleration(file)); // 壊れた JSON
-    }
 }

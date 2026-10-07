@@ -56,7 +56,7 @@ public sealed class HudTests
         var noClock = new AppearanceSettings { Hud = new HudSettings { Clock = ClockMode.Off, Date = false } };
         var a = Board(on);
         var b = Board(off);
-        Assert.Equal(19, a.Height - b.Height, 3);
+        Assert.Equal(21, a.Height - b.Height, 3);
 
         var c = Board(noClock);
         c.Show();

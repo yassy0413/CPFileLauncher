@@ -205,7 +205,7 @@ public sealed class SettingsUiTests : IDisposable
     [AvaloniaFact]
     public void 設定をリセットすると確認の後に既定値へ戻り_キャンセルなら戻らない()
     {
-        _hub.Update(s => { s.Appearance.Opacity = 50; s.Advanced.HardwareAcceleration = false; }, SettingsChange.Opacity);
+        _hub.Update(s => { s.Appearance.Opacity = 50; s.Advanced.Logging = true; }, SettingsChange.Opacity);
         var w = OpenSettings();
         SelectTab(w, Strings.Settings_Tab_Advanced);
         bool answer = false;
@@ -219,8 +219,8 @@ public sealed class SettingsUiTests : IDisposable
         ButtonOf(w, Strings.Settings_Advanced_Reset).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Dispatcher.UIThread.RunJobs();
         Assert.Equal(80, _hub.Current.Appearance.Opacity);
-        Assert.True(_hub.Current.Advanced.HardwareAcceleration);
-        Assert.Contains(w.GetVisualDescendants().OfType<ToggleSwitch>(), t => t.IsChecked == true); // 画面も読み直す
+        Assert.False(_hub.Current.Advanced.Logging);
+        Assert.DoesNotContain(w.GetVisualDescendants().OfType<ToggleSwitch>(), t => t.IsChecked == true); // 画面も読み直す（詳細タブのログが OFF に）
         w.Close();
     }
 
@@ -247,12 +247,10 @@ public sealed class SettingsUiTests : IDisposable
     }
 
     [AvaloniaFact]
-    public void 走査線の行は外観タブにあり_オフで濃さと間隔が無効になり_間隔を選ぶと保存される()
+    public void 走査線の行は演出タブにあり_オフで濃さと間隔が無効になり_間隔を選ぶと保存される()
     {
         var w = OpenSettings();
-        var tabs = w.GetVisualDescendants().OfType<TabControl>().First();
-        tabs.SelectedItem = tabs.Items.OfType<TabItem>().First(t => (t.Header as TextBlock)?.Text == Strings.Settings_Tab_Appearance);
-        Dispatcher.UIThread.RunJobs();
+        SelectTab(w, Strings.Settings_Tab_Effects);
         var pitch = w.GetVisualDescendants().OfType<ComboBox>()
             .Single(c => c.ItemsSource is IEnumerable<string> items && items.Contains(Strings.FormatCommon_PixelValue(4)));
         Assert.Equal(1, pitch.SelectedIndex); // 既定 3 px
@@ -262,12 +260,36 @@ public sealed class SettingsUiTests : IDisposable
         _hub.Flush();
         Assert.Contains("\"scanlinePitch\": 4", File.ReadAllText(_paths.SettingsFile));
 
-        var row = w.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == Strings.Settings_Appearance_Hud_Scanlines);
+        var row = w.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == Strings.Settings_Effects_Scanlines);
         var toggle = row.GetVisualAncestors().OfType<Grid>().First().GetVisualDescendants().OfType<ToggleSwitch>().Single();
         toggle.IsChecked = false;
         Dispatcher.UIThread.RunJobs();
         Assert.False(_hub.Current.Appearance.Hud.Scanlines);
         Assert.False(pitch.IsEnabled);
+        w.Close();
+    }
+
+    [AvaloniaFact]
+    public void 静止した走査線は演出タブの末尾にあり_アニメーションOFFでも有効で_すべて既定に戻すでは変わらない()
+    {
+        _hub.Update(s => { s.Appearance.Hud.ScanlineOpacity = 40; s.Appearance.Animation = false; }, SettingsChange.Hud);
+        var w = OpenSettings();
+        SelectTab(w, Strings.Settings_Tab_Appearance);
+        Assert.DoesNotContain(w.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == Strings.Settings_Effects_Scanlines && t.IsEffectivelyVisible);
+
+        SelectTab(w, Strings.Settings_Tab_Effects);
+        var texts = w.GetVisualDescendants().OfType<TextBlock>().ToList();
+        var heading = texts.First(t => t.Text == Strings.Settings_Effects_ScanlinesHeading);
+        var reset = ButtonOf(w, Strings.Settings_Effects_ResetAll);
+        var panel = (StackPanel)heading.Parent!;
+        Assert.True(panel.Children.IndexOf(heading) > panel.Children.IndexOf(reset)); // ボタンより後
+        var row = texts.First(t => t.Text == Strings.Settings_Effects_Scanlines);
+        Assert.True(row.GetVisualAncestors().OfType<Grid>().First().GetVisualDescendants().OfType<ToggleSwitch>().Single().IsEffectivelyEnabled); // アニメーション OFF でも有効
+
+        _hub.Update(s => s.Appearance.Animation = true, SettingsChange.Effects);
+        reset.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(40, _hub.Current.Appearance.Hud.ScanlineOpacity);
         w.Close();
     }
 
@@ -367,7 +389,7 @@ public sealed class SettingsUiTests : IDisposable
     [AvaloniaTheory]
     [InlineData("en")]
     [InlineData("ja")]
-    public void 設定画面のタブはアウトラインで_7つとも1行に収まる(string culture)
+    public void 設定画面のタブはアウトラインで_8つとも1行に収まる(string culture)
     {
         var saved = System.Globalization.CultureInfo.CurrentUICulture;
         System.Globalization.CultureInfo.CurrentUICulture = new System.Globalization.CultureInfo(culture);
@@ -375,7 +397,7 @@ public sealed class SettingsUiTests : IDisposable
         try { w = OpenSettings(); }
         finally { System.Globalization.CultureInfo.CurrentUICulture = saved; }
         var tabs = w.GetVisualDescendants().OfType<TabItem>().ToList();
-        Assert.Equal(7, tabs.Count);
+        Assert.Equal(8, tabs.Count); // 2026-10-07 に「演出」タブを追加
         Assert.All(tabs, t => Assert.Equal(new Avalonia.Thickness(1), t.BorderThickness));
         double top = tabs[0].Bounds.Y;
         Assert.All(tabs, t => Assert.Equal(top, t.Bounds.Y)); // 折り返していない

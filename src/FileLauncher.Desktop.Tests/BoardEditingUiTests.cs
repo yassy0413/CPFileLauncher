@@ -10,6 +10,7 @@ using Avalonia.VisualTree;
 using FileLauncher.App;
 using FileLauncher.Core.Model;
 using FileLauncher.Core.Storage;
+using FileLauncher.Platform;
 
 namespace FileLauncher.Desktop.Tests;
 
@@ -248,6 +249,42 @@ public sealed class BoardEditingUiTests : IDisposable
         MenuItemOf(OperatingSystem.IsMacOS() ? Strings.Menu_Reveal_Mac : Strings.Menu_Reveal_Win).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         Dispatcher.UIThread.RunJobs();
         Assert.Equal(("/a", FolderOpenTarget.NewWindow), _platform.Revealed.Single());
+    }
+
+    [AvaloniaFact]
+    public void ターミナルで開くは格納フォルダを開くの直後にありフォルダのパスで開く()
+    {
+        _a.Kind = ItemKind.Folder;
+        OpenItemMenu(0, 0);
+        var headers = _editor.LastMenu!.Items.OfType<MenuItem>().Select(m => (string?)m.Header).ToList();
+        int reveal = headers.IndexOf(OperatingSystem.IsMacOS() ? Strings.Menu_Reveal_Mac : Strings.Menu_Reveal_Win);
+        Assert.Equal(reveal + 1, headers.IndexOf(Strings.Menu_OpenTerminal));
+
+        MenuItemOf(Strings.Menu_OpenTerminal).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("/a", _platform.OpenedTerminals.Single());
+    }
+
+    [AvaloniaFact]
+    public void URLのアイテムにはターミナルで開くを出さない()
+    {
+        _b.Kind = ItemKind.Url;
+        _b.Target = "https://example.com";
+        OpenItemMenu(0, 1);
+        Assert.DoesNotContain(_editor.LastMenu!.Items.OfType<MenuItem>(), m => (string?)m.Header == Strings.Menu_OpenTerminal);
+    }
+
+    [AvaloniaFact]
+    public void ターミナルを開けなくても落ちず盤面は変わらない()
+    {
+        _a.Kind = ItemKind.Folder;
+        _platform.OpenTerminalResult = LaunchResult.Fail(LaunchFailure.NotFound, "/a");
+        int before = _board.Pages[0].Items.Count;
+        OpenItemMenu(0, 0);
+        MenuItemOf(Strings.Menu_OpenTerminal).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.Single(_platform.OpenedTerminals);
+        Assert.Equal(before, _board.Pages[0].Items.Count);
     }
 
     // ---------------- ページ（ステップ 2） ----------------

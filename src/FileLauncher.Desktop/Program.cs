@@ -24,21 +24,8 @@ internal static class Program
         int lang = Array.IndexOf(args, "--lang");
         string language = lang >= 0 && lang + 1 < args.Length && args[lang + 1] is "ja" or "en" ? args[lang + 1] : SettingsPeek.Language(settingsFile);
         Loc.ApplyStartupLanguage(language);
-        // ハードウェアアクセラレーションも起動時にしか変えられないので、Avalonia の前に設定を 1 キーだけ読む（spec/SETTINGS.md 詳細タブ）
-        bool hardware = SettingsPeek.HardwareAcceleration(settingsFile);
-        HardwareAccelerationAtStartup = hardware;
-        var builder = BuildAvaloniaApp();
-        if (!hardware)
-        {
-            builder = builder
-                .With(new Win32PlatformOptions { RenderingMode = [Win32RenderingMode.Software] })
-                .With(new AvaloniaNativePlatformOptions { RenderingMode = [AvaloniaNativeRenderingMode.Software] });
-        }
-        builder.StartWithClassicDesktopLifetime(args);
+        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
-
-    /// <summary>起動時に使った描画方式（設定画面の「今すぐ再起動」を出すかの判定用）。</summary>
-    public static bool HardwareAccelerationAtStartup { get; private set; } = true;
 
     /// <summary>Main で取得済みの単一インスタンスのロック（App が引き継いで待ち受け・解放する）。</summary>
     public static SingleInstance? Instance { get; private set; }
@@ -49,5 +36,12 @@ internal static class Program
             // macOS: Dock に出さない（.app では Info.plist の LSUIElement も設定する。SPEC §8）
             .With(new MacOSPlatformOptions { ShowInDock = false })
             .WithInterFont()
+            // 描画方式は両 OS ともソフトウェア描画に固定（SPEC §10.7）。GPU より CPU もメモリも少なかった。
+            // Windows（2026-10-07 実測）: 表示中 CPU 53% → 8.6%、隠している間の Private 103 → 40 MB。
+            // macOS（2026-10-07 実測、拡大率 1 の画面、§13.3 C27）: 全部オンの表示中 CPU 57% → 51%、footprint 185 → 115 MB、隠した後 152 → 116 MB。
+            // Windows の CompositionMode は既定のまま（DirectComposition は隠している間 CPU 97% になった）。
+            // GPU のリソースキャッシュの上限（SkiaOptions.MaxGpuResourceSizeBytes）は macOS の GPU 描画で CPU・メモリとも悪化したので指定しない
+            .With(new Win32PlatformOptions { RenderingMode = [Win32RenderingMode.Software] })
+            .With(new AvaloniaNativePlatformOptions { RenderingMode = [AvaloniaNativeRenderingMode.Software] })
             .LogToTrace();
 }

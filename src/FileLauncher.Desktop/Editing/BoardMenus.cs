@@ -4,6 +4,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
+using FileLauncher.Core.Items;
 using FileLauncher.Core.Model;
 using KeyModifiers = Avalonia.Input.KeyModifiers;
 
@@ -27,7 +28,8 @@ internal sealed record MenuActions(
     Action? About,
     Action Quit,
     PageActions? Pages = null,
-    Action<LauncherItem>? OpenNewWindow = null); // フォルダを新しいウィンドウで（Windows のみ。SPEC §6.3）
+    Action<LauncherItem>? OpenNewWindow = null, // フォルダを新しいウィンドウで（Windows のみ。SPEC §6.3）
+    Action<LauncherItem>? OpenTerminal = null); // ターミナルで開く（SPEC §6.3）
 
 /// <summary>ページタブのメニューの処理（ページ番号を受ける）。</summary>
 internal sealed record PageActions(
@@ -57,6 +59,8 @@ internal static class BoardMenus
                     items.Add(Item(Strings.Menu_OpenNewWindow, () => newWindow(item), new KeyGesture(Key.Enter, KeyModifiers.Control)));
                 if (OperatingSystem.IsWindows()) items.Add(Item(Strings.Menu_RunAsAdmin, a.LaunchAsAdmin is { } admin ? () => admin(item) : null));
                 items.Add(Item(Loc.Os(Strings.Menu_Reveal_Win, Strings.Menu_Reveal_Mac), () => a.Reveal(item)));
+                if (a.OpenTerminal is { } terminal && TerminalLocation.For(item) is not null)
+                    items.Add(Item(Strings.Menu_OpenTerminal, () => terminal(item)));
                 items.Add(new Separator());
                 items.Add(Item(Strings.Menu_Edit, a.Edit is { } edit ? () => edit(item) : null, new KeyGesture(Key.F2)));
                 items.Add(ColorMenu(item, a));

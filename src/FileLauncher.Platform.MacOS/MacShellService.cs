@@ -78,6 +78,12 @@ internal sealed class MacShellService : IShellService
         return RunOpen(["-R", path]);
     }
 
+    public LaunchResult OpenTerminal(string directory)
+    {
+        if (!Directory.Exists(directory)) return LaunchResult.Fail(LaunchFailure.NotFound, directory);
+        return RunOpen(["-a", "Terminal", directory]);
+    }
+
     /// <summary>Finder エイリアスなら解決先を返す。シンボリックリンクは解決しない（SPEC §5.1）。</summary>
     public ShortcutInfo? ReadShortcut(string path)
     {

@@ -42,11 +42,16 @@ public sealed class AmbientEffectsCoreTests
     }
 
     [Fact]
-    public void 光の玉と明滅は既定で動かず_走査線の帯だけ既定で動き_時間は演出ごとの範囲に丸める()
+    public void 常時の演出3つは既定で動き_時間は演出ごとの範囲に丸める()
     {
-        Assert.Equal(EffectKind.None, EffectCatalog.DefaultFor(EffectCatalog.FrameOrb).Kind); // CPU を多く使うので既定なし
-        Assert.Equal(EffectKind.None, EffectCatalog.DefaultFor(EffectCatalog.GlowPulse).Kind); // 重いので既定なし
-        // 帯は 2026-10-07 のユーザー判断で既定 ON（唯一の例外）
+        // 3 つともこのアプリの肝なので既定 ON（2026-10-07 ユーザー判断）
+        Assert.Equal(new EffectSpec { Kind = EffectKind.Orb, DurationMs = 8000, Easing = EasingKind.Linear }, EffectCatalog.DefaultFor(EffectCatalog.FrameOrb));
+        Assert.Equal(new EffectSpec { Kind = EffectKind.Pulse, DurationMs = 4000, Easing = EasingKind.Linear }, EffectCatalog.DefaultFor(EffectCatalog.GlowPulse));
+        Assert.Empty(EffectCatalog.Normalize(new()
+        {
+            [EffectCatalog.FrameOrb] = new EffectSpec { Kind = EffectKind.Orb, DurationMs = 8000 },
+            [EffectCatalog.GlowPulse] = new EffectSpec { Kind = EffectKind.Pulse, DurationMs = 4000 },
+        }));
         Assert.Equal(new EffectSpec { Kind = EffectKind.Beam, DurationMs = 4000, Easing = EasingKind.Linear }, EffectCatalog.DefaultFor(EffectCatalog.ScanBeam));
         var beam = EffectCatalog.Normalize(new()
         {
@@ -110,5 +115,27 @@ public sealed class AmbientEffectsCoreTests
     {
         var s = System.Text.Json.JsonSerializer.Deserialize<AppSettings>("{\"appearance\": {\"hud\": {}}}", JsonDefaults.Options)!;
         Assert.Equal((true, 25, 3), (s.Appearance.Hud.Scanlines, s.Appearance.Hud.ScanlineOpacity, s.Appearance.Hud.ScanlinePitch));
+    }
+
+    [Theory]
+    [InlineData(1, 13)]
+    [InlineData(2, 30)]
+    [InlineData(3, 47)]
+    [InlineData(0, 13)]
+    [InlineData(9, 47)]
+    public void VSyncは60Hzの枚数ぶんより少し短い間隔で更新する(int vsync, double ms) =>
+        Assert.Equal(ms, AmbientMath.FrameIntervalMs(vsync));
+
+    [Theory]
+    [InlineData(0, 1)]
+    [InlineData(2, 2)]
+    [InlineData(7, 3)]
+    public void VSyncは1から3に丸め_キーが無ければ2(int raw, int expected)
+    {
+        var s = new AppSettings();
+        s.Appearance.Vsync = raw;
+        s.Normalize();
+        Assert.Equal(expected, s.Appearance.Vsync);
+        Assert.Equal(2, System.Text.Json.JsonSerializer.Deserialize<AppSettings>("{\"appearance\": {}}", JsonDefaults.Options)!.Appearance.Vsync);
     }
 }

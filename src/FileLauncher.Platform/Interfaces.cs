@@ -82,6 +82,12 @@ public interface IShellService
     /// <summary>格納フォルダを開き、対象を選択状態にする。folderTarget は <see cref="Launch"/> と同じ（macOS では無視）。</summary>
     LaunchResult RevealInFileManager(string path, FolderOpenTarget folderTarget = FolderOpenTarget.System);
 
+    /// <summary>
+    /// そのフォルダでターミナルを開く（SPEC §6.3「ターミナルで開く」）。directory は展開済みの絶対パス。
+    /// Windows は Windows Terminal → 起動できなければ cmd.exe、macOS は Terminal.app。フォルダが無ければ NotFound。
+    /// </summary>
+    LaunchResult OpenTerminal(string directory);
+
     /// <summary>.lnk（Win）/ エイリアス（Mac）を読む。ショートカットでなければ null。</summary>
     ShortcutInfo? ReadShortcut(string path);
 }

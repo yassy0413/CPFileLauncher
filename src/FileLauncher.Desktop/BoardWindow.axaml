@@ -49,9 +49,12 @@
       <Setter Property="BoxShadow" Value="{DynamicResource FlDropGlow}" />
     </Style>
     <Style Selector="TextBlock.hud">
-      <Setter Property="FontFamily" Value="{DynamicResource FlMonoFontFamily}" />
-      <Setter Property="FontSize" Value="9" />
-      <Setter Property="LetterSpacing" Value="1" />
+      <!-- 等幅（Share Tech Mono）の 9 px は Windows の等倍・ソフトウェア描画で細くて読みづらかったので、
+           UI と同じ Chakra Petch の太字にした（2026-10-07 ユーザー選択） -->
+      <Setter Property="FontFamily" Value="{DynamicResource FlFontFamily}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="LetterSpacing" Value="0.5" />
       <Setter Property="Foreground" Value="{DynamicResource FlHudText}" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
@@ -113,7 +116,7 @@
   <local:FrameChrome x:Name="Chrome" MarginKey="FlGlowMarginThickness" BackgroundKey="FlBoardBackground" ShadowKey="FlBoardGlow">
     <Grid>
       <!-- 背景画像（SPEC §3.7）と、その上に重ねる面の色の覆い。画像なしのときは両方とも何も描かない -->
-      <Border x:Name="Backdrop" IsHitTestVisible="False" CornerRadius="{DynamicResource FlBoardCornerRadius}" />
+      <local:BackdropLayer x:Name="Backdrop" />
       <Border x:Name="Overlay" IsHitTestVisible="False" IsVisible="False"
               Background="{DynamicResource FlBoardBackground}" CornerRadius="{DynamicResource FlBoardCornerRadius}" />
       <!-- 背景グリッド（HUD 段階 C。SPEC §3.9）: 面・背景画像・覆いの上、タブとスロットの下 -->
@@ -129,7 +132,7 @@
         </Border>
         <Border DockPanel.Dock="Top" Height="1" Margin="0,0,0,0" Background="{DynamicResource FlHeaderSeparator}" />
         <!-- ステータス行（HUD 段階 A。SPEC §3.9）: PAGE / ITEMS / 時刻。等幅・小さめ・発光なし -->
-        <Border x:Name="StatusBar" DockPanel.Dock="Bottom" Height="17" Margin="0,2,0,0" Padding="4,2,4,0"
+        <Border x:Name="StatusBar" DockPanel.Dock="Bottom" Height="19" Margin="0,2,0,0" Padding="4,2,4,0"
                 BorderThickness="0,1,0,0" BorderBrush="{DynamicResource FlHeaderSeparator}">
           <Grid ColumnDefinitions="Auto,*,Auto">
             <TextBlock x:Name="StatusPage" Classes="hud" HorizontalAlignment="Left" />

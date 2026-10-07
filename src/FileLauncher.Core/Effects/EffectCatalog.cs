@@ -59,13 +59,13 @@ public static class EffectCatalog
         new(ToastHide, Spec(EffectKind.Fade, 150, EasingKind.EaseIn), FadeKinds),
         new(ResidentAutoHide, Spec(EffectKind.Slide, 150, EasingKind.EaseInOut), SlideKinds),
         new(ResidentMove, EffectSpec.None, SlideKinds),
-        // 常時の演出（2026-10-04 ユーザー要望）。macOS では動いている間ずっと盤面全体の描き直しになり CPU を 20〜30% 使うので、
-        // どのテーマでも既定はなし（ユーザーが「演出の調整…」でオンにする。2026-10-04 ユーザー判断）
-        new(FrameOrb, EffectSpec.None, [EffectKind.None, EffectKind.Orb, EffectKind.OrbTwin],
+        // 常時の演出（2026-10-04 ユーザー要望）。3 つともこのアプリの肝なので既定でオン（2026-10-07 ユーザー判断。それまでの
+        // 「CPU が重いので既定なし」は撤回。30 fps 化と背景の作り置きで軽くなった。spec/EFFECTS.md「既定値の経緯」）
+        new(FrameOrb, Spec(EffectKind.Orb, 8000, EasingKind.Linear), [EffectKind.None, EffectKind.Orb, EffectKind.OrbTwin],
             IsAmbient: true, MinDurationMs: 2000, MaxDurationMs: 20000, DurationStepMs: 500, UsesEasing: false),
-        new(GlowPulse, EffectSpec.None, [EffectKind.None, EffectKind.Pulse, EffectKind.PulseStrong],
+        new(GlowPulse, Spec(EffectKind.Pulse, 4000, EasingKind.Linear), [EffectKind.None, EffectKind.Pulse, EffectKind.PulseStrong],
             IsAmbient: true, MinDurationMs: 1000, MaxDurationMs: 10000, DurationStepMs: 250, UsesEasing: false),
-        // 走査線の帯（SPEC §3.9 H14）。既定 ON は 2026-10-07 ユーザー判断で、上の「常時の演出は既定なし」の唯一の例外
+        // 走査線の帯（SPEC §3.9 H14）
         new(ScanBeam, Spec(EffectKind.Beam, 4000, EasingKind.Linear), [EffectKind.None, EffectKind.Beam],
             IsAmbient: true, MinDurationMs: 2000, MaxDurationMs: 12000, DurationStepMs: 500, UsesEasing: false),
     ];

@@ -40,3 +40,5 @@ data/
 portable.flag
 # ログ
 *.log
+
+astra-optimize-report.md

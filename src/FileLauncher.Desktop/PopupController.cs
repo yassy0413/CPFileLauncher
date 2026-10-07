@@ -40,7 +40,13 @@ internal sealed class PopupController : IBoardController
     private bool _focusMovedElsewhere;
     private long _lastTriggerTicks;
     private long _lastHideTicks;
+    private long _lastShowTicks;
     private bool _boardConfigured;
+
+    // 表示直後の非アクティブ化は閉じずに前面化し直す猶予。Win で、別のウィンドウを使った後のホットキーで
+    // 表示した直後に Deactivated が届き、1 回目が出ない（すぐ閉じる）ことがあった（2026-10-07 ログで確認）。
+    // 本当の外クリックはフックの座標判定で閉じるので、猶予中も閉じられる
+    private const double ShowGraceMs = 500;
 
     // Hide() で自分から隠している最中。macOS は Hide() の途中で Deactivated が来るので、
     // それを「他へフォーカスが移った」と誤判定しないようにする（SPEC §3.3）
@@ -97,6 +103,7 @@ internal sealed class PopupController : IBoardController
             _window.Hide();
             EndWarmup();
             AppLog.Info("盤面の準備運動 完了");
+            MemoryTrim.Schedule(() => !IsShown); // 起動時の読み込みの一時領域を返す
         }, DispatcherPriority.Background);
     }
 
@@ -197,6 +204,7 @@ internal sealed class PopupController : IBoardController
         if (_warming) EndWarmup();
         _previousForeground = _platform.Window.CaptureForeground();
         _focusMovedElsewhere = false;
+        _lastShowTicks = Stopwatch.GetTimestamp();
         _outside.Reset();
 
         var screens = _window.Screens;
@@ -312,6 +320,7 @@ internal sealed class PopupController : IBoardController
             _hidingAnimation = false;
             _window.IsHitTestVisible = true;
         }
+        MemoryTrim.Schedule(() => !IsShown);
     }
 
     // ---------------- 閉じる条件 ----------------
@@ -365,6 +374,14 @@ internal sealed class PopupController : IBoardController
         if (_mouseHeld)
         {
             // 盤面外でボタン押下中（つかんでドラッグしようとしている可能性）→ 離上時に判定する
+            return;
+        }
+        double sinceShow = Stopwatch.GetElapsedTime(_lastShowTicks).TotalMilliseconds;
+        if (sinceShow < ShowGraceMs)
+        {
+            // 前面化の取り合いで一瞬フォーカスが戻っただけ → 閉じずに取り返す
+            AppLog.Info($"表示直後の非アクティブ化（{sinceShow:F0} ms）→ 閉じずに前面化し直す");
+            Dispatcher.UIThread.Post(() => { if (IsShown) BringToFront(); });
             return;
         }
         _focusMovedElsewhere = true;

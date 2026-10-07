@@ -26,7 +26,7 @@ public partial class BoardWindow : Window
 {
     private const int FramePadding = 6;
     private const int HeaderHeight = 34;
-    private const int StatusBarHeight = 19; // ステータス行 17 + 上の余白 2
+    private const int StatusBarHeight = 21; // ステータス行 19 + 上の余白 2
     private const int LabelHeight = 18;
 
     private Board _board = Board.CreateDefault();
@@ -77,49 +77,23 @@ public partial class BoardWindow : Window
     /// <summary>
     /// 背景画像（SPEC §3.7）。image が null なら面の色だけ。画像があるときは面の色の代わりに画像（不透明度 imageOpacity）を敷き、
     /// その上に面の色（FlBoardBackground、テーマ・基調色に追従）を覆いとして重ねる。
-    /// 描き直し（Render）は要らない。Hide/Show をまたいでブラシは張ったまま。
+    /// 描き直し（Render）は要らない。Hide/Show をまたいで作り置きの画像は持ったまま。
     /// </summary>
     public void ApplyBackground(BackgroundSettings bg, Avalonia.Media.Imaging.Bitmap? image)
     {
         if (image is null)
         {
-            Backdrop.Background = null;
+            Backdrop.Source = null;
             Overlay.IsVisible = false;
             Chrome.SetSurfaceVisible(true);
             return;
         }
         // 画像があるときは地の色を描かない。暗さは覆いだけで決まり、画像の不透明度を下げるとデスクトップが透ける
         Chrome.SetSurfaceVisible(false);
-        Backdrop.Opacity = bg.ImageOpacity / 100.0;
-        var brush = new ImageBrush(image);
-        switch (bg.Fit)
-        {
-            case BackgroundFit.Fit:
-                brush.Stretch = Stretch.Uniform;
-                break;
-            case BackgroundFit.Stretch:
-                brush.Stretch = Stretch.Fill;
-                break;
-            case BackgroundFit.Tile:
-                // 原寸で並べる（DestinationRect を絶対単位の原寸にしないと 1 枚しか描かれない）
-                double scale = image.Dpi.X > 0 ? image.Dpi.X / 96 : 1;
-                brush.Stretch = Stretch.None;
-                brush.TileMode = TileMode.Tile;
-                brush.AlignmentX = AlignmentX.Left;
-                brush.AlignmentY = AlignmentY.Top;
-                brush.DestinationRect = new RelativeRect(0, 0, image.PixelSize.Width / scale, image.PixelSize.Height / scale, RelativeUnit.Absolute);
-                break;
-            case BackgroundFit.Center:
-                brush.Stretch = Stretch.None;
-                break;
-            default:
-                brush.Stretch = Stretch.UniformToFill;
-                break;
-        }
-        brush.AlignmentX = bg.Fit == BackgroundFit.Tile ? AlignmentX.Left : AlignmentX.Center;
-        brush.AlignmentY = bg.Fit == BackgroundFit.Tile ? AlignmentY.Top : AlignmentY.Center;
-        RenderOptions.SetBitmapInterpolationMode(Backdrop, Avalonia.Media.Imaging.BitmapInterpolationMode.HighQuality);
-        Backdrop.Background = brush;
+        // 表示方法の意味と作り置きは BackdropLayer（SPEC §3.7「作り置き」）
+        Backdrop.Fit = bg.Fit;
+        Backdrop.ImageOpacity = bg.ImageOpacity / 100.0;
+        Backdrop.Source = image;
         Overlay.Opacity = bg.Overlay / 100.0;
         Overlay.IsVisible = bg.Overlay > 0;
     }
@@ -221,6 +195,7 @@ public partial class BoardWindow : Window
         _iconEffect = EffectCatalog.Resolve(appearance, EffectCatalog.IconLoad);
         _dropEffect = EffectCatalog.Resolve(appearance, EffectCatalog.DropTarget);
         _orbLayer.Spec = EffectCatalog.Resolve(appearance, EffectCatalog.FrameOrb);
+        _ambient.Vsync = appearance.Vsync; // 次のフレームから新しい間隔で間引く
         _beamLayer.Spec = EffectCatalog.Resolve(appearance, EffectCatalog.ScanBeam);
         _ambient.PulseSpec = EffectCatalog.Resolve(appearance, EffectCatalog.GlowPulse);
         _pulseLayer.IsVisible = _ambient.PulseSpec.IsActive;
@@ -396,7 +371,9 @@ public partial class BoardWindow : Window
     /// <summary>表示先モニタの拡大率が前回描画時と違えば、そのピクセル数でアイコンを取り直す。</summary>
     public void EnsureScaling()
     {
-        if (Math.Abs(RenderScaling - _renderedScaling) > 0.01) Render(_board, _appearance, _pageIndex);
+        if (Math.Abs(RenderScaling - _renderedScaling) <= 0.01) return;
+        Render(_board, _appearance, _pageIndex);
+        Backdrop.Refresh(); // 同じ論理サイズのまま拡大率だけ変わったとき（SizeChanged が来ない）
     }
 
     private void RenderTabs()

@@ -309,6 +309,12 @@ internal sealed class BoardEditor
             About: ShowAbout is { } about ? () => Avalonia.Threading.Dispatcher.UIThread.Post(about) : null,
             Quit: () => Quit?.Invoke(),
             OpenNewWindow: OperatingSystem.IsWindows() ? item => _controller().Launch(item, null, newWindow: true) : null,
+            OpenTerminal: item =>
+            {
+                if (TerminalLocation.For(item) is not { } dir) return;
+                var r = _platform.Shell.OpenTerminal(dir);
+                if (!r.Success) Toast.Show(Strings.FormatToast_OpenTerminalFailed(dir, Loc.LaunchError(r)));
+            },
             Pages: new PageActions(
                 NewPage: index =>
                 {

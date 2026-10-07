@@ -60,6 +60,13 @@ internal sealed class FakePlatform : IPlatformServices, IInputHookService, IHotk
     }
     public FolderOpenTarget? LastFolderTarget { get; private set; }
     public List<(string Path, FolderOpenTarget Target)> Revealed { get; } = new();
+    public LaunchResult OpenTerminal(string directory)
+    {
+        OpenedTerminals.Add(directory);
+        return OpenTerminalResult;
+    }
+    public List<string> OpenedTerminals { get; } = new();
+    public LaunchResult OpenTerminalResult { get; set; } = LaunchResult.Ok;
     public ShortcutInfo? ReadShortcut(string path) => null;
 
     // ウィンドウ

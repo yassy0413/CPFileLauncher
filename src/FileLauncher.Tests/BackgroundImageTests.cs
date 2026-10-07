@@ -27,6 +27,25 @@ public sealed class BackgroundImageTests : IDisposable
         return path;
     }
 
+    [Theory]
+    [InlineData("a.png", true)]
+    [InlineData("A.JPG", true)]
+    [InlineData("x/y.webp", true)]
+    [InlineData("a.svg", false)]
+    [InlineData("a.txt", false)]
+    [InlineData("noext", false)]
+    [InlineData("pics/", false)]
+    public void 背景画像にできるかは拡張子だけで大文字小文字を区別せずに決める(string path, bool expected)
+        => Assert.Equal(expected, BackgroundImageStore.IsSupported(path));
+
+    [Fact]
+    public void ドロップされたパスからは最初の対応ファイルを選び_無ければnull()
+    {
+        Assert.Equal("b.png", BackgroundImageStore.FirstSupported(["a.txt", "b.png", "c.jpg"]));
+        Assert.Null(BackgroundImageStore.FirstSupported(["a.txt", "dir/"]));
+        Assert.Null(BackgroundImageStore.FirstSupported([]));
+    }
+
     [Fact]
     public void 選んだ画像はbackgroundへコピーされ_次の画像を選ぶと前のコピーは消える()
     {

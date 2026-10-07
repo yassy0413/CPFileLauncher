@@ -17,7 +17,16 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- 常駐アプリ向けのメモリ削減（ヒープは小さく、スループットより常駐時のメモリを優先）。
+         バックグラウンド GC のスレッドと管理領域を持たない / 計測用の Tier0 コードと再 JIT をしない（ReadyToRun はそのまま） -->
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <TieredPGO>false</TieredPGO>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- GC の回数と引き換えにヒープを小さく保つ（0〜9。ドキュメントの推奨は 5〜7 から） -->
+    <RuntimeHostConfigurationOption Include="System.GC.ConserveMemory" Value="5" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.22" />

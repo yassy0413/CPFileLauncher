@@ -66,7 +66,7 @@ public partial class App : Application
         var settings = settingsResult.Value;
         var board = boardResult.Value;
         AppLog.Init(store.Paths.LogsDirectory, settings.Advanced.Logging);
-        AppLog.Info($"起動: data={store.Paths.Root}{(store.Paths.IsPortable ? " (portable)" : "")} settings={settingsResult.Status} board={boardResult.Status} hw={settings.Advanced.HardwareAcceleration} lang={Loc.StartupLanguage}({settings.General.Language})");
+        AppLog.Info($"起動: data={store.Paths.Root}{(store.Paths.IsPortable ? " (portable)" : "")} settings={settingsResult.Status} board={boardResult.Status} lang={Loc.StartupLanguage}({settings.General.Language})");
         if (DataPaths.LastMigration != LegacyMigration.None) AppLog.Info($"旧データフォルダ（{DataPaths.LegacyFolderName}）の引き継ぎ: {DataPaths.LastMigration}");
 
         if (settingsResult.Status == LoadStatus.CreatedDefault) store.SaveSettings(settings);
@@ -256,9 +256,12 @@ public partial class App : Application
                 ImportAndRestart: ImportAndRestart,
                 BackgroundStatus: () => _backgroundLoader.LastStatus,
                 BackgroundBitmap: () => _backgroundLoader.Current,
-                Restart: Restart,
-                HardwareAccelerationAtStartup: Program.HardwareAccelerationAtStartup));
-            _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+                Restart: Restart));
+            _settingsWindow.Closed += (_, _) =>
+            {
+                _settingsWindow = null;
+                MemoryTrim.Schedule(() => _settingsWindow is null && _current?.IsShown != true); // 設定画面の部品を返す
+            };
         }
         WindowActivation.ShowAndActivate(_settingsWindow, _platform);
     }

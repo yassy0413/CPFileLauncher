@@ -12,13 +12,14 @@ namespace FileLauncher.Desktop.Tests;
 /// <summary>常時の演出（光の玉 frameOrb・発光の明滅 glowPulse。spec/EFFECTS.md「常時の演出の詳細」）。</summary>
 public sealed class AmbientEffectsTests
 {
-    private static (BoardWindow Board, AppearanceSettings Appearance) Board(bool orbOn = true, bool show = true, bool beamOn = true)
+    /// <summary>常時の演出は 3 つとも既定 ON なので、テストでは使うものだけを明示的に選ぶ（使わないものは none）。</summary>
+    private static (BoardWindow Board, AppearanceSettings Appearance) Board(bool orbOn = true, bool show = true, bool beamOn = true, bool pulseOn = false)
     {
         var appearance = new AppearanceSettings();
         appearance.Effects[EffectCatalog.BoardShow] = EffectSpec.None; // 表示演出の待ちを無くす
-        if (!beamOn) appearance.Effects[EffectCatalog.ScanBeam] = EffectSpec.None; // 帯は既定 ON
-        // 常時の演出は既定でオフなので、テストではオンにする（ダークは既定のまま = 動かないことを見る）
-        if (orbOn) appearance.Effects[EffectCatalog.FrameOrb] = new EffectSpec { Kind = EffectKind.Orb, DurationMs = 8000, Easing = EasingKind.Linear };
+        if (!beamOn) appearance.Effects[EffectCatalog.ScanBeam] = EffectSpec.None;
+        if (!pulseOn) appearance.Effects[EffectCatalog.GlowPulse] = EffectSpec.None;
+        appearance.Effects[EffectCatalog.FrameOrb] = orbOn ? new EffectSpec { Kind = EffectKind.Orb, DurationMs = 8000, Easing = EasingKind.Linear } : EffectSpec.None;
         var board = new BoardWindow();
         board.ApplyEffects(appearance);
         board.Render(Core.Model.Board.CreateDefault(), appearance, 0);
@@ -51,16 +52,24 @@ public sealed class AmbientEffectsTests
     }
 
     [AvaloniaFact]
-    public void 既定では走査線の帯だけが動き_帯をなしにすると動かない()
+    public void 既定では3つとも動き_すべてなしにすると動かない()
     {
-        var (board, appearance) = Board(orbOn: false);
-        Assert.True(board.AmbientRunning); // 帯は既定 ON（2026-10-07 ユーザー判断）
+        var appearance = new AppearanceSettings();
+        appearance.Effects[EffectCatalog.BoardShow] = EffectSpec.None;
+        var board = new BoardWindow();
+        board.ApplyEffects(appearance);
+        board.Render(Core.Model.Board.CreateDefault(), appearance, 0);
+        board.Show();
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(board.AmbientRunning); // 3 つとも既定 ON（2026-10-07 ユーザー判断）
         board.Ambient.Tick(0);
+        board.Ambient.Tick(2000);
         Assert.True(board.ScanBeam.BandVisible);
-        Assert.Empty(board.Orbs.OrbPositions);
-        Assert.Equal(0, board.PulseLayer.Level);
+        Assert.Single(board.Orbs.OrbPositions); // 玉 1 個
+        Assert.True(board.PulseLayer.Level > 0); // 明滅「弱」
+        Assert.Equal(2, board.Ambient.Vsync);
 
-        appearance.Effects[EffectCatalog.ScanBeam] = EffectSpec.None;
+        foreach (var id in new[] { EffectCatalog.FrameOrb, EffectCatalog.GlowPulse, EffectCatalog.ScanBeam }) appearance.Effects[id] = EffectSpec.None;
         board.ApplyEffects(appearance);
         Assert.False(board.AmbientRunning);
         Close(board);
@@ -85,7 +94,7 @@ public sealed class AmbientEffectsTests
     }
 
     [AvaloniaFact]
-    public void 既定では動かず_アニメーションOFFや収納中やOSの設定でも止まる()
+    public void 三つなしなら動かず_アニメーションOFFや収納中やOSの設定でも止まる()
     {
         var (dark, _) = Board(orbOn: false, beamOn: false);
         Assert.False(dark.AmbientRunning);
@@ -169,16 +178,32 @@ public sealed class AmbientEffectsTests
             var w = new SettingsWindow(new SettingsContext(hub, new FakePlatform(), paths, () => null, _ => { }, () => { }));
             w.Show();
             var tabs = w.GetVisualDescendants().OfType<TabControl>().First();
-            tabs.SelectedItem = tabs.Items.OfType<TabItem>().First(t => (t.Header as TextBlock)?.Text == Strings.Settings_Tab_Appearance);
+            tabs.SelectedItem = tabs.Items.OfType<TabItem>().First(t => (t.Header as TextBlock)?.Text == Strings.Settings_Tab_Effects);
             Dispatcher.UIThread.RunJobs();
-            w.GetVisualDescendants().OfType<Expander>().First().IsExpanded = true;
-            Dispatcher.UIThread.RunJobs();
-            string pulseRow = Strings.FormatSettings_Appearance_EffectRow(EnumNames.Effect(EffectCatalog.GlowPulse), EffectCatalog.GlowPulse);
-            bool Visible() => w.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == pulseRow && t.IsEffectivelyVisible);
-            Assert.True(Visible());
-            Assert.Contains(w.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == Strings.Settings_Appearance_Effects_AmbientNote);
+            // 常時の演出 3 つは折りたたまずに見えている（ID は添えない）。残りは「詳細設定」の中
+            var expander = w.GetVisualDescendants().OfType<Expander>().Single(e => (e.Header as string) == Strings.Settings_Effects_Advanced);
+            Assert.False(expander.IsExpanded);
+            foreach (var id in new[] { EffectCatalog.FrameOrb, EffectCatalog.GlowPulse, EffectCatalog.ScanBeam })
+                Assert.Contains(w.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == EnumNames.Effect(id) && t.IsEffectivelyVisible);
+            string showRow = Strings.FormatSettings_Effects_Row(EnumNames.Effect(EffectCatalog.BoardShow), EffectCatalog.BoardShow);
+            Assert.DoesNotContain(w.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == showRow && t.IsEffectivelyVisible);
+            Assert.Contains(w.GetVisualDescendants().OfType<ComboBox>(), c => c.ItemsSource is IEnumerable<string> items && items.Contains(Strings.FormatSettings_Effects_Vsync_Item(1, 60)));
+            Assert.Contains(w.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == Strings.Settings_Effects_AmbientNote);
             w.Close();
         }
         finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } }
+    }
+
+    [Fact]
+    public void VSync2は約30fpsで更新し_最初のフレームは必ず更新する()
+    {
+        double min = AmbientMath.FrameIntervalMs(2);
+        Assert.Equal(30, min);
+        Assert.True(AmbientAnimator.ShouldTick(double.NegativeInfinity, 5, min));
+        Assert.False(AmbientAnimator.ShouldTick(100, 129, min));
+        Assert.True(AmbientAnimator.ShouldTick(100, 133.3, min)); // 60 Hz の 2 フレームごと
+        Assert.True(AmbientAnimator.ShouldTick(100, 116.7, AmbientMath.FrameIntervalMs(1))); // VSync 1 = 毎フレーム（60 Hz）
+        Assert.False(AmbientAnimator.ShouldTick(100, 108.3, AmbientMath.FrameIntervalMs(1))); // 120 Hz でも 60 fps
+        Assert.True(AmbientAnimator.ShouldTick(100, 150, AmbientMath.FrameIntervalMs(3))); // 3 フレームごと
     }
 }

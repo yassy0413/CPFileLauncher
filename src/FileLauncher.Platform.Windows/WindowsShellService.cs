@@ -83,6 +83,34 @@ internal sealed class WindowsShellService : IShellService
         return Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true });
     }
 
+    public LaunchResult OpenTerminal(string directory)
+    {
+        if (!Directory.Exists(directory)) return LaunchResult.Fail(LaunchFailure.NotFound, directory);
+
+        // Windows Terminal（ユーザーの既定プロファイル）。引数は ArgumentList で渡す（"C:\" の末尾 \ を正しく引用するため。文字列連結は不可）
+        var wt = new ProcessStartInfo("wt.exe") { UseShellExecute = true };
+        wt.ArgumentList.Add("-d");
+        wt.ArgumentList.Add(directory);
+        try
+        {
+            using var _ = Process.Start(wt);
+            Trace.WriteLine("[terminal] wt.exe: " + directory);
+            return LaunchResult.Ok;
+        }
+        catch (Win32Exception ex)
+        {
+            // 実行エイリアスが無い・無効 → cmd.exe へ
+            Trace.WriteLine($"[terminal] wt.exe に失敗（{ex.Message}）→ cmd.exe: " + directory);
+        }
+
+        var cmd = new ProcessStartInfo(Environment.GetEnvironmentVariable("ComSpec") ?? "cmd.exe")
+        {
+            UseShellExecute = true,
+            WorkingDirectory = directory,
+        };
+        return Start(cmd);
+    }
+
     public ShortcutInfo? ReadShortcut(string path)
     {
         if (!path.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase)) return null;

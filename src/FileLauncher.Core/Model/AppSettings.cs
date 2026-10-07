@@ -37,6 +37,7 @@ public sealed class AppSettings
         Appearance.DefaultRows = Math.Clamp(Appearance.DefaultRows, Page.MinGrid, Page.MaxGrid);
         Appearance.DefaultCols = Math.Clamp(Appearance.DefaultCols, Page.MinGrid, Page.MaxGrid);
         if (!AppearanceSettings.ButtonSizes.Contains(Appearance.ButtonSize)) Appearance.ButtonSize = 48;
+        Appearance.Vsync = Math.Clamp(Appearance.Vsync, 1, 3);
         Appearance.Background ??= new();
         Appearance.Background.Overlay = (int)Math.Round(Math.Clamp(Appearance.Background.Overlay, 0, 90) / 5.0, MidpointRounding.AwayFromZero) * 5;
         Appearance.Background.ImageOpacity = (int)Math.Round(Math.Clamp(Appearance.Background.ImageOpacity, 10, 100) / 5.0, MidpointRounding.AwayFromZero) * 5;
@@ -90,6 +91,11 @@ public sealed class AppearanceSettings
 {
     /// <summary>選択できるボタンサイズ（小 / 中 / 大 / 特大、SPEC §3.1）。</summary>
     public static readonly int[] ButtonSizes = [32, 48, 64, 96];
+
+    /// <summary>常時の演出の更新間隔（VSync）。1 = 60 fps / 2 = 30 fps / 3 = 20 fps（2026-10-07 ユーザー要望。spec/EFFECTS.md「時計」）。</summary>
+    public int Vsync { get; set; } = 2;
+
+    public static readonly int[] VsyncValues = [1, 2, 3];
 
     /// <summary>配色（主色・副色。SPEC §3.6「配色」）。見た目はサイバーパンク専用（テーマの選択は 2026-10-04 に廃止）。</summary>
     public ColorSettings Colors { get; set; } = new();
@@ -393,5 +399,5 @@ public sealed class DataSettings
 public sealed class AdvancedSettings
 {
     public bool Logging { get; set; }
-    public bool HardwareAcceleration { get; set; } = true;
+    // hardwareAcceleration は 2026-10-07 に廃止（描画方式はコードで固定。SPEC §10.7）。残ったキーは読み込みで無視される
 }

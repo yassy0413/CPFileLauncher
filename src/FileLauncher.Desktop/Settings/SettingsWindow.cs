@@ -2,6 +2,7 @@ using CoreModifiers = FileLauncher.Core.Model.KeyModifiers;
 using Avalonia.Platform.Storage;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using FileLauncher.Core.Effects;
@@ -42,7 +43,7 @@ internal sealed class SettingsWindow : ChromeWindow
 
         Title = AppInfo.TitlePrefix + Strings.Settings_Title;
         TagCode = "CFG";
-        BodyWidth = 560;
+        BodyWidth = 620; // 8 タブを英語でも 1 行に収める（2026-10-07 に「演出」タブを足して 560 → 620）
         BodyHeight = 600;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         ShowInTaskbar = OperatingSystem.IsWindows(); // Win は通常のウィンドウとして Alt+Tab / タスクバーから戻れるように（SPEC §7）
@@ -53,6 +54,7 @@ internal sealed class SettingsWindow : ChromeWindow
             {
                 Tab(Strings.Settings_Tab_General, GeneralTab()),
                 Tab(Strings.Settings_Tab_Appearance, AppearanceTab()),
+                Tab(Strings.Settings_Tab_Effects, EffectsTab()),
                 Tab(Strings.Settings_Tab_Popup, PopupTab()),
                 Tab(Strings.Settings_Tab_Triggers, TriggersTab()),
                 Tab(Strings.Settings_Tab_Pinned, ResidentTab()),
@@ -137,17 +139,6 @@ internal sealed class SettingsWindow : ChromeWindow
         void UpdateGridEnabled() => gridOpacity.IsEnabled = _hub.Current.Appearance.Hud.Grid;
         grid.IsCheckedChanged += (_, _) => UpdateGridEnabled();
         _refreshers.Add(UpdateGridEnabled);
-        // 静止した走査線（SPEC §3.9 H14）
-        var scanlines = Toggle(s => s.Appearance.Hud.Scanlines, (s, v) => s.Appearance.Hud.Scanlines = v, SettingsChange.Hud);
-        p.Children.Add(Row(Strings.Settings_Appearance_Hud_Scanlines, scanlines, Strings.Settings_Appearance_Hud_Scanlines_Note));
-        var scanlineOpacity = ValueSlider(0, 50, 5, "%", s => s.Appearance.Hud.ScanlineOpacity, (s, v) => s.Appearance.Hud.ScanlineOpacity = v, SettingsChange.Hud);
-        p.Children.Add(Row(Sub(Strings.Settings_Appearance_Hud_ScanlineOpacity), scanlineOpacity));
-        var scanlinePitch = Combo(HudSettings.ScanlinePitches.Select(px => (Strings.FormatCommon_PixelValue(px), px)).ToArray(),
-            s => s.Appearance.Hud.ScanlinePitch, (s, v) => s.Appearance.Hud.ScanlinePitch = v, SettingsChange.Hud);
-        p.Children.Add(Row(Sub(Strings.Settings_Appearance_Hud_ScanlinePitch), scanlinePitch));
-        void UpdateScanlinesEnabled() => scanlineOpacity.IsEnabled = scanlinePitch.IsEnabled = _hub.Current.Appearance.Hud.Scanlines;
-        scanlines.IsCheckedChanged += (_, _) => UpdateScanlinesEnabled();
-        _refreshers.Add(UpdateScanlinesEnabled);
         void UpdateClockEnabled() => clock.IsEnabled = date.IsEnabled = _hub.Current.Appearance.Hud.StatusBar;
         statusBar.IsCheckedChanged += (_, _) => UpdateClockEnabled();
         _refreshers.Add(UpdateClockEnabled);
@@ -159,10 +150,6 @@ internal sealed class SettingsWindow : ChromeWindow
             Strings.Settings_Appearance_DefaultRows_Note));
         p.Children.Add(Row(Strings.Settings_Appearance_DefaultCols, Number(Page.MinGrid, Page.MaxGrid,
             s => s.Appearance.DefaultCols, (s, v) => s.Appearance.DefaultCols = v, SettingsChange.None)));
-        p.Children.Add(Row(Strings.Settings_Appearance_Animation, Toggle(
-            s => s.Appearance.Animation, (s, v) => s.Appearance.Animation = v, SettingsChange.Effects),
-            Strings.Settings_Appearance_Animation_Note));
-        p.Children.Add(EffectsExpander());
         p.Children.Add(Row(Strings.Settings_Appearance_Thumbnails, Toggle(
             s => s.Appearance.ImageThumbnails, (s, v) => s.Appearance.ImageThumbnails = v, SettingsChange.BoardLayout)));
         return Scroll(p);
@@ -181,12 +168,45 @@ internal sealed class SettingsWindow : ChromeWindow
     {
         var previewImage = new Image { Width = 120, Height = 68, Stretch = Stretch.Uniform };
         var none = new TextBlock { Text = Strings.Common_None, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+        var hint = new TextBlock { Text = Strings.Settings_Appearance_Background_DropHint, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, IsVisible = false };
         var preview = new Border
         {
             Width = 120, Height = 68, BorderThickness = new Thickness(1),
+            // 透明でも塗っておく（null だと「なし」の文字以外に当たり判定が無く、ドロップが素通りする）
+            Background = Brushes.Transparent,
             [!Border.BorderBrushProperty] = Themed.Res("FlEmptySlotBorder"),
-            Child = new Grid { Children = { Themed.Note(none), previewImage } },
+            Child = new Grid { Children = { Themed.Note(none), Themed.Note(hint), previewImage } },
         };
+
+        // ドロップで設定（SPEC §3.7「ドロップで設定」）。受け口はサムネイルだけ
+        bool highlighted = false;
+        _setDropHighlight = on =>
+        {
+            if (on == highlighted) return;
+            highlighted = on;
+            preview[!Border.BorderBrushProperty] = Themed.Res(on ? "FlDropBorder" : "FlEmptySlotBorder");
+            if (on) preview[!Border.BackgroundProperty] = Themed.Res("FlDropBackground");
+            else preview.Background = Brushes.Transparent;
+            bool noImage = _hub.Current.Appearance.Background.Image is null;
+            hint.IsVisible = on && noImage;
+            none.IsVisible = !on && previewImage.Source is null;
+        };
+        DragDrop.SetAllowDrop(preview, true);
+        preview.AddHandler(DragDrop.DragOverEvent, (_, e) =>
+        {
+            if (!e.DataTransfer.Contains(DataFormat.File)) { e.DragEffects = DragDropEffects.None; SetDropHighlight(false); return; }
+            var paths = DroppedLocalPaths(e); // 読めなければ null（ドロップ時に判定する）
+            bool ok = paths is null || BackgroundImageStore.FirstSupported(paths) is not null;
+            e.DragEffects = ok ? DragDropEffects.Copy : DragDropEffects.None;
+            SetDropHighlight(ok);
+        });
+        preview.AddHandler(DragDrop.DragLeaveEvent, (_, _) => SetDropHighlight(false));
+        preview.AddHandler(DragDrop.DropEvent, (_, e) =>
+        {
+            SetDropHighlight(false);
+            e.Handled = true;
+            _ = ApplyDroppedPathsAsync(DroppedLocalPaths(e) ?? []);
+        });
         var name = new TextBlock { TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 180 };
         var choose = new Button { Content = Strings.Settings_Appearance_Background_Choose };
         choose.Click += (_, _) => _ = ChooseBackgroundAsync();
@@ -247,7 +267,7 @@ internal sealed class SettingsWindow : ChromeWindow
                     Children = { name, new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { choose, clear } } },
                 },
             },
-        }));
+        }, Strings.Settings_Appearance_Background_Note));
         p.Children.Add(error);
         p.Children.Add(Row(Sub(Strings.Settings_Appearance_BackgroundFit), fit));
         p.Children.Add(Row(Sub(Strings.Settings_Appearance_BackgroundOverlay), overlay, Strings.Settings_Appearance_BackgroundOverlay_Note));
@@ -280,6 +300,29 @@ internal sealed class SettingsWindow : ChromeWindow
             Toast.Show(Strings.FormatSettings_Appearance_BackgroundCopyFailed(ex.Message));
         }
         return Task.CompletedTask;
+    }
+
+    private Action<bool>? _setDropHighlight;
+
+    /// <summary>サムネイルのドロップ先の強調（ドラッグ中）。UI テストからも呼ぶ。</summary>
+    internal void SetDropHighlight(bool on) => _setDropHighlight?.Invoke(on);
+
+    /// <summary>サムネイルに落とされたパスから背景画像を設定する（SPEC §3.7「ドロップで設定」）。対応ファイルが無ければトースト。</summary>
+    internal Task ApplyDroppedPathsAsync(IReadOnlyList<string> paths)
+    {
+        if (BackgroundImageStore.FirstSupported(paths) is { } path) return ApplyBackgroundFileAsync(path);
+        Toast.Show(Strings.Toast_BackgroundDropUnsupported);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>ドロップされたファイルのローカルパス。ファイル一覧が読めなければ null。</summary>
+    private static List<string>? DroppedLocalPaths(DragEventArgs e)
+    {
+        if (e.DataTransfer.TryGetFiles() is not { } files) return null;
+        var list = new List<string>();
+        foreach (var f in files)
+            if (f.TryGetLocalPath() is { } p) list.Add(p);
+        return list;
     }
 
     private Control PopupTab()
@@ -654,35 +697,66 @@ internal sealed class SettingsWindow : ChromeWindow
         _ctx.ImportAndRestart?.Invoke(contents);
     }
 
-    /// <summary>演出の調整（spec/EFFECTS.md の各演出。EffectCatalog から行を作る）。</summary>
-    private Control EffectsExpander()
+    /// <summary>
+    /// 演出タブ（SPEC §7「演出タブの構成」）。このアプリの肝である常時の演出 3 つ（光の玉・発光の明滅・走査線の帯）は普通の行で、
+    /// 残りの演出は折りたたみの「詳細設定」に入れる。
+    /// </summary>
+    private Control EffectsTab()
     {
-        var rows = new StackPanel { Spacing = 12 };
-        var expander = new Expander { Header = Strings.Settings_Appearance_Effects, Content = rows, HorizontalAlignment = HorizontalAlignment.Stretch };
-        foreach (var def in EffectCatalog.All)
-        {
-            var row = EffectRow(def);
-            rows.Children.Add(row);
-            // 発光の明滅はサイバーパンクだけ（他のテーマは枠に発光が無いので意味がない。SPEC §1.2 の準用）
-        }
-        rows.Children.Add(Themed.Note(new TextBlock { Text = Strings.Settings_Appearance_Effects_AmbientNote, FontSize = 12, TextWrapping = TextWrapping.Wrap }));
-        if (_ctx.Platform.Window.PrefersReducedMotion)
-            rows.Children.Add(Themed.Note(new TextBlock { Text = Strings.Settings_Appearance_Effects_ReducedMotionNote, FontSize = 12, TextWrapping = TextWrapping.Wrap }));
+        var p = Panel();
+        p.Children.Add(Row(Strings.Settings_Effects_Animation, Toggle(
+            s => s.Appearance.Animation, (s, v) => s.Appearance.Animation = v, SettingsChange.Effects),
+            Strings.Settings_Effects_Animation_Note));
 
-        var resetAll = new Button { Content = Strings.Settings_Appearance_Effects_ResetAll };
+        // アニメーション OFF の間は以下を無効表示（注記は読めるように外に置く）
+        var body = new StackPanel { Spacing = 12 };
+        body.Children.Add(new TextBlock { Text = Strings.Settings_Effects_AmbientHeading, FontWeight = FontWeight.SemiBold, FontSize = 13, Margin = new Thickness(0, 6, 0, 0) });
+        foreach (var def in EffectCatalog.All.Where(d => d.IsAmbient))
+            body.Children.Add(EffectRow(def, showId: false, showEasing: false));
+        body.Children.Add(Row(Strings.Settings_Effects_Vsync, Combo(
+            AppearanceSettings.VsyncValues.Select(v => (Strings.FormatSettings_Effects_Vsync_Item(v, 60 / v), v)).ToArray(),
+            s => s.Appearance.Vsync, (s, v) => s.Appearance.Vsync = v, SettingsChange.Effects),
+            Strings.Settings_Effects_Vsync_Note));
+        p.Children.Add(body);
+
+        p.Children.Add(Themed.Note(new TextBlock { Text = Strings.Settings_Effects_AmbientNote, FontSize = 12, TextWrapping = TextWrapping.Wrap }));
+        if (_ctx.Platform.Window.PrefersReducedMotion)
+            p.Children.Add(Themed.Note(new TextBlock { Text = Strings.Settings_Effects_ReducedMotionNote, FontSize = 12, TextWrapping = TextWrapping.Wrap }));
+
+        var rows = new StackPanel { Spacing = 12 };
+        foreach (var def in EffectCatalog.All.Where(d => !d.IsAmbient)) rows.Children.Add(EffectRow(def));
+        var advanced = new Expander { Header = Strings.Settings_Effects_Advanced, Content = rows, HorizontalAlignment = HorizontalAlignment.Stretch };
+        p.Children.Add(advanced);
+
+        var resetAll = new Button { Content = Strings.Settings_Effects_ResetAll };
         resetAll.Click += (_, _) =>
         {
-            _hub.Update(s => s.Appearance.Effects.Clear(), SettingsChange.Effects);
+            _hub.Update(s => { s.Appearance.Effects.Clear(); s.Appearance.Vsync = 2; }, SettingsChange.Effects);
             RefreshAll();
         };
-        rows.Children.Add(resetAll);
-        _refreshers.Add(() => expander.IsEnabled = _hub.Current.Appearance.Animation);
-        return expander;
+        p.Children.Add(resetAll);
+        _refreshers.Add(() => body.IsEnabled = advanced.IsEnabled = resetAll.IsEnabled = _hub.Current.Appearance.Animation);
+
+        // 静止した走査線（SPEC §3.9 H14）。演出ではなく見た目なので、アニメーション OFF でも有効・「すべて既定に戻す」の対象外。
+        // 上の無効化の並びを途切れさせないよう末尾に置く
+        p.Children.Add(new TextBlock { Text = Strings.Settings_Effects_ScanlinesHeading, FontWeight = FontWeight.SemiBold, FontSize = 13, Margin = new Thickness(0, 6, 0, 0) });
+        var scanlines = Toggle(s => s.Appearance.Hud.Scanlines, (s, v) => s.Appearance.Hud.Scanlines = v, SettingsChange.Hud);
+        p.Children.Add(Row(Strings.Settings_Effects_Scanlines, scanlines, Strings.Settings_Effects_Scanlines_Note));
+        var scanlineOpacity = ValueSlider(0, 50, 5, "%", s => s.Appearance.Hud.ScanlineOpacity, (s, v) => s.Appearance.Hud.ScanlineOpacity = v, SettingsChange.Hud);
+        p.Children.Add(Row(Sub(Strings.Settings_Effects_ScanlineOpacity), scanlineOpacity));
+        var scanlinePitch = Combo(HudSettings.ScanlinePitches.Select(px => (Strings.FormatCommon_PixelValue(px), px)).ToArray(),
+            s => s.Appearance.Hud.ScanlinePitch, (s, v) => s.Appearance.Hud.ScanlinePitch = v, SettingsChange.Hud);
+        p.Children.Add(Row(Sub(Strings.Settings_Effects_ScanlinePitch), scanlinePitch));
+        void UpdateScanlinesEnabled() => scanlineOpacity.IsEnabled = scanlinePitch.IsEnabled = _hub.Current.Appearance.Hud.Scanlines;
+        scanlines.IsCheckedChanged += (_, _) => UpdateScanlinesEnabled();
+        _refreshers.Add(UpdateScanlinesEnabled);
+        return Scroll(p);
     }
 
-    private Control EffectRow(EffectDefinition def)
+    /// <param name="showId">項目名に演出 ID を添えるか（詳細設定の行）。</param>
+    /// <param name="showEasing">イージングの欄を出すか（常時の演出はイージングを使わないので出さない）。</param>
+    private Control EffectRow(EffectDefinition def, bool showId = true, bool showEasing = true)
     {
-        // 既定値はテーマで変わる（spec/EFFECTS.md「テーマ別の既定値」）
         EffectSpec Current() => _hub.Current.Appearance.Effects.GetValueOrDefault(def.Id) ?? def.Default;
         void Apply(Func<EffectSpec, EffectSpec> change) =>
             Set(s => s.Appearance.Effects[def.Id] = change(s.Appearance.Effects.GetValueOrDefault(def.Id) ?? def.Default), SettingsChange.Effects);
@@ -730,7 +804,7 @@ internal sealed class SettingsWindow : ChromeWindow
         header.Children.Add(reset);
         header.Children.Add(new TextBlock
         {
-            Text = Strings.FormatSettings_Appearance_EffectRow(EnumNames.Effect(def.Id), def.Id),
+            Text = showId ? Strings.FormatSettings_Effects_Row(EnumNames.Effect(def.Id), def.Id) : EnumNames.Effect(def.Id),
             VerticalAlignment = VerticalAlignment.Center,
         });
         return new StackPanel
@@ -739,7 +813,7 @@ internal sealed class SettingsWindow : ChromeWindow
             Children =
             {
                 header,
-                new WrapPanel { Children = { kind, Spacer(), slider, ms, Spacer(), easing } },
+                showEasing ? new WrapPanel { Children = { kind, Spacer(), slider, ms, Spacer(), easing } } : new WrapPanel { Children = { kind, Spacer(), slider, ms } },
             },
         };
     }
@@ -764,10 +838,6 @@ internal sealed class SettingsWindow : ChromeWindow
         var open = new Button { Content = Strings.Settings_Advanced_OpenLogFolder };
         open.Click += (_, _) => { if (AppLog.LogsDirectory is { } dir) { Directory.CreateDirectory(dir); _openFolder(dir); } };
         p.Children.Add(Row("", open));
-        p.Children.Add(Row(Strings.Settings_Advanced_Hardware, WithRestart(Toggle(
-            s => s.Advanced.HardwareAcceleration, (s, v) => s.Advanced.HardwareAcceleration = v, SettingsChange.None),
-            () => _hub.Current.Advanced.HardwareAcceleration != _ctx.HardwareAccelerationAtStartup),
-            Strings.Settings_Advanced_Hardware_Note));
 
         var reset = new Button { Content = Strings.Settings_Advanced_Reset };
         reset.Click += (_, _) => _ = ResetAsync();

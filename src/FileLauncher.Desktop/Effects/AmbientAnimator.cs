@@ -6,11 +6,18 @@ namespace FileLauncher.App;
 
 /// <summary>
 /// 常時の演出（光の玉・発光の明滅・走査線の帯）を毎フレーム進める（spec/EFFECTS.md「常時の演出の詳細」）。
-/// TopLevel.RequestAnimationFrame で動き、止まっている間はフレームを要求しない（CPU 0）。更新は 16 ms 以上の間隔。
+/// TopLevel.RequestAnimationFrame で動き、止まっている間はフレームを要求しない（CPU 0）。更新の間隔は設定「VSync」（既定 約 30 fps）。
 /// </summary>
 internal sealed class AmbientAnimator(TopLevel topLevel, OrbLayer orbs, PulseLayer pulse, ScanBeamLayer beam)
 {
-    private const double MinFrameMs = 16;
+    /// <summary>設定「VSync」（1 = 60 fps / 2 = 30 fps / 3 = 20 fps、既定 2）。BoardWindow.ApplyEffects が入れる。</summary>
+    public int Vsync { get; set; } = 2;
+
+    /// <summary>
+    /// 更新の最小間隔。macOS の Avalonia は一部が動くだけで窓全体を描き直すので、60 fps では CPU を 1.5 倍使った（2026-10-07 計測）。
+    /// 値は Core AmbientMath.FrameIntervalMs（60 Hz の N 枚ぶんより少し短い）。
+    /// </summary>
+    internal double MinFrameMs => AmbientMath.FrameIntervalMs(Vsync);
     private const double PulseStep = 0.02;
     private const double WeakPeak = 0.45, StrongPeak = 0.9;
 
@@ -18,6 +25,11 @@ internal sealed class AmbientAnimator(TopLevel topLevel, OrbLayer orbs, PulseLay
     public const double MaxPulseGain = 1 + StrongPeak;
     private readonly Stopwatch _clock = new();
     private double _lastMs = double.NegativeInfinity;
+    private double _lastFrameMs = double.NegativeInfinity;
+
+    // Start のたびに進める。Stop → すぐ Start で、前のフレーム要求が未発火のまま残ると要求の連鎖が 2 本になるので、
+    // 古い世代のコールバックは捨てる
+    private int _generation;
 
     public bool IsRunning { get; private set; }
 
@@ -30,9 +42,16 @@ internal sealed class AmbientAnimator(TopLevel topLevel, OrbLayer orbs, PulseLay
         IsRunning = true;
         _clock.Start();
         _lastMs = double.NegativeInfinity;
+        _lastFrameMs = double.NegativeInfinity;
         Tick(_clock.Elapsed.TotalMilliseconds);
-        topLevel.RequestAnimationFrame(OnFrame);
+        RequestFrame(++_generation);
     }
+
+    private void RequestFrame(int generation) => topLevel.RequestAnimationFrame(t => OnFrame(generation, t.TotalMilliseconds));
+
+    /// <summary>このフレームで更新するか（フレーム時刻で間引く。最初のフレームは必ず）。</summary>
+    internal static bool ShouldTick(double lastFrameMs, double frameMs, double minFrameMs) =>
+        double.IsNegativeInfinity(lastFrameMs) || frameMs - lastFrameMs >= minFrameMs;
 
     public void Stop()
     {
@@ -40,12 +59,12 @@ internal sealed class AmbientAnimator(TopLevel topLevel, OrbLayer orbs, PulseLay
         _clock.Stop(); // 再開したら続きから（玉が止まった位置から動き出す）
     }
 
-    private void OnFrame(TimeSpan _)
+    private void OnFrame(int generation, double frameMs)
     {
-        if (!IsRunning) return; // Stop の後に遅れて来た 1 回
-        double now = _clock.Elapsed.TotalMilliseconds;
-        if (now - _lastMs >= MinFrameMs) Tick(now);
-        topLevel.RequestAnimationFrame(OnFrame);
+        if (!IsRunning || generation != _generation) return; // Stop の後・再開前の世代から遅れて来た 1 回
+        double now = _clock.Elapsed.TotalMilliseconds; // 位置・明るさは Stopwatch（Stop で止まり、再開は続きから）
+        if (ShouldTick(_lastFrameMs, frameMs, MinFrameMs)) { _lastFrameMs = frameMs; Tick(now); }
+        RequestFrame(generation);
     }
 
     /// <summary>1 フレームぶん適用する（UI テストは時計を使わずこれで進める）。</summary>
