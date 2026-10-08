@@ -165,24 +165,20 @@ public sealed class BoardEditingUiTests : IDisposable
 
     // ---------------- フォルダを開く先（SPEC §5.2 / §6.2 / §6.3 / §6.6） ----------------
 
+    /// <summary>「新しいウィンドウで開く」の修飾キー（Win Ctrl / Mac ⌘）。</summary>
+    private static RawInputModifiers NewWindowModifier => OperatingSystem.IsMacOS() ? RawInputModifiers.Meta : RawInputModifiers.Control;
+
     [AvaloniaFact]
-    public void Windowsでは動かさずにCtrlクリックすると新しいウィンドウで開く指示になり_修飾キーなしでは付かない()
+    public void 動かさずにCtrlクリック_Macはコマンドクリックすると新しいウィンドウで開く指示になり_修飾キーなしでは付かない()
     {
         var p = Center(0, 0);
-        _window.MouseDown(p, MouseButton.Left, RawInputModifiers.Control);
-        _window.MouseUp(p, MouseButton.Left, RawInputModifiers.Control);
+        _window.MouseDown(p, MouseButton.Left, NewWindowModifier);
+        _window.MouseUp(p, MouseButton.Left, NewWindowModifier);
         Dispatcher.UIThread.RunJobs();
-        if (OperatingSystem.IsWindows())
-        {
-            Assert.Equal(1, _invoked);
-            Assert.True(_lastNewWindow);
-        }
-        else
-        {
-            Assert.NotEqual(true, _lastNewWindow); // Mac の ⌃クリックは右クリック扱い
-        }
+        Assert.Equal(1, _invoked);
+        Assert.True(_lastNewWindow);
 
-        // ポインタの離上を伴わない Click に、前回の Ctrl が残らない（控えは 1 回で消える）
+        // ポインタの離上を伴わない Click に、前回の修飾キーが残らない（控えは 1 回で消える）
         Slot(0, 0).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Dispatcher.UIThread.RunJobs();
         Assert.NotEqual(true, _lastNewWindow);
@@ -196,21 +192,14 @@ public sealed class BoardEditingUiTests : IDisposable
     }
 
     [AvaloniaFact]
-    public void Windowsでは選択セルでCtrlEnterを押すと新しいウィンドウで開く指示になる()
+    public void 選択セルでCtrlEnter_MacはコマンドEnterを押すと新しいウィンドウで開く指示になる()
     {
         _window.Focus();
         _window.KeyPressQwerty(PhysicalKey.ArrowDown, RawInputModifiers.None); // (0,0) = a
-        _window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.Control);
+        _window.KeyPressQwerty(PhysicalKey.Enter, NewWindowModifier);
         Dispatcher.UIThread.RunJobs();
-        if (OperatingSystem.IsWindows())
-        {
-            Assert.Equal(1, _invoked);
-            Assert.True(_lastNewWindow);
-        }
-        else
-        {
-            Assert.Equal(0, _invoked);
-        }
+        Assert.Equal(1, _invoked);
+        Assert.True(_lastNewWindow);
     }
 
     private void OpenItemMenu(int row, int col)
@@ -221,16 +210,11 @@ public sealed class BoardEditingUiTests : IDisposable
     }
 
     [AvaloniaFact]
-    public void 新しいウィンドウで開くはWindowsのフォルダアイテムのメニューにだけあり_選ぶと新しいウィンドウで起動する()
+    public void 新しいウィンドウで開くはフォルダアイテムのメニューにだけあり_選ぶと新しいウィンドウで起動する()
     {
         _a.Kind = ItemKind.Folder;
         OpenItemMenu(0, 0);
         var item = _editor.LastMenu!.Items.OfType<MenuItem>().SingleOrDefault(m => (string?)m.Header == Strings.Menu_OpenNewWindow);
-        if (!OperatingSystem.IsWindows())
-        {
-            Assert.Null(item);
-            return;
-        }
         Assert.NotNull(item);
         item!.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         Dispatcher.UIThread.RunJobs();

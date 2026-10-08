@@ -31,5 +31,11 @@
   <string>15.0</string>
   <key>NSPrincipalClass</key>
   <string>NSApplication</string>
+  <!-- 開発言語。InfoPlist.strings は en.lproj / ja.lproj の両方に置く（片方だけだとその言語に固定される。SPEC §10.4） -->
+  <key>CFBundleDevelopmentRegion</key>
+  <string>en</string>
+  <!-- 自動化（Finder の制御）の許可ダイアログの本文（SPEC §4.3「自動化」）。日本語は ja.lproj/InfoPlist.strings。無いと黙って拒否（−1743）になる -->
+  <key>NSAppleEventsUsageDescription</key>
+  <string>Opens folders in a tab of the open Finder window.</string>
 </dict>
 </plist>

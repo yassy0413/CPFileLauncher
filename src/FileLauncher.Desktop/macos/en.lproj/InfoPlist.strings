@@ -1,0 +1,2 @@
+/* 自動化（Finder の制御）の許可ダイアログの本文（SPEC §4.3） */
+"NSAppleEventsUsageDescription" = "Opens folders in a tab of the open Finder window.";

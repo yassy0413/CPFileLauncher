@@ -28,7 +28,7 @@ internal sealed record MenuActions(
     Action? About,
     Action Quit,
     PageActions? Pages = null,
-    Action<LauncherItem>? OpenNewWindow = null, // フォルダを新しいウィンドウで（Windows のみ。SPEC §6.3）
+    Action<LauncherItem>? OpenNewWindow = null, // フォルダを新しいウィンドウで（SPEC §6.3）
     Action<LauncherItem>? OpenTerminal = null); // ターミナルで開く（SPEC §6.3）
 
 /// <summary>ページタブのメニューの処理（ページ番号を受ける）。</summary>
@@ -55,8 +55,9 @@ internal static class BoardMenus
         {
             case SlotContextKind.Item when ctx.Item is { } item:
                 items.Add(Item(Strings.Menu_Launch, () => a.Launch(item), new KeyGesture(Key.Enter)));
-                if (OperatingSystem.IsWindows() && item.Kind == ItemKind.Folder && a.OpenNewWindow is { } newWindow)
-                    items.Add(Item(Strings.Menu_OpenNewWindow, () => newWindow(item), new KeyGesture(Key.Enter, KeyModifiers.Control)));
+                if (item.Kind == ItemKind.Folder && a.OpenNewWindow is { } newWindow)
+                    items.Add(Item(Strings.Menu_OpenNewWindow, () => newWindow(item),
+                        new KeyGesture(Key.Enter, OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control)));
                 if (OperatingSystem.IsWindows()) items.Add(Item(Strings.Menu_RunAsAdmin, a.LaunchAsAdmin is { } admin ? () => admin(item) : null));
                 items.Add(Item(Loc.Os(Strings.Menu_Reveal_Win, Strings.Menu_Reveal_Mac), () => a.Reveal(item)));
                 if (a.OpenTerminal is { } terminal && TerminalLocation.For(item) is not null)

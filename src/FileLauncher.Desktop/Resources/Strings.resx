@@ -1183,7 +1183,7 @@ The current files are kept in backup/.</value>
   <data name="Settings_General_FolderOpenTarget" xml:space="preserve">
     <value>Open folders in</value>
   </data>
-  <data name="Settings_General_FolderOpenTarget_Note" xml:space="preserve">
+  <data name="Settings_General_FolderOpenTarget_Note_Win" xml:space="preserve">
     <value>Ctrl+click (or Ctrl+Enter) always opens a new window. Adding a tab relies on an undocumented Explorer feature; if a Windows update breaks it, choose “Let Windows decide”.</value>
   </data>
   <data name="Enum_FolderOpenTarget_ExistingTab" xml:space="preserve">
@@ -1245,5 +1245,24 @@ The current files are kept in backup/.</value>
   </data>
   <data name="Settings_Effects_ScanlinesHeading" xml:space="preserve">
     <value>Static scanlines</value>
+  </data>
+  <data name="Settings_General_FolderOpenTarget_Note_Mac" xml:space="preserve">
+    <value>⌘-click (or ⌘Enter) always opens a new window. Adding a tab needs permission to control Finder (System Settings → Privacy &amp; Security → Automation); macOS asks the first time. Without it, folders open in a new window.</value>
+  </data>
+  <data name="Enum_FolderOpenTarget_ExistingTab_Mac" xml:space="preserve">
+    <value>New tab in the open Finder window</value>
+  </data>
+  <data name="Permission_AutomationStatus" xml:space="preserve">
+    <value>Automation (control Finder): {0}</value>
+    <comment>{0} allowed / not allowed / not asked yet</comment>
+  </data>
+  <data name="Permission_NotAsked" xml:space="preserve">
+    <value>Not asked yet (macOS asks when you open a folder)</value>
+  </data>
+  <data name="Permission_AutomationNote" xml:space="preserve">
+    <value>To open folders in a tab of the open Finder window, allow CPFileLauncher to control Finder under Automation (optional; otherwise folders open in a new window).</value>
+  </data>
+  <data name="Permission_OpenAutomationSettings" xml:space="preserve">
+    <value>Open Automation settings</value>
   </data>
 </root>

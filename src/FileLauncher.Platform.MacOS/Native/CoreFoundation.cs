@@ -17,6 +17,10 @@ internal static class CoreFoundation
     [DllImport(Lib)] public static extern nint CFStringGetTypeID();
     [DllImport(Lib)] public static extern nint CFURLCreateWithFileSystemPath(nint alloc, nint path, int style, [MarshalAs(UnmanagedType.I1)] bool isDirectory);
     [DllImport(Lib)] public static extern nint CFNumberCreate(nint alloc, int type, ref long value);
+    [DllImport(Lib)] [return: MarshalAs(UnmanagedType.I1)] public static extern bool CFNumberGetValue(nint number, int type, out long value);
+    [DllImport(Lib)] public static extern nint CFNumberGetTypeID();
+    [DllImport(Lib)] public static extern long CFArrayGetCount(nint array);
+    [DllImport(Lib)] public static extern nint CFArrayGetValueAtIndex(nint array, long index);
     [DllImport(Lib)] public static extern nint CFDictionaryCreate(nint alloc, nint[] keys, nint[] values, nint count, nint keyCallbacks, nint valueCallbacks);
 
     private static readonly nint LibHandle = NativeLibrary.Load(Lib);

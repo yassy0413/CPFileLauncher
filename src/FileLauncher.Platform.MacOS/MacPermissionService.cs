@@ -35,17 +35,33 @@ internal sealed class MacPermissionService : IPermissionService
         }
     }
 
+    /// <summary>
+    /// Finder の制御（SPEC §4.3「自動化」）。ダイアログは出さずに状態だけ読む。
+    /// −1744（未確認）や Finder が動いていない（−600）は Unknown（macOS の都合で「未確認」と「未許可」を区別できないことがある）。
+    /// </summary>
+    public PermissionState Automation => AppleEvents.DeterminePermission("com.apple.finder", ask: false) switch
+    {
+        AppleEvents.noErr => PermissionState.Granted,
+        AppleEvents.errAEEventNotPermitted => PermissionState.Denied,
+        _ => PermissionState.Unknown,
+    };
+
     /// <summary>システム設定の「プライバシーとセキュリティ → アクセシビリティ」を開く。</summary>
-    public void OpenSystemSettings()
+    public void OpenSystemSettings() => OpenPrivacyPane("Privacy_Accessibility");
+
+    /// <summary>システム設定の「プライバシーとセキュリティ → オートメーション」を開く。</summary>
+    public void OpenAutomationSettings() => OpenPrivacyPane("Privacy_Automation");
+
+    private static void OpenPrivacyPane(string anchor)
     {
         try
         {
             using var _ = Process.Start(new ProcessStartInfo("/usr/bin/open",
-                "\"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility\"") { UseShellExecute = false });
+                $"\"x-apple.systempreferences:com.apple.preference.security?{anchor}\"") { UseShellExecute = false });
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"OpenSystemSettings failed: {ex.Message}");
+            Trace.WriteLine($"OpenSystemSettings({anchor}) failed: {ex.Message}");
         }
     }
 }

@@ -14,8 +14,13 @@ internal static class EnumNames
         typeof(ItemKind), typeof(LaunchMode), typeof(FolderOpenTarget),
     ];
 
-    public static string Of<T>(T value) where T : struct, Enum =>
-        Strings.ResourceManager.GetString($"Enum_{typeof(T).Name}_{value}", Strings.Culture) ?? value.ToString();
+    /// <summary>macOS では OS で名前が変わる値の <c>_Mac</c> キーを優先する（TERMS.md §4）。</summary>
+    public static string Of<T>(T value) where T : struct, Enum
+    {
+        string key = $"Enum_{typeof(T).Name}_{value}";
+        return (OperatingSystem.IsMacOS() ? Strings.ResourceManager.GetString(key + "_Mac", Strings.Culture) : null)
+            ?? Strings.ResourceManager.GetString(key, Strings.Culture) ?? value.ToString();
+    }
 
     /// <summary>色（null = なし）。</summary>
     public static string Color(ItemColor? color) => color is { } c ? Of(c) : Strings.Enum_ItemColor_None;

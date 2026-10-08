@@ -27,8 +27,10 @@ sed "s/__VERSION__/$VERSION/g" "$PROJECT/macos/Info.plist" > "$APP/Contents/Info
 cp "$PROJECT/Assets/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns" # アイコン（src/build/make-icons.sh で作る）
 cp -R "$TMP/publish/." "$APP/Contents/MacOS/"
 chmod +x "$APP/Contents/MacOS/$EXE"
-plutil -lint "$APP/Contents/Info.plist" > /dev/null
+cp -R "$PROJECT/macos/"*.lproj "$APP/Contents/Resources/" # 許可ダイアログの文言の各言語版（InfoPlist.strings）
+plutil -lint "$APP/Contents/Info.plist" "$APP/Contents/Resources/"*.lproj/InfoPlist.strings > /dev/null
 
+# Hardened Runtime（--options runtime）を付けるときは entitlement com.apple.security.automation.apple-events が要る（Finder の制御。SPEC §4.3 / §13.2 T3）。今は付けない
 # 署名: TCC（アクセシビリティの許可）は「証明書 + bundle id」で覚えるので、再ビルドしても同じ証明書で署名する。
 # 指定が無ければ「FileLauncher Dev」、無ければキーチェーンにある最初のコード署名証明書、それも無ければ ad-hoc（再ビルドのたびに許可が外れる）
 IDENTITY=${CODESIGN_IDENTITY:-}

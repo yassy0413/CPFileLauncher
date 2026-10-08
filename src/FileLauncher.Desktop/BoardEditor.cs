@@ -308,7 +308,7 @@ internal sealed class BoardEditor
             OpenSettings: () => Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenSettings?.Invoke()),
             About: ShowAbout is { } about ? () => Avalonia.Threading.Dispatcher.UIThread.Post(about) : null,
             Quit: () => Quit?.Invoke(),
-            OpenNewWindow: OperatingSystem.IsWindows() ? item => _controller().Launch(item, null, newWindow: true) : null,
+            OpenNewWindow: item => _controller().Launch(item, null, newWindow: true),
             OpenTerminal: item =>
             {
                 if (TerminalLocation.For(item) is not { } dir) return;

@@ -74,7 +74,7 @@ internal sealed class WindowsShellService : IShellService
     {
         path = LaunchArgs.ExpandPath(path);
         if (!File.Exists(path) && !Directory.Exists(path)) return LaunchResult.Fail(LaunchFailure.NotFound, path);
-        if (folderTarget != FolderOpenTarget.System && Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(path)) is { } parent)
+        if (folderTarget != FolderOpenTarget.System && FolderOpening.ParentOf(path) is { } parent)
         {
             // 親フォルダを開いて path を選択する（フォルダ自身が対象でも同じ）
             _explorer.OpenFolder(parent, path, folderTarget, LaunchMode.Normal);

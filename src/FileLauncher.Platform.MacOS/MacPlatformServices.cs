@@ -11,12 +11,14 @@ public sealed class MacPlatformServices : IPlatformServices
 {
     private readonly SharpHookInputService _input;
     private readonly MacWorker _worker = new("MacIcons");
+    private readonly MacWorker _finderWorker = new("FinderTabs");
 
     public MacPlatformServices()
     {
         Desktop = new MacDesktopDetector();
         _input = new SharpHookInputService(Desktop.IsDesktopAt, CurrentModifiers);
         Icons = new MacIconProvider(_worker);
+        Shell = new MacShellService(new FinderTabs(_finderWorker));
         // Dock に出さない（.app なら LSUIElement で既に accessory。dotnet run でも同じにする）
         MacWindowService.UseAccessoryActivationPolicy();
     }
@@ -37,7 +39,7 @@ public sealed class MacPlatformServices : IPlatformServices
     public IHotkeyService Hotkey => _input;
     public IMouseTriggerService MouseTrigger => _input;
     public IIconProvider Icons { get; }
-    public IShellService Shell { get; } = new MacShellService();
+    public IShellService Shell { get; }
     public IWindowService Window { get; } = new MacWindowService();
     public IAutoStartService AutoStart { get; } = new MacAutoStartService();
     public IPermissionService Permissions { get; } = new MacPermissionService();
@@ -47,6 +49,7 @@ public sealed class MacPlatformServices : IPlatformServices
     {
         _input.Dispose();
         _worker.Dispose();
+        _finderWorker.Dispose();
     }
 }
 

@@ -40,4 +40,22 @@ public class FolderOpeningTests
         s.General.FolderOpenTarget = FolderOpenTarget.NewWindow;
         Assert.Contains("\"folderOpenTarget\": \"newWindow\"", JsonSerializer.Serialize(s, JsonDefaults.Options));
     }
+
+    [Fact]
+    public void macOSではSystemをNewWindowとして扱い_他はそのまま()
+    {
+        Assert.Equal(FolderOpenTarget.NewWindow, ForMacOS(FolderOpenTarget.System));
+        Assert.Equal(FolderOpenTarget.NewWindow, ForMacOS(FolderOpenTarget.NewWindow));
+        Assert.Equal(FolderOpenTarget.ExistingTab, ForMacOS(FolderOpenTarget.ExistingTab));
+    }
+
+    [Fact]
+    public void 格納フォルダは末尾の区切りを無視して求め_ルートや親の無いパスはnull()
+    {
+        Assert.Equal("/Users/a", ParentOf("/Users/a/b.txt"));
+        Assert.Equal("/Users/a", ParentOf("/Users/a/dir/"));
+        Assert.Equal("/", ParentOf("/Users"));
+        Assert.Null(ParentOf("/"));
+        Assert.Null(ParentOf("name"));
+    }
 }

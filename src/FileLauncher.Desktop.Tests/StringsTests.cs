@@ -53,6 +53,15 @@ public sealed partial class StringsTests
     }
 
     [Fact]
+    public void MacではOSで名前が変わるenumの_Macキーを優先する()
+    {
+        Assert.True(En.ContainsKey("Enum_FolderOpenTarget_ExistingTab_Mac"));
+        string expected = OperatingSystem.IsMacOS() ? Strings.Enum_FolderOpenTarget_ExistingTab_Mac : Strings.Enum_FolderOpenTarget_ExistingTab;
+        Assert.Equal(expected, EnumNames.Of(FileLauncher.Core.Model.FolderOpenTarget.ExistingTab));
+        Assert.Equal(Strings.Enum_FolderOpenTarget_NewWindow, EnumNames.Of(FileLauncher.Core.Model.FolderOpenTarget.NewWindow));
+    }
+
+    [Fact]
     public void カルチャを日本語にすると日本語_戻すと英語になる()
     {
         var saved = Strings.Culture;

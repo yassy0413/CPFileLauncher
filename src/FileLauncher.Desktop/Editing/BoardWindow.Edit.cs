@@ -63,9 +63,9 @@ public partial class BoardWindow
     private static bool IsCopyModifier(InputModifiers m) =>
         OperatingSystem.IsMacOS() ? m.HasFlag(InputModifiers.Alt) : m.HasFlag(InputModifiers.Control);
 
-    /// <summary>「新しいウィンドウで開く」の修飾キー（Windows の Ctrl だけ。Mac の ⌃クリックは右クリック。SPEC §6.2）。</summary>
+    /// <summary>「新しいウィンドウで開く」の修飾キー（Win Ctrl / Mac ⌘。Mac の ⌃クリックは右クリックのまま。SPEC §6.2）。</summary>
     private static bool IsNewWindowModifier(InputModifiers m) =>
-        OperatingSystem.IsWindows() && m.HasFlag(InputModifiers.Control);
+        OperatingSystem.IsMacOS() ? m.HasFlag(InputModifiers.Meta) : m.HasFlag(InputModifiers.Control);
 
     /// <summary>
     /// 直前のポインタ離上の修飾キー。Button.Click は修飾キーを持たず、Button の Click は同じ要素の instance handler より

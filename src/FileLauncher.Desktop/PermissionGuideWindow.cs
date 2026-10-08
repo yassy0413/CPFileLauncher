@@ -15,6 +15,7 @@ internal sealed class PermissionGuideWindow : ChromeWindow
 {
     private readonly IPlatformServices _platform;
     private readonly TextBlock _status = new() { TextWrapping = TextWrapping.Wrap };
+    private readonly TextBlock _automation = new() { TextWrapping = TextWrapping.Wrap };
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     public PermissionGuideWindow(IPlatformServices platform, Action retry, Action restart)
@@ -47,6 +48,9 @@ internal sealed class PermissionGuideWindow : ChromeWindow
                     Text = Strings.Permission_Steps + (IsInsideAppBundle() ? "" : "\n" + Strings.Permission_TerminalNote),
                 },
                 _status,
+                // 自動化（Finder の制御）は任意の権限（SPEC §4.3「自動化」）。フォルダを Finder のタブで開くのに使う
+                _automation,
+                Themed.Foreground(new TextBlock { Text = Strings.Permission_AutomationNote, TextWrapping = TextWrapping.Wrap }, "FlTextMuted"),
                 new WrapPanel
                 {
                     HorizontalAlignment = HorizontalAlignment.Right,
@@ -54,6 +58,7 @@ internal sealed class PermissionGuideWindow : ChromeWindow
                     {
                         MakeButton(Strings.Permission_Request, platform.Permissions.RequestAccessibility),
                         MakeButton(Strings.Permission_OpenSettings, platform.Permissions.OpenSystemSettings),
+                        MakeButton(Strings.Permission_OpenAutomationSettings, platform.Permissions.OpenAutomationSettings),
                         MakeButton(Strings.Permission_Retry, retry),
                         MakeButton(Strings.Common_Restart, restart),
                         MakeButton(Strings.Common_Close, Close),
@@ -75,6 +80,16 @@ internal sealed class PermissionGuideWindow : ChromeWindow
         string hook = _platform.InputHook.IsRunning ? Strings.Permission_HookOn : Strings.Permission_HookOff;
         _status.Text = Strings.FormatPermission_Status(ax, hook);
         Themed.Foreground(_status, _platform.InputHook.IsRunning ? "FlSuccess" : "FlError");
+
+        var automation = p.Automation;
+        _automation.Text = Strings.FormatPermission_AutomationStatus(automation switch
+        {
+            PermissionState.Granted => Strings.Permission_Granted,
+            PermissionState.Denied => Strings.Permission_NotGranted,
+            _ => Strings.Permission_NotAsked,
+        });
+        // 任意の権限なので未許可でも赤にしない
+        Themed.Foreground(_automation, automation == PermissionState.Granted ? "FlSuccess" : "FlTextMuted");
     }
 
     private static bool IsInsideAppBundle() =>

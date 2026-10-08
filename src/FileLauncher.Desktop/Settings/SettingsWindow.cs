@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using FileLauncher.Core.Effects;
+using FileLauncher.Core.Items;
 using FileLauncher.Core.Model;
 using FileLauncher.Core.Storage;
 using FileLauncher.Core.Theming;
@@ -533,13 +534,14 @@ internal sealed class SettingsWindow : ChromeWindow
         // 使えない起動のしかた（Mac の dotnet run）では項目を出さない（2026-10-03 ユーザー判断。SPEC §1.2）
         if (canAutoStart) p.Children.Add(Row(Strings.Settings_General_AutoStart, autoStart));
 
-        // フォルダを開く先（Windows のみ。SPEC §5.2）。Mac には無い機能なので項目を出さない（§1.2）
-        if (OperatingSystem.IsWindows())
-        {
-            var folderTarget = Combo(EnumNames.Options(FolderOpenTarget.ExistingTab, FolderOpenTarget.NewWindow, FolderOpenTarget.System),
+        // フォルダを開く先（SPEC §5.2）。Mac は 2 択で、System は NewWindow として表示する（値は選び直すまで書き換えない）
+        var folderTarget = OperatingSystem.IsMacOS()
+            ? Combo(EnumNames.Options(FolderOpenTarget.ExistingTab, FolderOpenTarget.NewWindow),
+                s => FolderOpening.ForMacOS(s.General.FolderOpenTarget), (s, v) => s.General.FolderOpenTarget = v, SettingsChange.None)
+            : Combo(EnumNames.Options(FolderOpenTarget.ExistingTab, FolderOpenTarget.NewWindow, FolderOpenTarget.System),
                 s => s.General.FolderOpenTarget, (s, v) => s.General.FolderOpenTarget = v, SettingsChange.None);
-            p.Children.Add(Row(Strings.Settings_General_FolderOpenTarget, folderTarget, Strings.Settings_General_FolderOpenTarget_Note));
-        }
+        p.Children.Add(Row(Strings.Settings_General_FolderOpenTarget, folderTarget,
+            Loc.Os(Strings.Settings_General_FolderOpenTarget_Note_Win, Strings.Settings_General_FolderOpenTarget_Note_Mac)));
 
         p.Children.Add(Row(Strings.Settings_General_ConfirmMove, Toggle(
             s => s.Editing.ConfirmMoveOnDrop, (s, v) => s.Editing.ConfirmMoveOnDrop = v, SettingsChange.None),

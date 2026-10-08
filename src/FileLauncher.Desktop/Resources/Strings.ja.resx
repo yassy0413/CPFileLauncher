@@ -1126,7 +1126,7 @@
   <data name="Settings_General_FolderOpenTarget" xml:space="preserve">
     <value>フォルダを開く先</value>
   </data>
-  <data name="Settings_General_FolderOpenTarget_Note" xml:space="preserve">
+  <data name="Settings_General_FolderOpenTarget_Note_Win" xml:space="preserve">
     <value>Ctrl+クリック（Ctrl+Enter）は、この設定に関係なく新しいウィンドウで開きます。タブの追加は Explorer の非公開の仕組みを使うため、Windows の更新で動かなくなったら「Windows に任せる」を選んでください。</value>
   </data>
   <data name="Enum_FolderOpenTarget_ExistingTab" xml:space="preserve">
@@ -1186,5 +1186,23 @@
   </data>
   <data name="Settings_Effects_ScanlinesHeading" xml:space="preserve">
     <value>静止した走査線</value>
+  </data>
+  <data name="Settings_General_FolderOpenTarget_Note_Mac" xml:space="preserve">
+    <value>⌘クリック（⌘Enter）は、この設定に関係なく新しいウィンドウで開きます。タブを足すには Finder の制御（システム設定 → プライバシーとセキュリティ → オートメーション）の許可が必要で、初めて使うときに macOS が確認します。許可しない場合は新しいウィンドウで開きます。</value>
+  </data>
+  <data name="Enum_FolderOpenTarget_ExistingTab_Mac" xml:space="preserve">
+    <value>開いている Finder ウィンドウの新しいタブ</value>
+  </data>
+  <data name="Permission_AutomationStatus" xml:space="preserve">
+    <value>オートメーション（Finder の制御）: {0}</value>
+  </data>
+  <data name="Permission_NotAsked" xml:space="preserve">
+    <value>未確認（フォルダを開くときに確認されます）</value>
+  </data>
+  <data name="Permission_AutomationNote" xml:space="preserve">
+    <value>フォルダを開いている Finder ウィンドウのタブで開くには、オートメーションで Finder の制御を許可してください（任意。許可しないと新しいウィンドウで開きます）。</value>
+  </data>
+  <data name="Permission_OpenAutomationSettings" xml:space="preserve">
+    <value>オートメーションの設定を開く</value>
   </data>
 </root>

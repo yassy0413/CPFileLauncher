@@ -225,24 +225,33 @@ public sealed class SettingsUiTests : IDisposable
     }
 
     [AvaloniaFact]
-    public void フォルダを開く先はWindowsの一般タブにだけあり_選ぶと保存される()
+    public void フォルダを開く先は一般タブにあり_Macは2択_選ぶと保存される()
     {
         var w = OpenSettings();
         var combo = w.GetVisualDescendants().OfType<ComboBox>()
             .SingleOrDefault(c => c.ItemsSource is IEnumerable<string> items && items.Contains(EnumNames.Of(FolderOpenTarget.NewWindow)));
-        if (!OperatingSystem.IsWindows())
-        {
-            Assert.Null(combo);
-            w.Close();
-            return;
-        }
         Assert.NotNull(combo);
-        Assert.Equal(0, combo!.SelectedIndex); // 既定 = 既存のタブ
+        Assert.Equal(OperatingSystem.IsMacOS() ? 2 : 3, ((IEnumerable<string>)combo!.ItemsSource!).Count());
+        Assert.Equal(0, combo.SelectedIndex); // 既定 = 既存のタブ
         combo.SelectedIndex = 1;
         Dispatcher.UIThread.RunJobs();
         Assert.Equal(FolderOpenTarget.NewWindow, _hub.Current.General.FolderOpenTarget);
         _hub.Flush();
         Assert.Contains("\"folderOpenTarget\": \"newWindow\"", File.ReadAllText(_paths.SettingsFile));
+        w.Close();
+    }
+
+    [AvaloniaFact]
+    public void Macでは保存値Systemを新しいウィンドウとして表示し_値は書き換えない()
+    {
+        if (!OperatingSystem.IsMacOS()) return;
+        _hub.Update(s => s.General.FolderOpenTarget = FolderOpenTarget.System, SettingsChange.None);
+        var w = OpenSettings();
+        var combo = w.GetVisualDescendants().OfType<ComboBox>()
+            .Single(c => c.ItemsSource is IEnumerable<string> items && items.Contains(EnumNames.Of(FolderOpenTarget.NewWindow)));
+        Assert.Equal(1, combo.SelectedIndex);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(FolderOpenTarget.System, _hub.Current.General.FolderOpenTarget);
         w.Close();
     }
 

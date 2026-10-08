@@ -9,6 +9,14 @@ public static class FolderOpening
     public static FolderOpenTarget Resolve(FolderOpenTarget setting, bool newWindow)
         => newWindow ? FolderOpenTarget.NewWindow : setting;
 
+    /// <summary>macOS では System = NewWindow（どちらも open。設定画面は 2 択。SPEC §5.2「macOS: Finder のタブ」）。</summary>
+    public static FolderOpenTarget ForMacOS(FolderOpenTarget target)
+        => target == FolderOpenTarget.System ? FolderOpenTarget.NewWindow : target;
+
+    /// <summary>格納フォルダ（末尾の区切りは無視）。ルートなど親が無ければ null。</summary>
+    public static string? ParentOf(string path)
+        => Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(path)) is { Length: > 0 } parent ? parent : null;
+
     /// <summary>タブを足す候補の Explorer ウィンドウ。</summary>
     public sealed record FileManagerWindow(nint Handle, bool IsVisible, bool IsCloaked, bool IsMinimized);
 

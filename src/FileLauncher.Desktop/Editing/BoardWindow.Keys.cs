@@ -68,7 +68,7 @@ public partial class BoardWindow
             case Key.Enter when mods == InputModifiers.None && SelectedItem() is { } item:
                 ItemInvoked?.Invoke(item, false);
                 return true;
-            case Key.Enter when mods == InputModifiers.Control && OperatingSystem.IsWindows() && SelectedItem() is { } item:
+            case Key.Enter when command && SelectedItem() is { } item:
                 ItemInvoked?.Invoke(item, true); // 新しいウィンドウで開く（SPEC §6.6）
                 return true;
             case Key.Delete or Key.Back when mods == InputModifiers.None && SelectedItem() is { } item: // Mac の Delete は Back

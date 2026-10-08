@@ -11,16 +11,21 @@ namespace FileLauncher.Platform.MacOS;
 /// <summary>
 /// 起動・Finder で表示・エイリアス解決（SPEC §5.2, §10.3）。Drop-to-Open のコピー/移動は Core の FileTransfer。
 /// 起動は /usr/bin/open に任せ、終了コード ≠ 0 を失敗とする。起動方法・管理者実行は macOS では無視（SPEC §5.1）。
+/// フォルダは設定 folderTarget が ExistingTab なら Finder の手前のウィンドウの新しいタブで開く（FinderTabs。SPEC §5.2）。
 /// </summary>
 [SupportedOSPlatform("macos")]
 internal sealed class MacShellService : IShellService
 {
     private const string Open = "/usr/bin/open";
 
+    private readonly FinderTabs _finder;
+
+    public MacShellService(FinderTabs finder) => _finder = finder;
+
     /// <summary>open が失敗を返すのを待つ上限。成功時は 100ms 前後で終わる。</summary>
     private static readonly TimeSpan OpenTimeout = TimeSpan.FromSeconds(2);
 
-    public LaunchResult Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths = null, FolderOpenTarget folderTarget = FolderOpenTarget.System) // folderTarget は macOS では無視（SPEC §5.2）
+    public LaunchResult Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths = null, FolderOpenTarget folderTarget = FolderOpenTarget.System)
     {
         string target = LaunchArgs.ExpandPath(item.Target);
         bool hasDrops = droppedPaths is { Count: > 0 };
@@ -67,6 +72,13 @@ internal sealed class MacShellService : IShellService
             });
         }
 
+        if (item.Kind == ItemKind.Folder && Directory.Exists(target) && FolderOpening.ForMacOS(folderTarget) == FolderOpenTarget.ExistingTab)
+        {
+            // 続きはワーカーで。失敗は新しいウィンドウへフォールバックする（戻り値は「始められたか」）
+            _finder.OpenFolder(target, null);
+            return LaunchResult.Ok;
+        }
+
         // ファイル・フォルダ: 既定のアプリ / Finder で開く（open はファイルに引数を渡せないので Args は無視。SPEC §5.2）
         return RunOpen([target]);
     }
@@ -75,6 +87,11 @@ internal sealed class MacShellService : IShellService
     {
         path = LaunchArgs.ExpandPath(path);
         if (!File.Exists(path) && !Directory.Exists(path)) return LaunchResult.Fail(LaunchFailure.NotFound, path);
+        if (FolderOpening.ForMacOS(folderTarget) == FolderOpenTarget.ExistingTab && FolderOpening.ParentOf(path) is { } parent)
+        {
+            _finder.OpenFolder(parent, path);
+            return LaunchResult.Ok;
+        }
         return RunOpen(["-R", path]);
     }
 
@@ -107,7 +124,7 @@ internal sealed class MacShellService : IShellService
         }
     }
 
-    private static LaunchResult RunOpen(IEnumerable<string> args)
+    internal static LaunchResult RunOpen(IEnumerable<string> args)
     {
         var psi = new ProcessStartInfo(Open) { RedirectStandardError = true, UseShellExecute = false };
         foreach (var a in args) psi.ArgumentList.Add(a);

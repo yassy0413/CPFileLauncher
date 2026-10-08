@@ -87,6 +87,19 @@ public sealed class ChromeWindowTests
     }
 
     [AvaloniaFact]
+    public void 権限ガイドにオートメーションの状態行と設定を開くボタンがある()
+    {
+        var guide = new PermissionGuideWindow(new FakePlatform(), () => { }, () => { });
+        guide.Show();
+        Dispatcher.UIThread.RunJobs();
+        // FakePlatform は既定実装（Granted）
+        Assert.Contains(guide.GetVisualDescendants().OfType<TextBlock>(),
+            t => t.Text == Strings.FormatPermission_AutomationStatus(Strings.Permission_Granted));
+        Assert.Contains(guide.GetVisualDescendants().OfType<Button>(), b => (b.Content as string) == Strings.Permission_OpenAutomationSettings);
+        guide.Close();
+    }
+
+    [AvaloniaFact]
     public void タグのコードを付けるとタイトル行の左に縦棒とコードが出て_無ければ出ない()
     {
         var w = new ChromeWindow { BodyWidth = 200, Body = new Border() };

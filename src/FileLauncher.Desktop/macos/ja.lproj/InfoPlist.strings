@@ -1,0 +1,2 @@
+/* 自動化（Finder の制御）の許可ダイアログの本文（SPEC §4.3） */
+"NSAppleEventsUsageDescription" = "開いている Finder ウィンドウのタブにフォルダを開くために使います。";

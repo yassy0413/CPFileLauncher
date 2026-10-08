@@ -18,6 +18,8 @@ internal static class Accessibility
     [DllImport(Lib)] public static extern int AXUIElementCopyAttributeValue(nint element, nint attribute, out nint value);
     [DllImport(Lib)] public static extern int AXUIElementGetPid(nint element, out int pid);
     [DllImport(Lib)] public static extern int AXUIElementSetMessagingTimeout(nint element, float timeoutInSeconds);
+    [DllImport(Lib)] public static extern nint AXUIElementCreateApplication(int pid);
+    [DllImport(Lib)] public static extern int AXUIElementPerformAction(nint element, nint action);
 
     /// <summary>kIOHIDRequestTypeListenEvent = 1。戻り値 kIOHIDAccessTypeGranted=0 / Denied=1 / Unknown=2。</summary>
     [DllImport(IOKit)] public static extern int IOHIDCheckAccess(int requestType);

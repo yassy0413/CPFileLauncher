@@ -75,11 +75,11 @@ public interface IIconProvider
 public interface IShellService
 {
     /// <param name="droppedPaths">Drop-to-Open でドロップされたパス。%1 / $1 に展開する。</param>
-    /// <param name="folderTarget">フォルダ種別の開き方（SPEC §5.2「フォルダを開く先」）。フォルダ以外と macOS では無視。
-    /// <see cref="FolderOpenTarget.ExistingTab"/> の処理は非同期に続き、失敗は新しいウィンドウへフォールバックする（戻り値は「始められたか」）。</param>
+    /// <param name="folderTarget">フォルダ種別の開き方（SPEC §5.2「フォルダを開く先」）。フォルダ以外では無視。
+    /// macOS は ExistingTab を Finder のタブ、NewWindow / System を open で開く。<see cref="FolderOpenTarget.ExistingTab"/> の処理は非同期に続き、失敗は新しいウィンドウへフォールバックする（戻り値は「始められたか」）。</param>
     LaunchResult Launch(LauncherItem item, IReadOnlyList<string>? droppedPaths = null, FolderOpenTarget folderTarget = FolderOpenTarget.System);
 
-    /// <summary>格納フォルダを開き、対象を選択状態にする。folderTarget は <see cref="Launch"/> と同じ（macOS では無視）。</summary>
+    /// <summary>格納フォルダを開き、対象を選択状態にする。folderTarget は <see cref="Launch"/> と同じ。</summary>
     LaunchResult RevealInFileManager(string path, FolderOpenTarget folderTarget = FolderOpenTarget.System);
 
     /// <summary>
@@ -150,6 +150,12 @@ public interface IPermissionService
     void RequestAccessibility();
 
     void OpenSystemSettings();
+
+    /// <summary>macOS の「オートメーション」= Finder の制御（SPEC §4.3「自動化」。フォルダを Finder のタブで開くのに使う）。他 OS は常に Granted。</summary>
+    PermissionState Automation => PermissionState.Granted;
+
+    /// <summary>システム設定の「プライバシーとセキュリティ → オートメーション」を開く。他 OS は何もしない。</summary>
+    void OpenAutomationSettings() { }
 }
 
 /// <summary>カーソル下がデスクトップ（壁紙）か（SPEC §4.2「デスクトップ上のみ」）。</summary>
