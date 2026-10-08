@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
@@ -6,6 +6,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using FileLauncher.App;
 using FileLauncher.Core.Theming;
 
@@ -128,6 +129,63 @@ public sealed class NeonGlowTests
         int top = (int)Math.Floor(edge), mid = (int)(edge + W / 2.0);
         foreach (var (x, y) in new[] { (mid, top - 2), (mid, top - 7), (mid, top - 13), (top, top), (mid, top + 3) })
             AssertNear(g(x, y), baked(x, y));
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void 作り置きの発光はベクタで描いたものと同じに見える()
+    {
+        var (vector, edge, _, w1) = Draw();
+        var (baked, edge2, _, w2) = Draw(c => c.BakeGlow = true);
+        Dispatcher.UIThread.RunJobs();
+        var chrome = w2.GetVisualDescendants().OfType<FrameChrome>().Single();
+        Assert.NotNull(chrome.OuterGlow.BakedImage);
+        Assert.NotNull(chrome.InnerGlow.BakedImage);
+        var g = Read(w2.CaptureRenderedFrame()!);
+        int top = (int)Math.Floor(edge), mid = (int)(edge + W / 2.0);
+        foreach (var (x, y) in new[] { (mid, top - 1), (mid, top - 6), (mid, top - 15), (mid, top - 30), (top, top), (mid, top + 3), (mid, top + 10) })
+            Assert.InRange(g(x, y), vector(x, y) - 1, vector(x, y) + 1);
+        w1.Close();
+        w2.Close();
+    }
+
+    [AvaloniaFact]
+    public void 発光の作り置きは大きさが変わったときだけ作り直し_表示と非表示では作り直さない()
+    {
+        var (_, _, _, window) = Draw(c => c.BakeGlow = true);
+        Dispatcher.UIThread.RunJobs();
+        var chrome = window.GetVisualDescendants().OfType<FrameChrome>().Single();
+        int before = chrome.OuterGlow.BakeCount;
+        Assert.True(before >= 1);
+        window.Hide();
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(before, chrome.OuterGlow.BakeCount);
+        chrome.Width = W + 40;
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(before + 1, chrome.OuterGlow.BakeCount);
+        Assert.True(chrome.OuterGlow.BakedImage!.Size.Width >= chrome.OuterGlow.Bounds.Width + 2 * NeonGlowPlan.Extents(chrome.OuterGlow.Shadows).Outer);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void 明滅は枠の周りの4本の帯に分けて描き_帯は重ならず画像の外周を覆う()
+    {
+        PulseLayer? pulse = null;
+        var (_, _, _, window) = Draw(c => c.Overlays.Children.Add(pulse = new PulseLayer { Chamfer = Chamfer }));
+        pulse!.Refresh();
+        Dispatcher.UIThread.RunJobs();
+        var strips = pulse.Strips;
+        Assert.Equal(4, strips.Count);
+        Assert.All(strips, s => Assert.True(s.IsVisible));
+        for (int i = 0; i < 4; i++)
+            for (int j = i + 1; j < 4; j++)
+                Assert.False(strips[i].Dest.Intersects(strips[j].Dest), $"{i} と {j} が重なる");
+        var size = pulse.Image!.Size;
+        double area = strips.Sum(s => s.Dest.Width * s.Dest.Height);
+        double innerW = size.Width - 2 * strips[2].Dest.Width, innerH = size.Height - 2 * strips[0].Dest.Height;
+        Assert.Equal(size.Width * size.Height - innerW * innerH, area, 3); // 外周を隙間なく覆う
+        Assert.All(strips, s => Assert.Equal(s.Dest.Size, s.SourceRect.Size)); // 等倍
         window.Close();
     }
 }

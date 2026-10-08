@@ -113,7 +113,7 @@
   </Window.Styles>
 
   <!-- 枠（Themes/FrameChrome。余白 = 発光が窓の縁で切れないための透明な余白、角ブラケット、最上段の層）。SPEC §3.8 -->
-  <local:FrameChrome x:Name="Chrome" MarginKey="FlGlowMarginThickness" BackgroundKey="FlBoardBackground" ShadowKey="FlBoardGlow">
+  <local:FrameChrome x:Name="Chrome" MarginKey="FlGlowMarginThickness" BackgroundKey="FlBoardBackground" ShadowKey="FlBoardGlow" BakeGlow="True">
     <Grid>
       <!-- 背景画像（SPEC §3.7）と、その上に重ねる面の色の覆い。画像なしのときは両方とも何も描かない -->
       <local:BackdropLayer x:Name="Backdrop" />

@@ -246,6 +246,22 @@ Core（`FileLauncher.Tests`）は `AmbientEffectsCoreTests.cs`、Desktop は `Am
 - [ ] 自動で掛かるもの: `StringsTests`（`Settings_Effects_Scanlines` / `_Note` / `Settings_Effects_ScanlineOpacity` / `Settings_Effects_ScanlinePitch` / `Settings_Effects_ScanlinesHeading` が両 resx にあり、旧 `Settings_Appearance_Hud_Scanline*` が残っていない）、`NoHardcodedJapaneseTests`、既存のはみ出しテスト（全タブ・全 `Expander` を開いて右端を見る。演出タブの末尾に 3 行増えても自動で対象）。
 - [ ] 上の「走査線」節（2026-10-07 午前の設計）の `SettingsUiTests` の項目で「表示タブに…」とある箇所と `StringsTests` の旧キー名は、この節の内容で読み替える（表示タブ → 演出タブの末尾、`Settings_Appearance_Hud_Scanline*` → `Settings_Effects_Scanline*`）。
 
+### 常時の演出の負荷削減（A + B。SPEC §3.6「作り置き」/ §10.5 / §10.7 の 2026-10-08 の項、EFFECTS.md `glowPulse` の「作り方」。2026-10-08 設計、未実装。`issue/AMBIENT_RENDER_OPT.md`。Desktop は `NeonGlowTests.cs`（描画ありフィクスチャ）と `AmbientEffectsTests.cs`）
+
+画素テストは既存の「八角形に沿う枠の発光」節と同じ流儀（黒地の窓、主色シアンの G、許容 ±4 / ±20%）。`Draw(setup, bake)` ヘルパーに焼き込みの有無を足す。`UseRegionDirtyRectClipping` はアプリの設定なのでテストしない。
+
+- [ ] 既存の画素テスト 3 件（`発光は辺から外へ単調に弱まり_窓の余白の内側で消えきる` / `角で四角く光らず_斜辺の外も辺と同じ断面で光る` / `内側の光は枠線のすぐ内側に染みて内へ弱まる`）を `[AvaloniaTheory]` + `[InlineData(false)]` / `[InlineData(true)]`（`FrameChrome.BakeGlow`）にして**ベクタと焼き込みの両方で通す**。
+- [ ] `焼いた発光はベクタ描画と同じ画素`: bake なし / あり を撮り、上辺の法線 10 点・左上の斜辺の法線 3 点・内側 3 点で一致。
+- [ ] `焼き込みは大きさ_面取り_影_拡大率が変わったときだけ作り直す`: `OuterGlow.BakeCount` / `BakedImage` の参照が `InvalidateVisual` + `RunJobs` では変わらず、`Width` 変更・`Shadows` を別の `BoxShadows` に・`Chamfer = 12` で変わる（それぞれ 1 回ずつ増える）。
+- [ ] `焼いた画像の余白は発光が消えきる距離以上`: `OuterGlow.BakePad >= NeonProfile.Extent(外側 3 層, AmbientAnimator.MaxPulseGain)`、`BakedImage.PixelSize == ceil((W + 2 pad) × scale)`、`InnerGlow.BakePad == 1`。
+- [ ] `面取りなしと窓から外したときは焼き込みを持たない`: `Chamfer = 0` で層が非表示、`window.Close()` 後に `BakedImage == null`。
+- [ ] `盤面の枠は焼き_設定画面の枠は焼かない`: `BoardWindow` を `Show` → `Chrome.BakeGlow == true`・`Chrome.OuterGlow.BakedImage != null`。`ChromeWindow` → `Chrome.BakeGlow == false`・`BakedImage == null`。
+- [ ] `明滅の帯は重ならず隙間なく枠を囲み_中央は描かない`: `PulseLayer.Refresh` 後、`Strips` が 4 本、`Bounds` の交差が空、上下の幅 = 画像の論理幅、左右の高さ = 画像の論理高さ − 2 × `StripDepth`、`StripDepth × scale` が整数、`StripDepth − margin >= NeonGlowPlan.Extents(FlBoardGlow).Inner`。`PulseLayer` 自身の `Render` は何も描かない（`Level = 1` で `PulseLayer` だけを `Overlays` に置き、帯を全部 `IsVisible = false` にすると窓が黒いまま）。
+- [ ] `明滅の帯の描画は焼いた画像と同じで継ぎ目に線が出ない`: 静的な発光（`OuterGlow` / `InnerGlow`）を隠し、`PulseLayer`（`Level = 1`）だけを描いて撮る。上辺の法線上 5 点・**左右の帯と上の帯の継ぎ目（`y = top − margin + StripDepth` の ±1 px、x は左辺の 2 px 外）**・角 `(top, top)` で窓の画素 == `BakedImage` の画素。中央 `(W/2, H/2)` は 0。
+- [ ] `明滅のLevelが0なら帯は何も描かない`: `Level = 0` で上辺の外側の画素が 0。
+- [ ] 既存 `明滅の画像は静的な発光と同じ八角形の形`（`BakedImage` を見る）と `AmbientEffectsTests` の `PulseLayer.Level` のテストはそのまま通る。`GlitchTests`（静止画に焼いた発光を `DrawImage` する経路）と `BackgroundTests` が描画ありフィクスチャで例外を出さない。
+- [ ] 自動で掛かるもの: `NoHardcodedJapaneseTests`（ログ「枠の発光の作り置き」は `AppLog` なので対象外）。`grep "MEASURE-TEMP\|CPFL_"` が 0 件であることは実装者が手で確認（テストにはしない）。
+
 ## 3. 実装時の注意
 
 - `GetVisualDescendants()` でコントロールを探すときはヘッダー文字列に依存する。M5 ステップ 5（リソース化、2026-10-04 実施済み）で文字列は `Strings` に移り、テストも日本語リテラルではなく `Strings.XXX`（`Strings.Settings_Tab_Triggers`、`Strings.Common_RestartNow` 等）を参照している。テストのカルチャは `en` 固定。**新しいテストでも UI の文言を直書きしない**（`NoHardcodedJapaneseTests` は Desktop 本体だけを見るので、テスト側は自分で守る）。

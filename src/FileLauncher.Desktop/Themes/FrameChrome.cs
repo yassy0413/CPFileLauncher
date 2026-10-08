@@ -99,6 +99,13 @@ internal sealed class FrameChrome : Grid
     }
 
     public string MarginKey { get => _marginKey; set { _marginKey = value; Bind(); } }
+
+    /// <summary>枠の発光を作り置きの画像で描くか（盤面だけ true。SPEC §3.6「発光の作り方」の「作り置き」）。</summary>
+    public bool BakeGlow
+    {
+        get => _outerGlow.Bake;
+        set => _outerGlow.Bake = _innerGlow.Bake = value;
+    }
     public string BackgroundKey { get => _backgroundKey; set { _backgroundKey = value; Bind(); } }
     public string ShadowKey { get => _shadowKey; set { _shadowKey = value; Bind(); } }
 

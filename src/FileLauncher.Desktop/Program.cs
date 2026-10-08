@@ -43,5 +43,8 @@ internal static class Program
             // GPU のリソースキャッシュの上限（SkiaOptions.MaxGpuResourceSizeBytes）は macOS の GPU 描画で CPU・メモリとも悪化したので指定しない
             .With(new Win32PlatformOptions { RenderingMode = [Win32RenderingMode.Software] })
             .With(new AvaloniaNativePlatformOptions { RenderingMode = [AvaloniaNativeRenderingMode.Software] })
+            // 変わった部分だけを塗り直す（複数の矩形で切り抜く）。明滅を枠の周りの帯に分けたのと組み合わせて、
+            // 既定の構成で 26.3 → 22.8%（2026-10-08、Mac・ソフトウェア描画）。GPU 描画では逆効果だった（2026-10-04）。Windows は SPEC §13.3 C28
+            .With(new Avalonia.Rendering.Composition.CompositionOptions { UseRegionDirtyRectClipping = true })
             .LogToTrace();
 }

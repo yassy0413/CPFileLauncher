@@ -11,9 +11,12 @@ namespace FileLauncher.App;
 /// その画像を Opacity 付きで重ねる。BoxShadow を持つ要素の Opacity を直接揺らすと、描き直しのたびにぼかしを計算し直して
 /// CPU を 10〜30% 使った（2026-10-04 計測）。画像なら描き直しは貼るだけ。
 /// 面取りした枠では静的な発光と同じ NeonGlowPlan（八角形に沿う）を焼く。大きさ・配色・面取りが変わったら Refresh で焼き直す。
+/// 画像は枠の周りの上下左右 4 本の帯（<see cref="PulseStrip"/>、別の Visual）に分けて描く。明滅で汚れる範囲が枠の周りだけになり、
+/// 部分塗り直し（UseRegionDirtyRectClipping）と組み合わせて透明な中央を塗り直さない（2026-10-08 計測。spec/EFFECTS.md）。
 /// </summary>
-internal sealed class PulseLayer : Control
+internal sealed class PulseLayer : Canvas
 {
+    private readonly PulseStrip[] _strips;
     private RenderTargetBitmap? _bitmap;
     private Size _bakedSize;
     private double _bakedScale;
@@ -31,7 +34,14 @@ internal sealed class PulseLayer : Control
     {
         IsHitTestVisible = false;
         ClipToBounds = false;
+        _strips = [new(this), new(this), new(this), new(this)];
+        foreach (var strip in _strips) Children.Add(strip);
     }
+
+    /// <summary>帯 4 本（テスト用）。</summary>
+    internal IReadOnlyList<PulseStrip> Strips => _strips;
+
+    internal Bitmap? Image => _bitmap;
 
     private double _level;
 
@@ -46,7 +56,7 @@ internal sealed class PulseLayer : Control
         {
             if (value == _level) return;
             _level = value;
-            InvalidateVisual();
+            foreach (var strip in _strips) strip.InvalidateVisual(); // 自分（盤面全体の大きさ）は汚さない
         }
     }
 
@@ -89,7 +99,32 @@ internal sealed class PulseLayer : Control
         _bakedScale = scale;
         _bakedShadow = shadow;
         _bakedChamfer = Chamfer;
-        InvalidateVisual();
+        LayoutStrips(shadow is BoxShadows sh ? sh : default, scale, variant);
+    }
+
+    /// <summary>
+    /// 帯の位置と、画像のどこを描くかを決める。帯の厚み = 余白 + 枠の太さ + 内側の光の深さ（デバイス px で整数に丸める）。
+    /// 上下は全幅、左右はその間（重なりも隙間も無い）。画像の論理サイズを正とする。
+    /// </summary>
+    private void LayoutStrips(BoxShadows shadow, double scale, ThemeVariant variant)
+    {
+        if (_bitmap is null) return;
+        this.TryFindResource("FlBoardBorderThickness", variant, out var thicknessValue);
+        double t = thicknessValue is Thickness th ? th.Left : 1;
+        double inner = NeonGlowPlan.Extents(shadow).Inner;
+        double b = Math.Ceiling((_margin + t + Math.Ceiling(inner) + 1) * scale) / scale;
+        double W = _bitmap.Size.Width, H = _bitmap.Size.Height, m = _margin;
+        if (H <= 2 * b || W <= 2 * b)
+        {
+            // 小さすぎる盤面: 1 本で全体
+            _strips[0].Place(new Rect(-m, -m, W, H), new Rect(0, 0, W, H));
+            for (int i = 1; i < 4; i++) _strips[i].Place(default, default);
+            return;
+        }
+        _strips[0].Place(new Rect(-m, -m, W, b), new Rect(0, 0, W, b));                         // 上
+        _strips[1].Place(new Rect(-m, -m + H - b, W, b), new Rect(0, H - b, W, b));             // 下
+        _strips[2].Place(new Rect(-m, -m + b, b, H - 2 * b), new Rect(0, b, b, H - 2 * b));     // 左
+        _strips[3].Place(new Rect(-m + W - b, -m + b, b, H - 2 * b), new Rect(W - b, b, b, H - 2 * b)); // 右
     }
 
     /// <summary>面取りなし（角丸矩形。テスト用の Chamfer = 0）: BoxShadow を持つ Border をそのまま焼く。</summary>
@@ -109,18 +144,49 @@ internal sealed class PulseLayer : Control
         bitmap.Render(host);
     }
 
-    public override void Render(DrawingContext context)
-    {
-        if (_bitmap is null || _level <= 0) return;
-        using var _ = context.PushOpacity(_level);
-        var dest = new Rect(-_margin, -_margin, _bakedSize.Width + _margin * 2, _bakedSize.Height + _margin * 2);
-        context.DrawImage(_bitmap, new Rect(_bitmap.Size), dest);
-    }
-
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
         _bitmap?.Dispose();
         _bitmap = null;
+    }
+}
+
+/// <summary>明滅の画像のうち、枠の 1 辺の帯だけを描く（<see cref="PulseLayer"/> の子）。</summary>
+internal sealed class PulseStrip : Control
+{
+    private readonly PulseLayer _source;
+    private Rect _sourceRect;
+
+    public PulseStrip(PulseLayer source)
+    {
+        _source = source;
+        IsHitTestVisible = false;
+        IsVisible = false;
+    }
+
+    /// <summary>描く範囲（親の座標）。</summary>
+    internal Rect Dest { get; private set; }
+
+    /// <summary>画像のどこを描くか（画像の論理座標）。</summary>
+    internal Rect SourceRect => _sourceRect;
+
+    internal void Place(Rect dest, Rect source)
+    {
+        Dest = dest;
+        _sourceRect = source;
+        IsVisible = dest.Width > 0 && dest.Height > 0;
+        Canvas.SetLeft(this, dest.X);
+        Canvas.SetTop(this, dest.Y);
+        Width = Math.Max(0, dest.Width);
+        Height = Math.Max(0, dest.Height);
+        InvalidateVisual();
+    }
+
+    public override void Render(DrawingContext context)
+    {
+        if (_source.Image is not { } image || _source.Level <= 0) return;
+        using var _ = context.PushOpacity(_source.Level);
+        context.DrawImage(image, _sourceRect, new Rect(Bounds.Size));
     }
 }
