@@ -11,7 +11,7 @@ public sealed class AboutWindowTests
     public void バージョンとデータフォルダとフォントのライセンスを出し_二度開いても1枚だけ()
     {
         var platform = new FakePlatform();
-        var w = AboutWindow.Show(platform.Shell, "/data/FileLauncher", isPortable: false);
+        var w = AboutWindow.Show(platform.Shell, "/data/FileLauncher");
         try
         {
             var texts = w.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
@@ -20,7 +20,7 @@ public sealed class AboutWindowTests
             var license = Assert.IsType<ScrollViewer>(w.GetVisualDescendants().OfType<Expander>().Single().Content);
             Assert.Contains("SIL OPEN FONT LICENSE", ((SelectableTextBlock)license.Content!).Text, StringComparison.OrdinalIgnoreCase);
 
-            Assert.Same(w, AboutWindow.Show(platform.Shell, "/data/FileLauncher", isPortable: false));
+            Assert.Same(w, AboutWindow.Show(platform.Shell, "/data/FileLauncher"));
         }
         finally { w.Close(); }
     }

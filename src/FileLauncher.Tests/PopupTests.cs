@@ -72,7 +72,60 @@ public class PopupPlacementTests
     {
         var p = PopupPlacement.Compute(new PopupPlacementSettings(), new(1000, 500), 400, 300, AreaAt, Primary);
 
-        Assert.Equal(new ScreenPoint(800, 500 - PopupPlacement.CursorOffsetFromTop), p);
+        Assert.Equal(new ScreenPoint(800, 500 - PopupPlacement.CursorInset), p);
+    }
+
+    [Theory]
+    [InlineData(CursorAnchor.TopLeft, 980, 480)]
+    [InlineData(CursorAnchor.Top, 800, 480)]
+    [InlineData(CursorAnchor.TopRight, 620, 480)]
+    [InlineData(CursorAnchor.Left, 980, 350)]
+    [InlineData(CursorAnchor.Center, 800, 350)]
+    [InlineData(CursorAnchor.Right, 620, 350)]
+    [InlineData(CursorAnchor.BottomLeft, 980, 220)]
+    [InlineData(CursorAnchor.Bottom, 800, 220)]
+    [InlineData(CursorAnchor.BottomRight, 620, 220)]
+    public void カーソル位置では選んだアンカーの点にカーソルが来る_辺と角は外形から20内側(CursorAnchor anchor, int x, int y)
+    {
+        Assert.Equal(new ScreenPoint(x, y), PopupPlacement.Compute(new PopupPlacementSettings(), new(1000, 500), 400, 300, AreaAt, Primary, anchor));
+    }
+
+    [Fact]
+    public void 寄せ量は拡大率を掛けて四捨五入し_座標未保存の退避でもアンカーを使う()
+    {
+        Assert.Equal(20, PopupPlacement.InsetFor(1));
+        Assert.Equal(30, PopupPlacement.InsetFor(1.5));
+        Assert.Equal(25, PopupPlacement.InsetFor(1.25));
+        Assert.Equal(new ScreenPoint(970, 470), PopupPlacement.Compute(new PopupPlacementSettings(), new(1000, 500), 400, 300, AreaAt, Primary, CursorAnchor.TopLeft, scaling: 1.5));
+        var unsaved = new PopupPlacementSettings { Position = PopupPosition.Fixed };
+        Assert.Equal(new ScreenPoint(800, 350), PopupPlacement.Compute(unsaved, new(1000, 500), 400, 300, AreaAt, Primary, CursorAnchor.Center));
+    }
+
+    [Theory]
+    [InlineData(CursorAnchor.TopLeft, 2550, 1380)]
+    [InlineData(CursorAnchor.BottomRight, 5, 5)]
+    [InlineData(CursorAnchor.Center, 2559, 0)]
+    public void どのアンカーでも作業領域からはみ出さない(CursorAnchor anchor, int cx, int cy)
+    {
+        var p = PopupPlacement.Compute(new PopupPlacementSettings(), new(cx, cy), 400, 300, AreaAt, Primary, anchor);
+        var area = AreaAt(new(cx, cy));
+        Assert.InRange(p.X, area.X, area.Right - 400);
+        Assert.InRange(p.Y, area.Y, area.Bottom - 300);
+    }
+
+    [Fact]
+    public void アンカーはキーボードとマウス共通の1つで_JSONでcamelCaseになり_キーが無ければ上中央()
+    {
+        var s = new AppSettings();
+        s.Popup.CursorAnchor = CursorAnchor.BottomRight;
+        string json = System.Text.Json.JsonSerializer.Serialize(s, FileLauncher.Core.Storage.JsonDefaults.Options);
+        Assert.Contains("\"cursorAnchor\": \"bottomRight\"", json);
+        var empty = System.Text.Json.JsonSerializer.Deserialize<AppSettings>("{}", FileLauncher.Core.Storage.JsonDefaults.Options)!;
+        Assert.Equal(CursorAnchor.Top, empty.Popup.CursorAnchor);
+        // 組ごとに持っていた頃の旧キー（未リリース）は読み飛ばす
+        var old = System.Text.Json.JsonSerializer.Deserialize<AppSettings>(
+            "{\"popup\":{\"keyboard\":{\"cursorAnchor\":\"bottomRight\"},\"mouse\":{\"cursorAnchor\":\"center\"}}}", FileLauncher.Core.Storage.JsonDefaults.Options)!;
+        Assert.Equal(CursorAnchor.Top, old.Popup.CursorAnchor);
     }
 
     [Fact]

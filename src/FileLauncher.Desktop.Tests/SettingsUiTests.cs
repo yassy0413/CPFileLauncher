@@ -4,6 +4,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -238,6 +239,115 @@ public sealed class SettingsUiTests : IDisposable
         Assert.Equal(FolderOpenTarget.NewWindow, _hub.Current.General.FolderOpenTarget);
         _hub.Flush();
         Assert.Contains("\"folderOpenTarget\": \"newWindow\"", File.ReadAllText(_paths.SettingsFile));
+        w.Close();
+    }
+
+    private ToggleSwitch PinnedToggle(SettingsWindow w) =>
+        w.GetVisualDescendants().OfType<ToggleSwitch>()
+            .First(t => t.GetVisualAncestors().OfType<Grid>().Any(g => g.Children.OfType<TextBlock>().Any(tb => tb.Text == Strings.Settings_Pinned_Enabled)));
+
+    [AvaloniaFact]
+    public void 常駐タブの常駐モードで表示モードが切り替わり_オフの間は他の項目が無効()
+    {
+        var w = OpenSettings();
+        SelectTab(w, Strings.Settings_Tab_Pinned);
+        var toggle = PinnedToggle(w);
+        var zOrder = w.GetVisualDescendants().OfType<ComboBox>()
+            .Single(c => c.ItemsSource is IEnumerable<string> items && items.Contains(EnumNames.Of(ZOrder.Topmost)));
+        Assert.False(toggle.IsChecked); // 既定はポップアップ
+        Assert.False(zOrder.IsEffectivelyEnabled);
+
+        toggle.IsChecked = true;
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(DisplayMode.Resident, _hub.Current.General.DisplayMode);
+        Assert.True(zOrder.IsEffectivelyEnabled);
+
+        // トレイ / メニューバーのメニューで切り替えたときも追従する
+        _hub.Update(s => s.General.DisplayMode = DisplayMode.Popup, SettingsChange.DisplayMode);
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(toggle.IsChecked);
+        Assert.False(zOrder.IsEffectivelyEnabled);
+        Assert.Equal(DisplayMode.Popup, _hub.Current.General.DisplayMode);
+        w.Close();
+    }
+
+    [AvaloniaFact]
+    public void グリッチの強さは詳細設定のboardHideの直後にあり_保存され_表示も非表示もグリッチでなければ無効()
+    {
+        var w = OpenSettings();
+        SelectTab(w, Strings.Settings_Tab_Effects);
+        var rows = w.GetVisualDescendants().OfType<Expander>().Single(e => (string?)e.Header == Strings.Settings_Effects_Advanced).Content as StackPanel;
+        Assert.NotNull(rows);
+        bool Has(Control row, string text) => row.GetLogicalDescendants().OfType<TextBlock>().Any(t => t.Text?.Contains(text) == true); // 詳細設定の行名は「名前（ID）」
+        int hide = rows!.Children.ToList().FindIndex(r => Has(r, Strings.Effect_boardHide));
+        Assert.True(hide >= 0);
+        var row = rows.Children[hide + 1];
+        Assert.True(Has(row, Strings.Settings_Effects_GlitchIntensity));
+        var slider = row.GetLogicalDescendants().OfType<Slider>().Single();
+        Assert.Equal((0, 200, 10, 100), (slider.Minimum, slider.Maximum, slider.TickFrequency, slider.Value));
+
+        slider.Value = 150;
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(150, _hub.Current.Appearance.GlitchIntensity);
+
+        // 種類を両方 fade にすると無効、片方を glitch に戻すと有効（種類の ComboBox だけで追従する）
+        ComboBox KindOf(string effect) => rows.Children.First(r => Has(r, effect)).GetLogicalDescendants().OfType<ComboBox>().First();
+        string fade = EnumNames.Of(EffectKind.Fade);
+        string glitch = EnumNames.Of(EffectKind.Glitch);
+        void Select(ComboBox c, string name) => c.SelectedIndex = ((IEnumerable<string>)c.ItemsSource!).ToList().IndexOf(name);
+        Select(KindOf(Strings.Effect_boardShow), fade);
+        Assert.True(slider.IsEffectivelyEnabled); // boardHide はまだ glitch
+        Select(KindOf(Strings.Effect_boardHide), fade);
+        Assert.False(slider.IsEffectivelyEnabled);
+        Select(KindOf(Strings.Effect_boardShow), glitch);
+        Assert.True(slider.IsEffectivelyEnabled);
+
+        // すべて既定に戻すで 100
+        var resetAll = w.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == Strings.Settings_Effects_ResetAll);
+        resetAll.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(100, _hub.Current.Appearance.GlitchIntensity);
+        Assert.Equal(100, slider.Value);
+        w.Close();
+    }
+
+    [AvaloniaFact]
+    public void カーソルの位置の3x3はキーボードとマウス共通の1つで保存され_どちらもカーソル位置でなければ無効()
+    {
+        var w = OpenSettings();
+        SelectTab(w, Strings.Settings_Tab_Popup);
+        var picker = w.GetVisualDescendants().OfType<AnchorPicker>().Single();
+        Assert.Equal(CursorAnchor.Top, picker.Value);
+        Assert.True(picker.Cells[(int)CursorAnchor.Top].IsChecked);
+
+        picker.Cells[(int)CursorAnchor.BottomRight].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(CursorAnchor.BottomRight, _hub.Current.Popup.CursorAnchor);
+        Assert.Equal(1, picker.Cells.Count(c => c.IsChecked == true));
+
+        // 選択中をもう一度押しても外れない
+        picker.Cells[(int)CursorAnchor.BottomRight].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.True(picker.Cells[(int)CursorAnchor.BottomRight].IsChecked);
+
+        // 矢印キーで隣へ（端で止まる）
+        void Press(CursorAnchor from, Key key) =>
+            picker.Cells[(int)from].RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key, Source = picker.Cells[(int)from] });
+        Press(CursorAnchor.BottomRight, Key.Up);
+        Assert.Equal(CursorAnchor.Right, _hub.Current.Popup.CursorAnchor);
+        Press(CursorAnchor.Right, Key.Right);
+        Assert.Equal(CursorAnchor.Right, _hub.Current.Popup.CursorAnchor);
+
+        // キーボード・マウスの表示位置がどちらもカーソル位置以外なら無効、片方でもカーソル位置なら有効
+        var combos = w.GetVisualDescendants().OfType<ComboBox>()
+            .Where(c => c.ItemsSource is IEnumerable<string> items && items.Contains(EnumNames.Of(PopupPosition.ScreenCenter))).ToList();
+        Assert.Equal(2, combos.Count);
+        void Choose(ComboBox c, PopupPosition v) => c.SelectedIndex = ((IEnumerable<string>)c.ItemsSource!).ToList().IndexOf(EnumNames.Of(v));
+        Choose(combos[0], PopupPosition.ScreenCenter);
+        Assert.True(picker.IsEffectivelyEnabled); // マウスはまだカーソル位置
+        Choose(combos[1], PopupPosition.Fixed);
+        Assert.False(picker.IsEffectivelyEnabled);
+        Choose(combos[1], PopupPosition.Cursor);
+        Assert.True(picker.IsEffectivelyEnabled);
         w.Close();
     }
 

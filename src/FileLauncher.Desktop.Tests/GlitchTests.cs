@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using FileLauncher.App;
@@ -11,9 +12,9 @@ namespace FileLauncher.Desktop.Tests;
 
 public sealed class GlitchTests
 {
-    private static (BoardWindow Board, Canvas Layer, Control Frame) ShowBoard(EffectSpec showEffect, EffectSpec? hideEffect = null)
+    private static (BoardWindow Board, Canvas Layer, Control Frame) ShowBoard(EffectSpec showEffect, EffectSpec? hideEffect = null, int intensity = 100)
     {
-        var appearance = new AppearanceSettings();
+        var appearance = new AppearanceSettings { GlitchIntensity = intensity };
         appearance.Effects[EffectCatalog.BoardShow] = showEffect;
         if (hideEffect is not null) appearance.Effects[EffectCatalog.BoardHide] = hideEffect;
         var board = new BoardWindow();
@@ -52,6 +53,39 @@ public sealed class GlitchTests
         Assert.True(task.IsCompletedSuccessfully);
         Assert.False(layer.IsVisible);
         Assert.Empty(layer.Children);
+        Assert.Equal(1, frame.Opacity);
+        board.AllowClose = true;
+        board.Close();
+    }
+
+    [AvaloniaFact]
+    public void 強さ200パーセントでは影のずれが10pxで濃さが1_帯のずれが12から32px()
+    {
+        var (board, layer, _) = ShowBoard(new EffectSpec { Kind = EffectKind.Glitch, DurationMs = 60, Easing = EasingKind.Linear }, intensity: 200);
+        var task = board.PlayShowAsync(CancellationToken.None);
+        var shadows = layer.Children.OfType<Border>().ToList();
+        Assert.Equal(2, shadows.Count);
+        Assert.Equal([-10.0, 10.0], shadows.Select(s => ((TranslateTransform)s.RenderTransform!).X).Order());
+        Assert.All(shadows, s => Assert.Equal(1, s.Opacity));
+        var bands = layer.Children.OfType<Image>().Skip(1).ToList(); // 先頭は本体
+        Assert.Equal(3, bands.Count);
+        Assert.All(bands, b => Assert.InRange(Math.Abs(((TranslateTransform)b.RenderTransform!).X), 12, 32));
+        Pump(task);
+        board.AllowClose = true;
+        board.Close();
+    }
+
+    [AvaloniaFact]
+    public void 強さ0パーセントでは影も帯も作らず本体だけにフェードし_終わり方は同じ()
+    {
+        var (board, layer, frame) = ShowBoard(new EffectSpec { Kind = EffectKind.Glitch, DurationMs = 60, Easing = EasingKind.Linear }, intensity: 0);
+        var task = board.PlayShowAsync(CancellationToken.None);
+        Assert.True(board.GlitchLook.IsStill);
+        Assert.Single(layer.Children);
+        Assert.IsType<Image>(layer.Children[0]);
+        Pump(task);
+        Assert.True(task.IsCompletedSuccessfully);
+        Assert.False(layer.IsVisible);
         Assert.Equal(1, frame.Opacity);
         board.AllowClose = true;
         board.Close();

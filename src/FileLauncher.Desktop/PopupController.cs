@@ -220,7 +220,7 @@ internal sealed class PopupController : IBoardController
         }
         var primary = screens.Primary is { } ps ? ToRect(ps.WorkingArea) : WorkAreaAt(anchor);
 
-        var pos = PopupPlacement.Compute(_settings.Popup.PlacementFor(kind), anchor, widthPx, heightPx, WorkAreaAt, primary);
+        var pos = PopupPlacement.Compute(_settings.Popup.PlacementFor(kind), anchor, widthPx, heightPx, WorkAreaAt, primary, _settings.Popup.CursorAnchor, scaling);
         _window.Position = new PixelPoint(pos.X, pos.Y);
 
         if (!_window.IsVisible)

@@ -191,6 +191,7 @@ public partial class BoardWindow : Window
     {
         _showEffect = EffectCatalog.Resolve(appearance, EffectCatalog.BoardShow);
         _hideEffect = EffectCatalog.Resolve(appearance, EffectCatalog.BoardHide);
+        _glitchLook = GlitchLook.Scaled(appearance.GlitchIntensity);
         _hoverEffect = EffectCatalog.Resolve(appearance, EffectCatalog.ItemHover);
         _pageEffect = EffectCatalog.Resolve(appearance, EffectCatalog.PageSwitch);
         _tabEffect = EffectCatalog.Resolve(appearance, EffectCatalog.TabHighlight);
@@ -263,7 +264,7 @@ public partial class BoardWindow : Window
     {
         if (_showEffect.Kind == EffectKind.Glitch && _showEffect.IsActive)
         {
-            var task = _glitch.Start(Root, Frame, GlitchLayer, _showEffect, Token("FlAccent"), Token("FlAccent2"), ct);
+            var task = _glitch.Start(Root, Frame, GlitchLayer, _showEffect, _glitchLook, Token("FlAccent"), Token("FlAccent2"), ct);
             if (task is not null)
             {
                 AppLog.Info($"glitch: スナップショット {_glitch.LastSnapshotMs:F1} ms");
@@ -286,7 +287,7 @@ public partial class BoardWindow : Window
         Root.Opacity = 1;
         if (_hideEffect.Kind == EffectKind.Glitch && _hideEffect.IsActive)
         {
-            var task = _glitch.Start(Root, Frame, GlitchLayer, _hideEffect, Token("FlAccent"), Token("FlAccent2"), ct, appearing: false);
+            var task = _glitch.Start(Root, Frame, GlitchLayer, _hideEffect, _glitchLook, Token("FlAccent"), Token("FlAccent2"), ct, appearing: false);
             if (task is not null) return task;
             return EffectRunner.HideAsync(Frame, GlitchFallback with { Easing = EasingKind.EaseIn }, ct);
         }
@@ -305,7 +306,7 @@ public partial class BoardWindow : Window
         var spec = appearing ? _showEffect : _hideEffect;
         if (spec.Kind != EffectKind.Glitch || !spec.IsActive) return Task.CompletedTask;
         GlitchPlayer.Finish(Frame, GlitchLayer);
-        return DuringTransition(_glitch.Start(Root, Frame, GlitchLayer, spec, Token("FlAccent"), Token("FlAccent2"), ct, appearing, fade)
+        return DuringTransition(_glitch.Start(Root, Frame, GlitchLayer, spec, _glitchLook, Token("FlAccent"), Token("FlAccent2"), ct, appearing, fade)
             ?? Task.CompletedTask);
     }
 
@@ -318,6 +319,10 @@ public partial class BoardWindow : Window
     private readonly AmbientAnimator _ambient;
     private int _transitions; // 表示・非表示・グリッチの演出中（その間は止める）
     private bool _ambientAny; // 3 つのどれかが「なし」以外
+    private GlitchLook _glitchLook = GlitchLook.Base;
+
+    /// <summary>グリッチの強さ（テスト用）。</summary>
+    internal GlitchLook GlitchLook => _glitchLook;
     private NativeAmbient? _native;
     private bool _nativeFailed;
 

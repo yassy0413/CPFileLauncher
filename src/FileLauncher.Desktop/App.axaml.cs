@@ -105,7 +105,7 @@ public partial class App : Application
             SetDisplayMode = mode => _hub?.Update(s => s.General.DisplayMode = mode, SettingsChange.DisplayMode),
             OpenSettings = OpenSettings,
             Quit = () => Quit(desktop),
-            ShowAbout = () => AboutWindow.Show(_platform.Shell, store.Paths.Root, store.Paths.IsPortable, _hub!.Current.General.FolderOpenTarget),
+            ShowAbout = () => AboutWindow.Show(_platform.Shell, store.Paths.Root, _hub!.Current.General.FolderOpenTarget),
         };
         editor.Attach();
         _board.SettingsRequested += OpenSettings;
@@ -311,6 +311,7 @@ public partial class App : Application
     {
         ChromeWindow.ShowEffect = Core.Effects.EffectCatalog.Resolve(appearance, Core.Effects.EffectCatalog.BoardShow);
         ChromeWindow.HideEffect = Core.Effects.EffectCatalog.Resolve(appearance, Core.Effects.EffectCatalog.BoardHide);
+        ChromeWindow.GlitchLook = Core.Effects.GlitchLook.Scaled(appearance.GlitchIntensity);
     }
 
     /// <summary>配色（主色・副色。SPEC §3.6）を見た目に反映する。値は Normalize 済み（#RRGGBB）。</summary>

@@ -556,9 +556,6 @@ Folder not found: {1}</value>
   <data name="About_DataFolder" xml:space="preserve">
     <value>Data folder</value>
   </data>
-  <data name="About_DataFolderPortable" xml:space="preserve">
-    <value>Data folder (portable)</value>
-  </data>
   <data name="Common_Open" xml:space="preserve">
     <value>Open</value>
   </data>
@@ -880,12 +877,6 @@ Folder not found: {1}</value>
   <data name="Settings_Popup_UseCurrent_Note" xml:space="preserve">
     <value>Available while the board is shown.</value>
   </data>
-  <data name="Settings_General_DisplayMode" xml:space="preserve">
-    <value>Display mode</value>
-  </data>
-  <data name="Settings_General_DisplayMode_Note" xml:space="preserve">
-    <value>Popup: shown only when called. Pinned: always on screen (settings on the “Pinned” tab). You can also switch from the tray / menu bar menu.</value>
-  </data>
   <data name="Common_On" xml:space="preserve">
     <value>On</value>
   </data>
@@ -953,12 +944,6 @@ Folder not found: {1}</value>
   <data name="Settings_Triggers_Chord" xml:space="preserve">
     <value>Left + right click window</value>
   </data>
-  <data name="Settings_Pinned_CurrentPinned" xml:space="preserve">
-    <value>Current display mode: Pinned</value>
-  </data>
-  <data name="Settings_Pinned_CurrentPopup" xml:space="preserve">
-    <value>Current display mode: Popup (these settings are used in pinned mode)</value>
-  </data>
   <data name="Settings_Pinned_ZOrder" xml:space="preserve">
     <value>Stacking order</value>
   </data>
@@ -1003,18 +988,6 @@ Folder not found: {1}</value>
   </data>
   <data name="Settings_Data_Backup_Note" xml:space="preserve">
     <value>Puts settings.json and board.json into one zip file. Importing replaces the current data and restarts.</value>
-  </data>
-  <data name="Settings_Data_Portable" xml:space="preserve">
-    <value>Portable mode</value>
-  </data>
-  <data name="Settings_Data_PortableOn" xml:space="preserve">
-    <value>On (uses data/ next to the executable)</value>
-  </data>
-  <data name="Settings_Data_PortableOff" xml:space="preserve">
-    <value>Off</value>
-  </data>
-  <data name="Settings_Data_Portable_Note" xml:space="preserve">
-    <value>Place portable.flag next to the executable to enable it.</value>
   </data>
   <data name="Settings_Data_Export_Title" xml:space="preserve">
     <value>Export settings and board</value>
@@ -1264,5 +1237,50 @@ The current files are kept in backup/.</value>
   </data>
   <data name="Permission_OpenAutomationSettings" xml:space="preserve">
     <value>Open Automation settings</value>
+  </data>
+  <data name="Settings_Pinned_Enabled" xml:space="preserve">
+    <value>Pinned mode</value>
+  </data>
+  <data name="Settings_Pinned_Enabled_Note" xml:space="preserve">
+    <value>When on, the board stays on screen. When off, it works as a popup (shown only when called). You can also switch from the tray / menu bar menu.</value>
+  </data>
+  <data name="Settings_Effects_GlitchIntensity" xml:space="preserve">
+    <value>Glitch intensity</value>
+  </data>
+  <data name="Settings_Effects_GlitchIntensity_Note" xml:space="preserve">
+    <value>How far the show/hide glitch shifts and splits colors. At 0%, it only fades.</value>
+  </data>
+  <data name="Settings_Popup_CursorAnchor" xml:space="preserve">
+    <value>Pointer spot on board</value>
+  </data>
+  <data name="Settings_Popup_CursorAnchor_Note" xml:space="preserve">
+    <value>Used when “At pointer” is selected for either the keyboard or the mouse above (shared by both). Choose where on the board the pointer ends up.</value>
+  </data>
+  <data name="Enum_CursorAnchor_TopLeft" xml:space="preserve">
+    <value>Top left</value>
+  </data>
+  <data name="Enum_CursorAnchor_Top" xml:space="preserve">
+    <value>Top center</value>
+  </data>
+  <data name="Enum_CursorAnchor_TopRight" xml:space="preserve">
+    <value>Top right</value>
+  </data>
+  <data name="Enum_CursorAnchor_Left" xml:space="preserve">
+    <value>Middle left</value>
+  </data>
+  <data name="Enum_CursorAnchor_Center" xml:space="preserve">
+    <value>Center</value>
+  </data>
+  <data name="Enum_CursorAnchor_Right" xml:space="preserve">
+    <value>Middle right</value>
+  </data>
+  <data name="Enum_CursorAnchor_BottomLeft" xml:space="preserve">
+    <value>Bottom left</value>
+  </data>
+  <data name="Enum_CursorAnchor_Bottom" xml:space="preserve">
+    <value>Bottom center</value>
+  </data>
+  <data name="Enum_CursorAnchor_BottomRight" xml:space="preserve">
+    <value>Bottom right</value>
   </data>
 </root>

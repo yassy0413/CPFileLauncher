@@ -113,6 +113,25 @@ internal static class AppTheme
                 (ContentPresenter.BackgroundProperty, new DynamicResourceExtension("FlAccentSoft"))),
             Make(x => x.OfType<Button>().Class("chrome-close").Class(":pointerover").Descendant().OfType<Avalonia.Controls.Shapes.Path>(),
                 (Avalonia.Controls.Shapes.Shape.StrokeProperty, new DynamicResourceExtension("FlText"))),
+            // カーソルの位置の 3 × 3（Settings/AnchorPicker）: タブのアウトラインと同じ流儀。選択中は主色の枠 + 薄い面 + 主色の点
+            Make(x => x.OfType<ToggleButton>().Class("anchor-cell"),
+                (TemplatedControl.BorderThicknessProperty, new Thickness(1)),
+                (TemplatedControl.BorderBrushProperty, new DynamicResourceExtension("FlTabOutline")),
+                (TemplatedControl.BackgroundProperty, Brushes.Transparent),
+                (TemplatedControl.CornerRadiusProperty, new CornerRadius(0)),
+                (TemplatedControl.PaddingProperty, new Thickness(3)),
+                (Layoutable.MinWidthProperty, 0.0),
+                (Layoutable.MinHeightProperty, 0.0)),
+            Make(x => x.OfType<ToggleButton>().Class("anchor-cell").Class(":checked").Template().OfType<ContentPresenter>().Name("PART_ContentPresenter"),
+                (ContentPresenter.BackgroundProperty, new DynamicResourceExtension("FlAccentSoft")),
+                (ContentPresenter.BorderBrushProperty, new DynamicResourceExtension("FlAccent"))),
+            Make(x => x.OfType<ToggleButton>().Class("anchor-cell").Class(":checked").Class(":pointerover").Template().OfType<ContentPresenter>().Name("PART_ContentPresenter"),
+                (ContentPresenter.BackgroundProperty, new DynamicResourceExtension("FlAccentSoft")),
+                (ContentPresenter.BorderBrushProperty, new DynamicResourceExtension("FlAccent"))),
+            Make(x => x.OfType<ToggleButton>().Class("anchor-cell").Descendant().OfType<Border>().Name("Dot"),
+                (Border.BackgroundProperty, new DynamicResourceExtension("FlTabOutline"))),
+            Make(x => x.OfType<ToggleButton>().Class("anchor-cell").Class(":checked").Descendant().OfType<Border>().Name("Dot"),
+                (Border.BackgroundProperty, new DynamicResourceExtension("FlAccent"))),
         };
     }
 

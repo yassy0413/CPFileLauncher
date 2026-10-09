@@ -45,8 +45,8 @@ public static class EffectCatalog
 
     public static IReadOnlyList<EffectDefinition> All { get; } =
     [
-        new(BoardShow, Spec(EffectKind.Glitch, 150, EasingKind.Linear), ShowKinds), // 2026-10-03 ユーザー要望で 1.5 倍
-        new(BoardHide, Spec(EffectKind.Glitch, 150, EasingKind.Linear), HideKinds), // 2026-10-03 ユーザー要望: Out も In と同じグリッチ
+        new(BoardShow, Spec(EffectKind.Glitch, 250, EasingKind.Linear), ShowKinds), // 2026-10-03 ユーザー要望で 1.5 倍、2026-10-10 に 250
+        new(BoardHide, Spec(EffectKind.Glitch, 250, EasingKind.Linear), HideKinds), // 2026-10-03 ユーザー要望: Out も In と同じグリッチ。2026-10-10 に 250
         new(PageSwitch, Spec(EffectKind.Fade, 80, EasingKind.EaseOut), [EffectKind.None, EffectKind.Fade, EffectKind.Slide]),
         new(TabHighlight, Spec(EffectKind.Glow, 80, EasingKind.Linear), HighlightKinds),
         new(ItemHover, Spec(EffectKind.Glow, 80, EasingKind.Linear), HighlightKinds),

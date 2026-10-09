@@ -11,7 +11,7 @@ internal static class EnumNames
     [
         typeof(DisplayMode), typeof(BackgroundFit), typeof(AccentPreset), typeof(ClockMode), typeof(LabelMode), typeof(PopupPosition),
         typeof(MouseGesture), typeof(MouseButtonKind), typeof(ZOrder), typeof(EffectKind), typeof(EasingKind), typeof(ItemColor),
-        typeof(ItemKind), typeof(LaunchMode), typeof(FolderOpenTarget),
+        typeof(ItemKind), typeof(LaunchMode), typeof(FolderOpenTarget), typeof(CursorAnchor),
     ];
 
     /// <summary>macOS では OS で名前が変わる値の <c>_Mac</c> キーを優先する（TERMS.md §4）。</summary>

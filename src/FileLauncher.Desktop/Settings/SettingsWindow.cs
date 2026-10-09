@@ -331,6 +331,15 @@ internal sealed class SettingsWindow : ChromeWindow
         var p = Panel();
         PlacementGroup(p, Strings.Settings_Popup_Keyboard, s => s.Popup.Keyboard);
         PlacementGroup(p, Strings.Settings_Popup_Mouse, s => s.Popup.Mouse);
+
+        // 盤面のどの点をカーソルに合わせるか（3 × 3。キーボード・マウス共通。どちらかがカーソル位置のときだけ有効。SPEC §3.3）
+        var anchor = new AnchorPicker();
+        anchor.ValueChanged += v => Set(s => s.Popup.CursorAnchor = v, SettingsChange.Popup);
+        void UpdateAnchorEnabled() => anchor.IsEnabled = _hub.Current.Popup.Keyboard.Position == PopupPosition.Cursor
+            || _hub.Current.Popup.Mouse.Position == PopupPosition.Cursor;
+        _refreshers.Add(() => { anchor.Value = _hub.Current.Popup.CursorAnchor; UpdateAnchorEnabled(); });
+        PositionChanged += UpdateAnchorEnabled;
+        p.Children.Add(Row(Strings.Settings_Popup_CursorAnchor, anchor, Strings.Settings_Popup_CursorAnchor_Note));
         p.Children.Add(Themed.Note(new TextBlock
         {
             Text = Strings.FormatSettings_Popup_PositionNote(Loc.Os(Strings.Common_TrayIcon_Win, Strings.Common_TrayIcon_Mac)),
@@ -456,11 +465,14 @@ internal sealed class SettingsWindow : ChromeWindow
     }
 
     /// <summary>表示位置 1 組（表示位置 + 固定座標 + 「今の盤面の位置を使う」）。キーボード用とマウス用で 2 回使う（SPEC §3.3）。</summary>
+    /// <summary>ポップアップタブの「表示位置」が変わった（共通の 3 × 3 の有効・無効を追従させる）。</summary>
+    private event Action? PositionChanged;
+
     private void PlacementGroup(StackPanel p, string title, Func<AppSettings, PopupPlacementSettings> get)
     {
         NumericUpDown? x = null, y = null;
         Button? useCurrent = null;
-        void UpdateFixedEnabled()
+        void UpdateEnabled()
         {
             bool isFixed = get(_hub.Current).Position == PopupPosition.Fixed;
             if (x is not null) x.IsEnabled = isFixed;
@@ -471,7 +483,7 @@ internal sealed class SettingsWindow : ChromeWindow
         var position = Combo(
             EnumNames.Options(PopupPosition.Cursor, PopupPosition.LastPosition, PopupPosition.ScreenCenter, PopupPosition.Fixed),
             s => get(s).Position, (s, v) => get(s).Position = v, SettingsChange.Popup);
-        position.SelectionChanged += (_, _) => UpdateFixedEnabled();
+        position.SelectionChanged += (_, _) => { UpdateEnabled(); PositionChanged?.Invoke(); };
         p.Children.Add(Row(title, position));
 
         x = Number(-100000, 100000, s => get(s).X ?? 0, (s, v) => get(s).X = v, SettingsChange.Popup);
@@ -492,8 +504,8 @@ internal sealed class SettingsWindow : ChromeWindow
             },
         }, Strings.Settings_Popup_Fixed_Note));
         p.Children.Add(Row("", useCurrent, Strings.Settings_Popup_UseCurrent_Note));
-        _refreshers.Add(UpdateFixedEnabled);
-        Activated += (_, _) => UpdateFixedEnabled(); // 盤面を出してから戻ってきたとき
+        _refreshers.Add(UpdateEnabled);
+        Activated += (_, _) => UpdateEnabled(); // 盤面を出してから戻ってきたとき
     }
 
     private Control GeneralTab()
@@ -504,9 +516,6 @@ internal sealed class SettingsWindow : ChromeWindow
             s => s.General.Language, (s, v) => s.General.Language = v, SettingsChange.None);
         p.Children.Add(Row(Strings.Settings_General_Language, WithRestart(language, () => Loc.Effective(_hub.Current.General.Language) != Loc.StartupLanguage),
             Strings.Settings_General_Language_Note));
-        var mode = Combo(EnumNames.Options(DisplayMode.Popup, DisplayMode.Resident),
-            s => s.General.DisplayMode, (s, v) => s.General.DisplayMode = v, SettingsChange.DisplayMode);
-        p.Children.Add(Row(Strings.Settings_General_DisplayMode, mode, Strings.Settings_General_DisplayMode_Note));
 
         // 自動起動は OS 側の登録が正（settings.json の値ではなく、開くたびに OS に問い合わせる）
         var autoStart = new ToggleSwitch { OnContent = Strings.Common_On, OffContent = Strings.Common_Off };
@@ -596,22 +605,26 @@ internal sealed class SettingsWindow : ChromeWindow
     private Control ResidentTab()
     {
         var p = Panel();
-        var current = Themed.Note(new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap });
-        _refreshers.Add(() => current.Text = _hub.Current.General.DisplayMode == DisplayMode.Resident
-            ? Strings.Settings_Pinned_CurrentPinned
-            : Strings.Settings_Pinned_CurrentPopup);
-        p.Children.Add(current);
-        p.Children.Add(Row(Strings.Settings_Pinned_ZOrder, Combo(
+        // 表示モードの切替はここだけ（ON = 常駐 / OFF = ポップアップ。2026-10-10 ユーザー判断。トレイ / メニューバーのメニューからも切り替えられる）
+        p.Children.Add(Row(Strings.Settings_Pinned_Enabled, Toggle(
+            s => s.General.DisplayMode == DisplayMode.Resident,
+            (s, v) => s.General.DisplayMode = v ? DisplayMode.Resident : DisplayMode.Popup, SettingsChange.DisplayMode),
+            Strings.Settings_Pinned_Enabled_Note));
+        // 常駐モードが OFF の間は他の項目を無効表示（切り替える前の値は見える）
+        var rows = new StackPanel { Spacing = p.Spacing };
+        _refreshers.Add(() => rows.IsEnabled = _hub.Current.General.DisplayMode == DisplayMode.Resident);
+        p.Children.Add(rows);
+        rows.Children.Add(Row(Strings.Settings_Pinned_ZOrder, Combo(
             EnumNames.Options(ZOrder.Normal, ZOrder.Topmost, ZOrder.Bottommost),
             s => s.Resident.ZOrder, (s, v) => s.Resident.ZOrder = v, SettingsChange.Resident),
             Strings.Settings_Pinned_ZOrder_Note));
-        p.Children.Add(Row(Strings.Settings_Pinned_AutoHide, Toggle(
+        rows.Children.Add(Row(Strings.Settings_Pinned_AutoHide, Toggle(
             s => s.Resident.AutoHide, (s, v) => s.Resident.AutoHide = v, SettingsChange.Resident),
             Strings.Settings_Pinned_AutoHide_Note));
-        p.Children.Add(Row(Strings.Settings_Pinned_LockPosition, Toggle(
+        rows.Children.Add(Row(Strings.Settings_Pinned_LockPosition, Toggle(
             s => s.Resident.LockPosition, (s, v) => s.Resident.LockPosition = v, SettingsChange.Resident),
             Strings.Settings_Pinned_LockPosition_Note));
-        p.Children.Add(Row(Strings.Settings_Pinned_MoveToPointer, Toggle(
+        rows.Children.Add(Row(Strings.Settings_Pinned_MoveToPointer, Toggle(
             s => s.Resident.MoveToCursorOnTrigger, (s, v) => s.Resident.MoveToCursorOnTrigger = v, SettingsChange.Resident),
             Strings.Settings_Pinned_MoveToPointer_Note));
         return Scroll(p);
@@ -633,12 +646,7 @@ internal sealed class SettingsWindow : ChromeWindow
         import.Click += (_, _) => _ = ImportAsync();
         p.Children.Add(Row(Strings.Settings_Data_Backup, new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { export, import } },
             Strings.Settings_Data_Backup_Note));
-        p.Children.Add(Row(Strings.Settings_Data_Portable, new TextBlock
-        {
-            Text = (_ctx.Paths.IsPortable ? Strings.Settings_Data_PortableOn : Strings.Settings_Data_PortableOff) + "\n" + _ctx.Paths.Root,
-            TextWrapping = TextWrapping.Wrap,
-            MaxWidth = 300,
-        }, Strings.Settings_Data_Portable_Note));
+        // ポータブルモードは機能だけ残し、画面には出さない（分かりづらいため。2026-10-10 ユーザー判断。SPEC §9.1）
         return Scroll(p);
     }
 
@@ -730,14 +738,28 @@ internal sealed class SettingsWindow : ChromeWindow
             p.Children.Add(Themed.Note(new TextBlock { Text = Strings.Settings_Effects_ReducedMotionNote, FontSize = 12, TextWrapping = TextWrapping.Wrap }));
 
         var rows = new StackPanel { Spacing = 12 };
-        foreach (var def in EffectCatalog.All.Where(d => !d.IsAmbient)) rows.Children.Add(EffectRow(def));
+        // グリッチの強さ（表示・非表示で共通）は boardHide の直下。どちらかの種類がグリッチのときだけ有効
+        Control? glitchIntensity = null;
+        bool UsesGlitch() => new[] { EffectCatalog.BoardShow, EffectCatalog.BoardHide }
+            .Any(id => EffectCatalog.Resolve(_hub.Current.Appearance, id).Kind == EffectKind.Glitch);
+        void UpdateGlitchEnabled() { if (glitchIntensity is not null) glitchIntensity.IsEnabled = UsesGlitch(); }
+        foreach (var def in EffectCatalog.All.Where(d => !d.IsAmbient))
+        {
+            bool board = def.Id is EffectCatalog.BoardShow or EffectCatalog.BoardHide;
+            rows.Children.Add(EffectRow(def, onKindChanged: board ? UpdateGlitchEnabled : null));
+            if (def.Id != EffectCatalog.BoardHide) continue;
+            glitchIntensity = PercentSlider(GlitchLook.MinIntensity, GlitchLook.MaxIntensity, GlitchLook.IntensityStep,
+                s => s.Appearance.GlitchIntensity, (s, v) => s.Appearance.GlitchIntensity = v, SettingsChange.Effects);
+            rows.Children.Add(Row(Strings.Settings_Effects_GlitchIntensity, glitchIntensity, Strings.Settings_Effects_GlitchIntensity_Note));
+        }
+        _refreshers.Add(UpdateGlitchEnabled);
         var advanced = new Expander { Header = Strings.Settings_Effects_Advanced, Content = rows, HorizontalAlignment = HorizontalAlignment.Stretch };
         p.Children.Add(advanced);
 
         var resetAll = new Button { Content = Strings.Settings_Effects_ResetAll };
         resetAll.Click += (_, _) =>
         {
-            _hub.Update(s => { s.Appearance.Effects.Clear(); s.Appearance.Vsync = 2; }, SettingsChange.Effects);
+            _hub.Update(s => { s.Appearance.Effects.Clear(); s.Appearance.Vsync = 2; s.Appearance.GlitchIntensity = GlitchLook.DefaultIntensity; }, SettingsChange.Effects);
             RefreshAll();
         };
         p.Children.Add(resetAll);
@@ -761,7 +783,8 @@ internal sealed class SettingsWindow : ChromeWindow
 
     /// <param name="showId">項目名に演出 ID を添えるか（詳細設定の行）。</param>
     /// <param name="showEasing">イージングの欄を出すか（常時の演出はイージングを使わないので出さない）。</param>
-    private Control EffectRow(EffectDefinition def, bool showId = true, bool showEasing = true)
+    /// <param name="onKindChanged">種類を変えたときに呼ぶ（種類の変更では RefreshAll が走らないので、他の行の有効・無効を追従させる用）。</param>
+    private Control EffectRow(EffectDefinition def, bool showId = true, bool showEasing = true, Action? onKindChanged = null)
     {
         EffectSpec Current() => _hub.Current.Appearance.Effects.GetValueOrDefault(def.Id) ?? def.Default;
         void Apply(Func<EffectSpec, EffectSpec> change) =>
@@ -769,7 +792,12 @@ internal sealed class SettingsWindow : ChromeWindow
 
         var kinds = def.AllowedKinds.ToArray();
         var kind = new ComboBox { MinWidth = 110, ItemsSource = kinds.Select(KindName).ToList() };
-        kind.SelectionChanged += (_, _) => { if (kind.SelectedIndex >= 0) Apply(e => e with { Kind = kinds[kind.SelectedIndex] }); };
+        kind.SelectionChanged += (_, _) =>
+        {
+            if (kind.SelectedIndex < 0) return;
+            Apply(e => e with { Kind = kinds[kind.SelectedIndex] });
+            if (!_refreshing) onKindChanged?.Invoke();
+        };
 
         var easings = Enum.GetValues<EasingKind>();
         var easing = new ComboBox { MinWidth = 120, ItemsSource = easings.Select(EasingName).ToList() };

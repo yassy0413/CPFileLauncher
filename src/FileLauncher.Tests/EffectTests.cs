@@ -13,7 +13,7 @@ public class EffectTests
     public void 上書きが無ければ既定値_あればその値を使う()
     {
         var a = new AppearanceSettings();
-        Assert.Equal(Spec(EffectKind.Glitch, 150, EasingKind.Linear), EffectCatalog.Resolve(a, EffectCatalog.BoardShow));
+        Assert.Equal(Spec(EffectKind.Glitch, 250, EasingKind.Linear), EffectCatalog.Resolve(a, EffectCatalog.BoardShow));
 
         a.Effects[EffectCatalog.BoardShow] = Spec(EffectKind.Zoom, 100, EasingKind.BackOut);
         Assert.Equal(Spec(EffectKind.Zoom, 100, EasingKind.BackOut), EffectCatalog.Resolve(a, EffectCatalog.BoardShow));
@@ -74,8 +74,8 @@ public class EffectTests
     public void 既定は盤面の表示と非表示がグリッチ_ホバーとタブとドロップ先が発光()
     {
         var a = new AppearanceSettings();
-        Assert.Equal(Spec(EffectKind.Glitch, 150, EasingKind.Linear), EffectCatalog.Resolve(a, EffectCatalog.BoardShow));
-        Assert.Equal(Spec(EffectKind.Glitch, 150, EasingKind.Linear), EffectCatalog.Resolve(a, EffectCatalog.BoardHide));
+        Assert.Equal(Spec(EffectKind.Glitch, 250, EasingKind.Linear), EffectCatalog.Resolve(a, EffectCatalog.BoardShow));
+        Assert.Equal(Spec(EffectKind.Glitch, 250, EasingKind.Linear), EffectCatalog.Resolve(a, EffectCatalog.BoardHide));
         Assert.Equal(EffectKind.Glow, EffectCatalog.Resolve(a, EffectCatalog.ItemHover).Kind);
         Assert.Equal(EffectKind.Glow, EffectCatalog.Resolve(a, EffectCatalog.TabHighlight).Kind);
         Assert.Equal(EffectKind.Glow, EffectCatalog.Resolve(a, EffectCatalog.DropTarget).Kind);
@@ -85,7 +85,7 @@ public class EffectTests
     public void 正規化は既定値と同じものだけ捨てる()
     {
         var s = new AppSettings();
-        s.Appearance.Effects[EffectCatalog.BoardShow] = Spec(EffectKind.Glitch, 150, EasingKind.Linear); // 既定と同じ
+        s.Appearance.Effects[EffectCatalog.BoardShow] = Spec(EffectKind.Glitch, 250, EasingKind.Linear); // 既定と同じ
         s.Appearance.Effects[EffectCatalog.BoardHide] = Spec(EffectKind.Fade, 80, EasingKind.EaseIn);    // 既定と違う
         s.Normalize();
         Assert.False(s.Appearance.Effects.ContainsKey(EffectCatalog.BoardShow));

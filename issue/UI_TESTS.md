@@ -32,7 +32,14 @@
 - [ ] 読み取り専用（`IsReadOnly`）のとき上部に帯が出て、変更しても保存ファイルが書かれない。
 - [ ] マウス操作リスト: 修飾キーなしの左クリックは赤枠になり保存されない / 「追加」で既定行（中クリック + Ctrl）が増える。
 - [ ] 「演出の調整…」: 行数 = `EffectCatalog.All.Count`、種類 ComboBox の選択肢 = その演出の `AllowedKinds`、「既定に戻す」で `Effects` から ID が消える、glitch 行はイージングが無効（SPEC §3.6、SETTINGS.md「演出の調整…」）。
-- [ ] 常駐タブ（M5 ステップ 3 の後）: 表示モードがポップアップでも項目が出る。
+- [ ] 常駐タブの「常駐モード」トグル（2026-10-10 ユーザー判断、SETTINGS.md 常駐タブ / SPEC §3.4・§7。`SettingsUiTests`。要素は `Strings.Settings_Pinned_Enabled` で探す）:
+  - 常駐タブの先頭の行が `Settings_Pinned_Enabled` の ToggleSwitch で、既定（`popup`）では OFF。注記 `Settings_Pinned_Enabled_Note` がある。
+  - トグルを ON にすると `hub.Current.General.DisplayMode == Resident`・`Changed(DisplayMode)` が 1 回、OFF で `Popup` に戻り `Changed(DisplayMode)` が 1 回。
+  - OFF の間は常駐タブの他の項目（重ね順の `ComboBox`、自動で隠す / 位置をロック / トリガーでカーソル位置へ移動の ToggleSwitch）が見えている（`IsVisible`）が `IsEffectivelyEnabled == false`、ON で全部 true。
+  - 設定画面を開いたまま外から `hub.Update(DisplayMode = Resident, SettingsChange.DisplayMode)`（= トレイ / メニューバーのメニューでの切替と同じ経路）を呼ぶと、トグルが ON に、他の項目が有効になる。このとき追加の `Changed` が出ない（追従で `hub.Update` を呼び返さない = 再入防止）。
+  - `hub.Replace`（リセット）でもトグルと有効状態が既定（OFF・無効）に描き直される。
+  - 一般タブに旧「表示モード」の行が無い（`Strings` から `Settings_General_DisplayMode` が消えるのでコンパイルで保証。テストは不要）。常駐タブに「現在の表示モード」の注記が無い（同上）。
+  - 自動で掛かるもの: `StringsTests`（`Settings_Pinned_Enabled` / `_Note` が両 resx にあり、削除した 4 キーが両方から消えている）。
 - [x] ポップアップタブの表示位置 2 組（SPEC §3.3。`SettingsUiTests`、2026-10-03）: 表示位置 `ComboBox` が 2 つある / キーボード側を「固定座標」にするとキーボード側の X / Y だけ有効になりマウス側は無効のまま / 「今の盤面の位置を使う」でそのグループの `x` / `y` だけが変わる。
 
 ### 即時反映（`SettingsHub` → 盤面）
@@ -278,6 +285,30 @@ Core（`FileLauncher.Tests`）は `AmbientEffectsCoreTests.cs`、Desktop は `Am
 - [ ] Desktop `窓を閉じるとホストを手放す`: `Close()` → `Disposed == true`。
 - [ ] Desktop（設定画面。2026-10-09 ユーザー判断）: `IsSupported = true` のとき演出タブに VSync の `ComboBox` と `Strings.Settings_Effects_AmbientNote` の `TextBlock` が無い。false のとき両方ある（文言は短くなった新しい値。`Strings.*` 参照なので既存テストはそのまま）。
 - [ ] 既存: `AmbientEffectsTests` の Avalonia 経路のテストはそのまま通る（既定の `FakePlatform` は非対応）。`NeonGlowTests` の `MaxPulseGain` 参照先が `AmbientLook` に変わるだけ。
+
+### グリッチの強さ（`appearance.glitchIntensity`。SETTINGS.md 演出タブ、EFFECTS.md「glitch の詳細」の「強さの倍率」。2026-10-10 設計、未実装。`issue/GLITCH_INTENSITY.md`）
+
+Core は `FileLauncher.Tests`（`GlitchLookTests.cs` 新規 + 既存の `AppSettings` の丸めのテスト）、Desktop は `GlitchTests.cs`（描画ありフィクスチャ。種を固定した `GlitchPlayer(new Random(seed))`）と `SettingsUiTests.cs`、`ChromeWindowTests.cs`。文言は `Strings.*` 参照。
+
+- [ ] Core `GlitchLook.Scaled`: 100 → `Base` と等しい（5 / 0.55 / 6 / 16 / 6）/ 0 → 全部 0 で `IsStill` / 50 → 2.5 / 0.275 / 3 / 8 / 3 / 200 → 10 / **1.0（クランプ）** / 12 / 32 / 12 / 範囲外の引数（−10、300）でも例外にならず 0 / 200 相当に丸める。
+- [ ] Core `AppSettings.Normalize`: `glitchIntensity` の 250 → 200、−10 → 0、95 → 100（AwayFromZero）、94 → 90、0 と 200 はそのまま / キーなしの JSON → 100 / 往復で値が保たれる / `schemaVersion` は 3 のまま（マイグレーションが走らない）。
+- [ ] Desktop `GlitchTests`（倍率が `GlitchPlayer` に届く）: `GlitchIntensity = 200` で `ApplyEffects` → `PlayShowAsync` の最初の段で、影 2 枚の `TranslateTransform.X` が −10 / +10・`Opacity == 1`、帯 3 本の `|X|` が 12〜32 / `0` で影と帯の子が無い（`GlitchLayer` の子は本体の `Image` 1 枚）が `PlayShowAsync` は完了し `Frame.Opacity == 1`・`GlitchLayer.IsVisible == false`（0% でも終わり方は同じ）/ 既定（100）で既存の「種を固定した帯の矩形が盤面内」テストがそのまま通る（乱数の引き方を変えていないことの保証）。
+- [ ] Desktop `ChromeWindowTests`: `ChromeWindow.GlitchLook = GlitchLook.Scaled(200)` と `ShowEffect = glitch` を入れて窓を出すと、影の `TranslateTransform.X` が ±10（`finally` で `ShowEffect` / `HideEffect` / `GlitchLook` を既定に戻す）。`App.ApplyWindowEffects` 相当（`SettingsChange.Effects`）で `GlitchLook` が更新されることは、`ApplyWindowEffects` を internal static にして直接呼ぶか、`TestApp` からは見えないので Core の `Scaled` のテスト + 目視で代える（どちらにするかは実装者判断）。
+- [ ] Desktop `SettingsUiTests`: 演出タブの「詳細設定」の中に `Strings.Settings_Effects_GlitchIntensity` の行があり、`Strings.Effect_boardHide` の行の**直後**（`boardShow` → `boardHide` → グリッチの強さ → `pageSwitch` の順）/ `Slider` が `Minimum 0`・`Maximum 200`・`TickFrequency 10`・既定で `Value 100`、右の表示が「100 %」/ スライダーを 150 にすると `hub.Current.Appearance.GlitchIntensity == 150`・`Changed(Effects)` が 1 回・`Flush` で settings.json に `"glitchIntensity": 150` / 端の 0 と 200 に動かせる / **`boardShow` と `boardHide` の種類をどちらも fade にするとスライダーが `IsEffectivelyEnabled == false`、片方を glitch に戻すと true**（種類の `ComboBox` の変更だけで追従する。`RefreshAll` を待たない）/ `boardShow` の「既定に戻す」でも追従 / 「アニメーション」OFF で無効（折りたたみごと）/ 「すべて既定に戻す」で 100 に戻り `Changed(Effects)` 1 回 / `hub.Replace`（リセット）で 100 に描き直され、再入防止で `Update` が呼ばれない。
+- [ ] 自動で掛かるもの: `StringsTests`（`Settings_Effects_GlitchIntensity` / `_Note` が両 resx にある）、`NoHardcodedJapaneseTests`。
+
+### カーソルのアンカー（`popup.cursorAnchor`。キーボード・マウス共通の 1 項目。SPEC §3.3、SETTINGS.md ポップアップタブ。2026-10-10 実装済み。`issue/POPUP_CURSOR_ANCHOR.md`）
+
+Core は `FileLauncher.Tests/PopupTests.cs` の `PopupPlacementTests` に足す（作業領域は既存の `AreaAt` / `Primary`）。Desktop は `SettingsUiTests.cs`（要素は `Strings.Settings_Popup_CursorAnchor` の行の中の `AnchorPicker` / `ToggleButton` で探す。ツールチップは `EnumNames.Of` = `Strings.Enum_CursorAnchor_*`）と `ResidentTests.cs`。
+
+- [ ] Core `CursorOrigin` の 9 点（`[Theory]`、`cursor = (1000, 500)`、`w = 400`、`h = 300`、`inset = 20`）: topLeft → (980, 480) / top → (800, 480) / topRight → (620, 480) / left → (980, 350) / center → (800, 350) / right → (620, 350) / bottomLeft → (980, 220) / bottom → (800, 220) / bottomRight → (620, 220)。奇数の幅・高さ（401 × 301）で中列・中段が `w / 2` = 200・`h / 2` = 150 の切り捨て。
+- [ ] Core `InsetFor`: 1.0 → 20、1.25 → 25、1.5 → 30、2.0 → 40、1.75 → 35（AwayFromZero）。
+- [ ] Core `Compute`: `anchor`・`scaling` 省略（`Top` / 1.0）で従来の値（既存テスト `(800, 480)` がそのまま通る）/ `anchor = BottomRight`・`scaling = 1.5` で `(1000 − 370, 500 − 270)` / 9 点それぞれで、作業領域の四隅の近く（各隅から 5 px 内側のカーソル）に出してもウィンドウ矩形が作業領域に収まる（`Theory` 9 × 4）/ `lastPosition` で座標が未保存のときもアンカーが効く（`center` で中心）/ `fixed` / `screenCenter` ではアンカーを変えても結果が変わらない。
+- [ ] Core JSON: キーなし → `Popup.CursorAnchor == Top` / `"popup": { "cursorAnchor": "bottomRight" }` を読める・書くと camelCase で `popup` 直下に出る（`keyboard` / `mouse` の中には出ない）/ 旧キー `popup.keyboard.cursorAnchor` / `popup.mouse.cursorAnchor` が残っていても読み込みは成功し値は使われない（`Top` のまま）/ 不正な値（`"middle"`）は他の enum と同じく読み込み失敗（SPEC §9.3 の扱い）/ 1 → 2 のマイグレーション後も `Top` / `schemaVersion` は 3 のまま。
+- [ ] Desktop `SettingsUiTests`: ポップアップタブに `Settings_Popup_CursorAnchor` の行が 1 つだけあり、キーボード・マウスの 2 組の後ろ（字下げなし）/ `AnchorPicker` に `ToggleButton` が 9 個、`ToolTip.Tip` が行優先で `Enum_CursorAnchor_TopLeft` 〜 `_BottomRight` の順 / 既定で `Top` のボタンだけ `IsChecked` / 右下を押すと `hub.Current.Popup.CursorAnchor == BottomRight`・`Changed(Popup)` が 1 回（`Flush` で settings.json の `popup` 直下に `"cursorAnchor": "bottomRight"`）/ 選択中のボタンをもう一度押しても外れず値も変わらず `Changed` も出ない / **有効条件**: 既定（両組「カーソル位置」）で有効 → キーボード側だけ「画面中央」にしても有効 → マウス側も「画面中央」にすると `IsEffectivelyEnabled == false` → どちらか一方を「カーソル位置」に戻すと true（「前回の位置」「固定座標」も「カーソル位置以外」として扱う）/ `hub.Replace`（リセット）で `Top` に描き直され有効状態も追従し、再入防止で `Update` が呼ばれない / グリッドにフォーカスして → / ↓ キーで選択が右・下へ移り `hub.Current` が変わる、端で止まる（`KeyPressQwerty`）。
+- [ ] Desktop / Core（任意）: キーボードとマウスのどちらで開いても同じ `popup.cursorAnchor` が使われる（`PopupController` が `_settings.Popup.CursorAnchor` を `Compute` に渡す。ヘッドレスで位置の検証が難しければ Core の `Compute` に `anchor` を渡すテストで代える）。
+- [ ] Desktop `ResidentTests`（任意）: `moveToCursorOnTrigger = true` で、ポップアップ側の `cursorAnchor` を `bottomRight` にしても常駐の移動先は上中央の式のまま（ヘッドレスの `Screens` は 1 画面の仮想なので、位置の値の検証が難しければ Core の式のテストで代え、ここは省いてよい）。
+- [ ] 自動で掛かるもの: `StringsTests`（`Settings_Popup_CursorAnchor` / `_Note` と `Enum_CursorAnchor_*` 9 個が両 resx にある。`EnumNames.Localized` に `CursorAnchor` を足せば「すべての enum の値に表示名がある」が検査する）、`NoHardcodedJapaneseTests`。
 
 ## 3. 実装時の注意
 

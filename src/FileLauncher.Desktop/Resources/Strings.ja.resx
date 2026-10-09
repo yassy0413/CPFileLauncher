@@ -521,9 +521,6 @@
   <data name="About_DataFolder" xml:space="preserve">
     <value>データフォルダ</value>
   </data>
-  <data name="About_DataFolderPortable" xml:space="preserve">
-    <value>データフォルダ（ポータブル）</value>
-  </data>
   <data name="Common_Open" xml:space="preserve">
     <value>開く</value>
   </data>
@@ -832,12 +829,6 @@
   <data name="Settings_Popup_UseCurrent_Note" xml:space="preserve">
     <value>盤面を表示しているときに押せます。</value>
   </data>
-  <data name="Settings_General_DisplayMode" xml:space="preserve">
-    <value>表示モード</value>
-  </data>
-  <data name="Settings_General_DisplayMode_Note" xml:space="preserve">
-    <value>ポップアップ = 呼び出したときだけ出す。常駐 = 画面に出しっぱなし（設定は「常駐」タブ）。トレイ / メニューバーのメニューからも切り替えられます。</value>
-  </data>
   <data name="Common_On" xml:space="preserve">
     <value>オン</value>
   </data>
@@ -902,12 +893,6 @@
   <data name="Settings_Triggers_Chord" xml:space="preserve">
     <value>左右同時押しの判定時間</value>
   </data>
-  <data name="Settings_Pinned_CurrentPinned" xml:space="preserve">
-    <value>現在の表示モード: 常駐</value>
-  </data>
-  <data name="Settings_Pinned_CurrentPopup" xml:space="preserve">
-    <value>現在の表示モード: ポップアップ（ここの設定は常駐モードのときに使われます）</value>
-  </data>
   <data name="Settings_Pinned_ZOrder" xml:space="preserve">
     <value>重ね順</value>
   </data>
@@ -952,18 +937,6 @@
   </data>
   <data name="Settings_Data_Backup_Note" xml:space="preserve">
     <value>settings.json と board.json を 1 つの zip にします。インポートすると今の内容を置き換えて再起動します。</value>
-  </data>
-  <data name="Settings_Data_Portable" xml:space="preserve">
-    <value>ポータブルモード</value>
-  </data>
-  <data name="Settings_Data_PortableOn" xml:space="preserve">
-    <value>有効（実行ファイルの隣の data/ を使用）</value>
-  </data>
-  <data name="Settings_Data_PortableOff" xml:space="preserve">
-    <value>無効</value>
-  </data>
-  <data name="Settings_Data_Portable_Note" xml:space="preserve">
-    <value>実行ファイルの隣に portable.flag を置くと有効になります。</value>
   </data>
   <data name="Settings_Data_Export_Title" xml:space="preserve">
     <value>設定と盤面をエクスポート</value>
@@ -1204,5 +1177,50 @@
   </data>
   <data name="Permission_OpenAutomationSettings" xml:space="preserve">
     <value>オートメーションの設定を開く</value>
+  </data>
+  <data name="Settings_Pinned_Enabled" xml:space="preserve">
+    <value>常駐モード</value>
+  </data>
+  <data name="Settings_Pinned_Enabled_Note" xml:space="preserve">
+    <value>オンにすると盤面を画面に出したままにします。オフのときはポップアップ（呼び出したときだけ表示）です。トレイ / メニューバーのメニューからも切り替えられます。</value>
+  </data>
+  <data name="Settings_Effects_GlitchIntensity" xml:space="preserve">
+    <value>グリッチの強さ</value>
+  </data>
+  <data name="Settings_Effects_GlitchIntensity_Note" xml:space="preserve">
+    <value>表示・非表示のグリッチの横ずれと色にじみの大きさです。0% にするとずれずにフェードだけになります。</value>
+  </data>
+  <data name="Settings_Popup_CursorAnchor" xml:space="preserve">
+    <value>盤面上のカーソルの位置</value>
+  </data>
+  <data name="Settings_Popup_CursorAnchor_Note" xml:space="preserve">
+    <value>上の表示位置で「カーソル位置」を選んだときに使います（キーボード・マウス共通）。盤面のどこにカーソルが来るように出すかを選びます。</value>
+  </data>
+  <data name="Enum_CursorAnchor_TopLeft" xml:space="preserve">
+    <value>左上</value>
+  </data>
+  <data name="Enum_CursorAnchor_Top" xml:space="preserve">
+    <value>上中央</value>
+  </data>
+  <data name="Enum_CursorAnchor_TopRight" xml:space="preserve">
+    <value>右上</value>
+  </data>
+  <data name="Enum_CursorAnchor_Left" xml:space="preserve">
+    <value>左中央</value>
+  </data>
+  <data name="Enum_CursorAnchor_Center" xml:space="preserve">
+    <value>中央</value>
+  </data>
+  <data name="Enum_CursorAnchor_Right" xml:space="preserve">
+    <value>右中央</value>
+  </data>
+  <data name="Enum_CursorAnchor_BottomLeft" xml:space="preserve">
+    <value>左下</value>
+  </data>
+  <data name="Enum_CursorAnchor_Bottom" xml:space="preserve">
+    <value>下中央</value>
+  </data>
+  <data name="Enum_CursorAnchor_BottomRight" xml:space="preserve">
+    <value>右下</value>
   </data>
 </root>

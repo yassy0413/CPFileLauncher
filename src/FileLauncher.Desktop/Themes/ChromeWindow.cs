@@ -31,6 +31,7 @@ internal class ChromeWindow : Window
     /// <summary>窓の表示・非表示の演出（App が設定の boardShow / boardHide を入れる。既定はなし = テストでは動かない）。</summary>
     public static Core.Effects.EffectSpec ShowEffect { get; set; } = Core.Effects.EffectSpec.None;
     public static Core.Effects.EffectSpec HideEffect { get; set; } = Core.Effects.EffectSpec.None;
+    public static Core.Effects.GlitchLook GlitchLook { get; set; } = Core.Effects.GlitchLook.Base;
 
     private readonly Canvas _glitchLayer;
     private readonly GlitchPlayer _glitch = new();
@@ -44,7 +45,7 @@ internal class ChromeWindow : Window
     private void PlayShowGlitch()
     {
         if (!UsesGlitch(ShowEffect)) { _chrome.Opacity = 1; return; }
-        var task = _glitch.Start(_chrome, _chrome.Frame, _glitchLayer, ShowEffect, Token("FlAccent"), Token("FlAccent2"), CancellationToken.None);
+        var task = _glitch.Start(_chrome, _chrome.Frame, _glitchLayer, ShowEffect, GlitchLook, Token("FlAccent"), Token("FlAccent2"), CancellationToken.None);
         if (task is null) _chrome.Opacity = 1; // 静止画が撮れなければそのまま出す
     }
 
@@ -60,7 +61,7 @@ internal class ChromeWindow : Window
         object? result = typeof(Window).GetField("_dialogResult", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?.GetValue(this);
         IsHitTestVisible = false;
         GlitchPlayer.Finish(_chrome.Frame, _glitchLayer);
-        var task = _glitch.Start(_chrome, _chrome.Frame, _glitchLayer, HideEffect, Token("FlAccent"), Token("FlAccent2"), CancellationToken.None, appearing: false);
+        var task = _glitch.Start(_chrome, _chrome.Frame, _glitchLayer, HideEffect, GlitchLook, Token("FlAccent"), Token("FlAccent2"), CancellationToken.None, appearing: false);
         try { if (task is not null) await task; }
         catch (OperationCanceledException) { }
         _hideGlitchDone = true;

@@ -13,7 +13,7 @@ internal static class AboutWindow
 {
     private static Window? _open; // 開いていれば前に出すだけ
 
-    internal static Window Show(IShellService shell, string dataRoot, bool isPortable, FolderOpenTarget folderTarget = FolderOpenTarget.System)
+    internal static Window Show(IShellService shell, string dataRoot, FolderOpenTarget folderTarget = FolderOpenTarget.System)
     {
         if (_open is { } existing) { existing.Activate(); return existing; }
 
@@ -51,7 +51,7 @@ internal static class AboutWindow
                     Themed.Glow(new TextBlock { Text = AppInfo.ProductName, FontWeight = FontWeight.Bold, FontSize = 18 }),
                     Themed.Note(new TextBlock { Text = AppInfo.Subtitle }),
                     new TextBlock { Text = Strings.FormatAbout_Version(version) },
-                    new TextBlock { Text = isPortable ? Strings.About_DataFolderPortable : Strings.About_DataFolder, FontWeight = FontWeight.SemiBold },
+                    new TextBlock { Text = Strings.About_DataFolder, FontWeight = FontWeight.SemiBold },
                     new DockPanel
                     {
                         Children =

@@ -164,12 +164,12 @@ internal sealed class ResidentController : IBoardController
 
         if (cursor is { } c && Settings.Resident.MoveToCursorOnTrigger)
         {
-            // カーソル位置へ（popup の表示位置の組は見ない。SPEC §3.3）
+            // カーソル位置へ（popup の表示位置の組は見ない。常駐はアンカー設定の対象外で常に上中央。SPEC §3.3）
             var (w, h) = SizeInScreenUnits();
             var screens = _window.Screens;
             var s = screens.ScreenFromPoint(new PixelPoint(c.X, c.Y)) ?? screens.Primary;
             var wa = s is null ? new ScreenRect(0, 0, 1920, 1080) : ToRect(s.WorkingArea);
-            var target = PopupPlacement.Compute(new PopupPlacementSettings(), c, w, h, _ => wa, wa);
+            var target = PopupPlacement.ClampInto(PopupPlacement.CursorOrigin(c, w, h, CursorAnchor.Top, PopupPlacement.InsetFor(Scaling)), w, h, wa);
             MoveTo(new PixelPoint(target.X, target.Y), EffectCatalog.Resolve(Settings.Appearance, EffectCatalog.ResidentMove), saveAfter: true);
         }
 

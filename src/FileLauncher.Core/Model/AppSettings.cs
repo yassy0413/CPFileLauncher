@@ -38,6 +38,7 @@ public sealed class AppSettings
         Appearance.DefaultCols = Math.Clamp(Appearance.DefaultCols, Page.MinGrid, Page.MaxGrid);
         if (!AppearanceSettings.ButtonSizes.Contains(Appearance.ButtonSize)) Appearance.ButtonSize = 48;
         Appearance.Vsync = Math.Clamp(Appearance.Vsync, 1, 3);
+        Appearance.GlitchIntensity = GlitchLook.NormalizeIntensity(Appearance.GlitchIntensity);
         Appearance.Background ??= new();
         Appearance.Background.Overlay = (int)Math.Round(Math.Clamp(Appearance.Background.Overlay, 0, 90) / 5.0, MidpointRounding.AwayFromZero) * 5;
         Appearance.Background.ImageOpacity = (int)Math.Round(Math.Clamp(Appearance.Background.ImageOpacity, 10, 100) / 5.0, MidpointRounding.AwayFromZero) * 5;
@@ -96,6 +97,9 @@ public sealed class AppearanceSettings
     public int Vsync { get; set; } = 2;
 
     public static readonly int[] VsyncValues = [1, 2, 3];
+
+    /// <summary>グリッチのブレの強さ %（0〜200、10 刻み。既定 100）。spec/EFFECTS.md「強さの倍率」。</summary>
+    public int GlitchIntensity { get; set; } = GlitchLook.DefaultIntensity;
 
     /// <summary>配色（主色・副色。SPEC §3.6「配色」）。見た目はサイバーパンク専用（テーマの選択は 2026-10-04 に廃止）。</summary>
     public ColorSettings Colors { get; set; } = new();
@@ -232,6 +236,9 @@ public sealed class PopupSettings
     /// <summary>マウストリガー・トレイ・メニュー・2 重起動で開いたときの表示位置。</summary>
     public PopupPlacementSettings Mouse { get; set; } = new();
 
+    /// <summary>カーソル位置表示（座標が未保存で退避したときも）で、盤面のどの点をカーソルに合わせるか。キーボード・マウス共通（SPEC §3.3）。</summary>
+    public CursorAnchor CursorAnchor { get; set; } = CursorAnchor.Top;
+
     public bool CloseOnLaunch { get; set; } = true;
     public bool CloseOnOutsideClick { get; set; } = true;
     public bool ToggleOnTrigger { get; set; } = true;
@@ -265,6 +272,17 @@ public sealed class PopupPlacementSettings
     public PopupPosition Position { get; set; } = PopupPosition.Cursor;
     public int? X { get; set; }
     public int? Y { get; set; }
+}
+
+/// <summary>
+/// カーソル位置表示で盤面のどの点をカーソルに合わせるか（SPEC §3.3）。並びは 3 × 3 の行優先
+/// （設定画面のグリッドと同じ。<c>(int)anchor % 3</c> = 列、<c>/ 3</c> = 行）。
+/// </summary>
+public enum CursorAnchor
+{
+    TopLeft, Top, TopRight,
+    Left, Center, Right,
+    BottomLeft, Bottom, BottomRight,
 }
 
 /// <summary>盤面を開いた操作の種類（表示位置の組を選ぶ）。</summary>

@@ -10,15 +10,13 @@ namespace FileLauncher.App;
 
 /// <summary>
 /// 盤面の出現時のグリッチ（spec/EFFECTS.md「glitch の詳細」）。盤面（Frame）の静止画を撮り、
-/// シアン / マゼンタの影（左右 5 px）+ 本体 + 横にずれた帯 3 本を GlitchLayer に重ねて、時間 ÷ 3 ごとに帯を引き直す。
+/// シアン / マゼンタの影 + 本体 + 横にずれた帯 3 本を GlitchLayer に重ねて、時間 ÷ 3 ごとに帯を引き直す。ずれ・影の濃さは
+/// <see cref="GlitchLook"/>（設定「グリッチの強さ」）。
 /// 同時に盤面全体をフェードイン（表示）/ フェードアウト（非表示）する。時間が来たら静止画層を消して本物の盤面に切り替える。常時動く演出ではない。
 /// 静止画が撮れないとき（描画バックエンド無し・大きさ未確定）は呼び出し側で fade に切り替える。
 /// </summary>
 internal sealed class GlitchPlayer
 {
-    // 2026-10-03 ユーザー要望で強め（影 3→5 px、帯 ±4〜10→±6〜16 px、最後の段 ±4→±6 px）
-    private const double ShadowOffset = 5;
-    private const double ShadowOpacity = 0.55;
     private const int Steps = 3;
 
     private readonly Random _random;
@@ -34,7 +32,7 @@ internal sealed class GlitchPlayer
     /// </summary>
     /// <param name="appearing">true = 表示（透明 → 不透明にフェードイン）、false = 非表示（不透明 → 透明にフェードアウト）。</param>
     /// <param name="fade">false ならフェードを重ねない（常駐の前面化・端へ隠れるとき。見えている盤面を消さない）。</param>
-    public Task? Start(Visual root, Visual frame, Canvas layer, EffectSpec spec, IBrush cyan, IBrush magenta, CancellationToken ct,
+    public Task? Start(Visual root, Visual frame, Canvas layer, EffectSpec spec, GlitchLook look, IBrush cyan, IBrush magenta, CancellationToken ct,
         bool appearing = true, bool fade = true)
     {
         var bounds = frame.Bounds;
@@ -67,20 +65,24 @@ internal sealed class GlitchPlayer
             Height = bounds.Height,
             Background = color,
             OpacityMask = new ImageBrush(snapshot) { Stretch = Stretch.Fill },
-            Opacity = ShadowOpacity,
+            Opacity = look.ShadowOpacity,
             RenderTransform = new TranslateTransform(dx, 0),
         };
-        layer.Children.Add(Shadow(cyan, -ShadowOffset));
-        layer.Children.Add(Shadow(magenta, ShadowOffset));
+        // 強さ 0% はずれも色にじみも無い = 本体の静止画にフェードだけ（影・帯を作らず乱数も使わない）
+        if (!look.IsStill)
+        {
+            layer.Children.Add(Shadow(cyan, -look.ShadowOffset));
+            layer.Children.Add(Shadow(magenta, look.ShadowOffset));
+        }
         layer.Children.Add(new Image { Source = snapshot, Width = bounds.Width, Height = bounds.Height, Stretch = Stretch.Fill });
         var bands = new List<Image>();
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < (look.IsStill ? 0 : 3); i++)
         {
             var band = new Image { Source = snapshot, Width = bounds.Width, Height = bounds.Height, Stretch = Stretch.Fill };
             bands.Add(band);
             layer.Children.Add(band);
         }
-        Shuffle(bands, bounds.Size, final: false);
+        Shuffle(bands, bounds.Size, look, final: false);
 
         frame.Opacity = 0;
         layer.IsVisible = true;
@@ -95,10 +97,10 @@ internal sealed class GlitchPlayer
             root.Opacity = appearing ? 1 : 0;
         }
         else root.Opacity = 1;
-        return RunAsync(root, frame, layer, bands, bounds.Size, snapshot, spec, ct);
+        return RunAsync(root, frame, layer, bands, bounds.Size, snapshot, spec, look, ct);
     }
 
-    private async Task RunAsync(Visual root, Visual frame, Canvas layer, List<Image> bands, Size size, RenderTargetBitmap snapshot, EffectSpec spec, CancellationToken ct)
+    private async Task RunAsync(Visual root, Visual frame, Canvas layer, List<Image> bands, Size size, RenderTargetBitmap snapshot, EffectSpec spec, GlitchLook look, CancellationToken ct)
     {
         var step = TimeSpan.FromMilliseconds(spec.DurationMs / (double)Steps);
         try
@@ -106,7 +108,7 @@ internal sealed class GlitchPlayer
             for (int i = 1; i < Steps; i++)
             {
                 await Task.Delay(step, ct);
-                Shuffle(bands, size, final: i == Steps - 1);
+                Shuffle(bands, size, look, final: i == Steps - 1);
             }
             await Task.Delay(step, ct);
         }
@@ -132,8 +134,8 @@ internal sealed class GlitchPlayer
         frame.Opacity = 1;
     }
 
-    /// <summary>帯の位置とずれ量を引き直す。最後の段は帯 1 本・±6 px に収束させる。</summary>
-    private void Shuffle(List<Image> bands, Size size, bool final)
+    /// <summary>帯の位置とずれ量を引き直す。最後の段は帯 1 本・±FinalShift に収束させる。乱数の引き方は強さに依らない。</summary>
+    private void Shuffle(List<Image> bands, Size size, GlitchLook look, bool final)
     {
         for (int i = 0; i < bands.Count; i++)
         {
@@ -146,7 +148,7 @@ internal sealed class GlitchPlayer
             band.IsVisible = true;
             double h = size.Height * (0.06 + _random.NextDouble() * 0.12);
             double y = _random.NextDouble() * Math.Max(0, size.Height - h);
-            double shift = final ? 6 : 6 + _random.NextDouble() * 10;
+            double shift = final ? look.FinalShift : look.BandShiftMin + _random.NextDouble() * (look.BandShiftMax - look.BandShiftMin);
             if (_random.Next(2) == 0) shift = -shift;
             band.Clip = new RectangleGeometry(new Rect(0, y, size.Width, h));
             band.RenderTransform = new TranslateTransform(shift, 0);
