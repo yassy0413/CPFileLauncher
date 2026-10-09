@@ -42,6 +42,18 @@ internal static class ObjC
     [DllImport(Lib, EntryPoint = "objc_msgSend")] public static extern nint SendWithError(nint receiver, nint sel, nint a, out nint error);
     [DllImport(Lib, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)] public static extern bool SendRetBoolError(nint receiver, nint sel, out nint error);
     [DllImport(Lib, EntryPoint = "objc_msgSend")] public static extern long SendRetLong(nint receiver, nint sel);
+    // 構造体・浮動小数を引数に取るセレクタ（構造体を返すセレクタは使わない。Core Animation 用）
+    [DllImport(Lib, EntryPoint = "objc_msgSend")] public static extern void SendVoidRect(nint receiver, nint sel, CGRect a);
+    [DllImport(Lib, EntryPoint = "objc_msgSend")] public static extern void SendVoidPoint(nint receiver, nint sel, CGPoint a);
+    [DllImport(Lib, EntryPoint = "objc_msgSend")] public static extern void SendVoidDouble(nint receiver, nint sel, double a);
+    [DllImport(Lib, EntryPoint = "objc_msgSend")] public static extern void SendVoidFloat(nint receiver, nint sel, float a);
+    [DllImport(Lib, EntryPoint = "objc_msgSend")] public static extern void SendVoidBool(nint receiver, nint sel, [MarshalAs(UnmanagedType.I1)] bool a);
+    [DllImport(Lib, EntryPoint = "objc_msgSend")] public static extern void SendVoid(nint receiver, nint sel, nint a, nint b);
+    [DllImport(Lib, EntryPoint = "objc_msgSend")] public static extern double SendRetDouble(nint receiver, nint sel);
+    [DllImport(Lib, EntryPoint = "objc_msgSend")] public static extern double SendRetDouble(nint receiver, nint sel, double a, nint b);
+    [DllImport(Lib, EntryPoint = "objc_msgSend")] public static extern nint SendDouble(nint receiver, nint sel, double a);
+    [DllImport(Lib, EntryPoint = "objc_msgSend")] public static extern void SendVoidFrameRate(nint receiver, nint sel, CAFrameRateRange a);
+    [DllImport(Lib, EntryPoint = "objc_msgSend")] public static extern nint SendArray(nint receiver, nint sel, nint[] items, nint count);
 
     private static readonly Dictionary<string, nint> Selectors = new();
     private static readonly Dictionary<string, nint> Classes = new();
@@ -107,6 +119,13 @@ internal readonly struct AutoreleasePool : IDisposable
 internal struct CGRect
 {
     public double X, Y, Width, Height;
+}
+
+/// <summary>CAFrameRateRange（float 3 つ。arm64 では浮動小数レジスタで渡る）。</summary>
+[StructLayout(LayoutKind.Sequential)]
+internal struct CAFrameRateRange
+{
+    public float Minimum, Maximum, Preferred;
 }
 
 [StructLayout(LayoutKind.Sequential)]

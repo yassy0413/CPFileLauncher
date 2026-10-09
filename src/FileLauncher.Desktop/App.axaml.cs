@@ -91,6 +91,7 @@ public partial class App : Application
         _board = new BoardWindow { Icons = new IconService(_platform.Icons, store.Paths.IconsDirectory) };
         _boardData = board;
         _board.ReducedMotion = () => _platform?.Window.PrefersReducedMotion == true;
+        _board.AmbientLayers = Program.AvaloniaAmbient ? null : _platform.Ambient;
         _board.ApplyEffects(settings.Appearance);
         ApplyWindowEffects(settings.Appearance);
         _board.Render(board, settings.Appearance, 0);

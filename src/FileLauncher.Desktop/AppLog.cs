@@ -28,7 +28,9 @@ internal static class AppLog
 
         public override void WriteLine(string? message)
         {
-            if (message is null || !message.StartsWith("[hook]", StringComparison.Ordinal)) return; // AppLog 自身の行は二重に書かない
+            // AppLog 自身の行は二重に書かない
+            if (message is null || !(message.StartsWith("[hook]", StringComparison.Ordinal) || message.StartsWith("[ambient]", StringComparison.Ordinal)
+                || message.StartsWith("[finder]", StringComparison.Ordinal))) return;
             Info(message);
         }
     }

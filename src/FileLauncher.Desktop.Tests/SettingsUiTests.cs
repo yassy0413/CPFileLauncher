@@ -241,6 +241,22 @@ public sealed class SettingsUiTests : IDisposable
         w.Close();
     }
 
+    [AvaloniaTheory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void OSの層で描くときは演出タブにVSyncとCPUの注記を出さない(bool native)
+    {
+        _platform.Ambient = new FakeAmbientLayers { IsSupported = native };
+        var w = OpenSettings();
+        SelectTab(w, Strings.Settings_Tab_Effects);
+        bool vsync = w.GetVisualDescendants().OfType<ComboBox>()
+            .Any(c => c.ItemsSource is IEnumerable<string> items && items.Contains(Strings.FormatSettings_Effects_Vsync_Item(2, 30)));
+        bool note = w.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == Strings.Settings_Effects_AmbientNote);
+        Assert.Equal(!native, vsync);
+        Assert.Equal(!native, note);
+        w.Close();
+    }
+
     [AvaloniaFact]
     public void Macでは保存値Systemを新しいウィンドウとして表示し_値は書き換えない()
     {

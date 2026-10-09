@@ -34,6 +34,25 @@ internal static class CoreGraphics
     [DllImport(Lib)] public static extern void CGImageRelease(nint image);
     [DllImport(Lib)] public static extern nint CGImageGetWidth(nint image);
     [DllImport(Lib)] public static extern nint CGImageGetHeight(nint image);
+
+    [DllImport(Lib)] public static extern nint CGPathCreateMutable();
+    [DllImport(Lib)] public static extern void CGPathMoveToPoint(nint path, nint transform, double x, double y);
+    [DllImport(Lib)] public static extern void CGPathAddLineToPoint(nint path, nint transform, double x, double y);
+    [DllImport(Lib)] public static extern void CGPathCloseSubpath(nint path);
+    [DllImport(Lib)] public static extern void CGPathRelease(nint path);
+    [DllImport(Lib)] public static extern nint CGColorCreateSRGB(double r, double g, double b, double a);
+    [DllImport(Lib)] public static extern void CGColorRelease(nint color);
+
+    /// <summary>閉じた折れ線の CGPath（呼び出し側が CGPathRelease）。</summary>
+    public static nint ClosedPath((double X, double Y)[] points)
+    {
+        nint path = CGPathCreateMutable();
+        if (points.Length == 0) return path;
+        CGPathMoveToPoint(path, 0, points[0].X, points[0].Y);
+        for (int i = 1; i < points.Length; i++) CGPathAddLineToPoint(path, 0, points[i].X, points[i].Y);
+        CGPathCloseSubpath(path);
+        return path;
+    }
 }
 
 [SupportedOSPlatform("macos")]
@@ -43,4 +62,6 @@ internal static class ImageIO
 
     [DllImport(Lib)] public static extern nint CGImageSourceCreateWithURL(nint url, nint options);
     [DllImport(Lib)] public static extern nint CGImageSourceCreateThumbnailAtIndex(nint source, nint index, nint options);
+    [DllImport(Lib)] public static extern nint CGImageSourceCreateWithData(nint data, nint options);
+    [DllImport(Lib)] public static extern nint CGImageSourceCreateImageAtIndex(nint source, nint index, nint options);
 }

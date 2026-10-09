@@ -24,8 +24,14 @@ internal static class Program
         int lang = Array.IndexOf(args, "--lang");
         string language = lang >= 0 && lang + 1 < args.Length && args[lang + 1] is "ja" or "en" ? args[lang + 1] : SettingsPeek.Language(settingsFile);
         Loc.ApplyStartupLanguage(language);
+        // --ambient avalonia: 常時の演出を OS の層ではなく Avalonia の層で描く（計測・切り分け用。issue/CA_AMBIENT.md）
+        int ambient = Array.IndexOf(args, "--ambient");
+        AvaloniaAmbient = ambient >= 0 && ambient + 1 < args.Length && args[ambient + 1] == "avalonia";
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
+
+    /// <summary>起動引数 --ambient avalonia（常時の演出を Avalonia の層で描く）。</summary>
+    public static bool AvaloniaAmbient { get; private set; }
 
     /// <summary>Main で取得済みの単一インスタンスのロック（App が引き継いで待ち受け・解放する）。</summary>
     public static SingleInstance? Instance { get; private set; }

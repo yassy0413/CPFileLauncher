@@ -132,7 +132,7 @@ public sealed class MacWindowService : IWindowService
     }
 
     /// <summary>Avalonia の TryGetPlatformHandle().Handle は NSView のことがあるので NSWindow に揃える。</summary>
-    private static nint NSWindowOf(nint handle)
+    internal static nint NSWindowOf(nint handle)
     {
         if (handle == 0) return 0;
         if (RespondsTo(handle, "contentView")) return handle; // NSWindow

@@ -4,6 +4,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Media.Immutable;
 using Avalonia.Threading;
+using FileLauncher.Core.Effects;
 using FileLauncher.Core.Theming;
 
 namespace FileLauncher.App;
@@ -193,8 +194,8 @@ internal sealed class NeonGlowPlan
     {
         var (outer, _) = Layers(shadows, inset: false);
         var (inner, _) = Layers(shadows, inset: true);
-        return (outer.Count > 0 ? NeonProfile.Extent(outer, AmbientAnimator.MaxPulseGain) : 0,
-                inner.Count > 0 ? NeonProfile.Extent(inner, AmbientAnimator.MaxPulseGain) : 0);
+        return (outer.Count > 0 ? NeonProfile.Extent(outer, AmbientLook.MaxPulseGain) : 0,
+                inner.Count > 0 ? NeonProfile.Extent(inner, AmbientLook.MaxPulseGain) : 0);
     }
 
     private NeonGlowPlan(Rect frame, double chamfer, BoxShadows shadows)
@@ -218,12 +219,12 @@ internal sealed class NeonGlowPlan
         var (innerLayers, innerColor) = Layers(shadows, inset: true);
         // 帯 = 距離 Outer の八角形 − 距離 Inner の八角形（外側は膨らませ、内側は縮める）
         if (outer && outerLayers.Count > 0)
-            plan.OutwardExtent = NeonProfile.Extent(outerLayers, AmbientAnimator.MaxPulseGain);
+            plan.OutwardExtent = NeonProfile.Extent(outerLayers, AmbientLook.MaxPulseGain);
         if (outer && outerLayers.Count > 0)
-            foreach (var (o, i, a) in NeonProfile.Bands(outerLayers, AmbientAnimator.MaxPulseGain))
+            foreach (var (o, i, a) in NeonProfile.Bands(outerLayers, AmbientLook.MaxPulseGain))
                 plan._bands.Add((Band(Offset(frame, o, chamfer), Offset(frame, i, chamfer)), Brush(outerColor, a)));
         if (inner && innerLayers.Count > 0)
-            foreach (var (o, i, a) in NeonProfile.Bands(innerLayers, AmbientAnimator.MaxPulseGain))
+            foreach (var (o, i, a) in NeonProfile.Bands(innerLayers, AmbientLook.MaxPulseGain))
                 plan._bands.Add((Band(Offset(frame, -i, chamfer), Offset(frame, -o, chamfer)), Brush(innerColor, a)));
         return plan;
     }

@@ -61,9 +61,11 @@ internal sealed class PulseLayer : Canvas
     }
 
     /// <summary>今の大きさ・テーマで画像が古ければ焼き直す（盤面が見えていて大きさが決まってから呼ぶ）。</summary>
-    public void Refresh()
+    public void Refresh() => Refresh(Bounds.Size);
+
+    /// <summary>大きさを指定して焼く（OS の層で描くとき。この層自体は隠れていてレイアウトされない）。</summary>
+    public void Refresh(Size size)
     {
-        var size = Bounds.Size;
         if (size.Width < 1 || size.Height < 1) return;
         var variant = (TopLevel.GetTopLevel(this) as IThemeVariantHost)?.ActualThemeVariant ?? ThemeVariant.Default;
         this.TryFindResource("FlBoardGlow", variant, out var shadow);

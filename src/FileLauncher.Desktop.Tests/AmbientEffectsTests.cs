@@ -207,3 +207,111 @@ public sealed class AmbientEffectsTests
         Assert.True(AmbientAnimator.ShouldTick(100, 150, AmbientMath.FrameIntervalMs(3))); // 3 フレームごと
     }
 }
+
+/// <summary>常時の演出を OS の層（macOS = Core Animation）で描くとき（issue/CA_AMBIENT.md §6）。</summary>
+public sealed class NativeAmbientTests
+{
+    private static (BoardWindow Board, AppearanceSettings Appearance, FakeAmbientLayers Layers) Board(Action<AppearanceSettings>? configure = null, bool attach = true)
+    {
+        var appearance = new AppearanceSettings();
+        appearance.Effects[EffectCatalog.BoardShow] = EffectSpec.None;
+        configure?.Invoke(appearance);
+        var layers = new FakeAmbientLayers { AttachSucceeds = attach };
+        var board = new BoardWindow { AmbientLayers = layers };
+        board.ApplyEffects(appearance);
+        board.Render(Core.Model.Board.CreateDefault(), appearance, 0);
+        board.Show();
+        Dispatcher.UIThread.RunJobs();
+        return (board, appearance, layers);
+    }
+
+    private static void Close(BoardWindow board)
+    {
+        board.AllowClose = true;
+        board.Close();
+    }
+
+    [AvaloniaFact]
+    public void OSの層があればAvaloniaの層は動かさず_見えている間だけ動く指示が届く()
+    {
+        var (board, _, layers) = Board();
+        var host = layers.Host!;
+        Assert.NotNull(board.Native);
+        Assert.False(board.AmbientRunning);
+        Assert.True(host.Running);
+        board.Hide();
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(host.Running);
+        board.Show();
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(host.Running);
+        board.AmbientSuspended = true;
+        Assert.False(host.Running);
+        board.AmbientSuspended = false;
+        Assert.True(host.Running);
+        board.ReducedMotion = () => true;
+        board.AmbientSuspended = false;
+        Assert.False(host.Running);
+        Close(board);
+        Assert.True(host.Disposed);
+    }
+
+    [AvaloniaFact]
+    public void 設定の種類と周期と配色が届き_なしはnull()
+    {
+        var (board, appearance, layers) = Board(a =>
+        {
+            a.Effects[EffectCatalog.FrameOrb] = new EffectSpec { Kind = EffectKind.OrbTwin, DurationMs = 10000, Easing = EasingKind.Linear };
+            a.Effects[EffectCatalog.GlowPulse] = new EffectSpec { Kind = EffectKind.PulseStrong, DurationMs = 3000, Easing = EasingKind.Linear };
+        });
+        var host = layers.Host!;
+        Assert.Equal(2, host.Orbs!.Count);
+        Assert.Equal(10000, host.Orbs.PeriodMs);
+        Assert.NotNull(host.Beam);
+        Assert.Equal(0.9, host.Pulse!.Peak);
+        Assert.Equal(3000, host.Pulse.PeriodMs);
+
+        foreach (var id in new[] { EffectCatalog.FrameOrb, EffectCatalog.GlowPulse, EffectCatalog.ScanBeam }) appearance.Effects[id] = EffectSpec.None;
+        board.ApplyEffects(appearance);
+        Assert.Null(host.Orbs);
+        Assert.Null(host.Pulse);
+        Assert.Null(host.Beam);
+        Assert.False(host.Running);
+        Close(board);
+    }
+
+    [AvaloniaFact]
+    public void 枠の位置と大きさと明滅の画像が余白込みで届く()
+    {
+        var (board, _, layers) = Board(a =>
+            a.Effects[EffectCatalog.GlowPulse] = new EffectSpec { Kind = EffectKind.Pulse, DurationMs = 4000, Easing = EasingKind.Linear });
+        var g = layers.Host!.Geometry!;
+        double margin = board.TryFindResource("FlGlowMargin", board.ActualThemeVariant, out var m) && m is double d ? d : 0;
+        Assert.Equal(margin, g.FrameX);
+        Assert.Equal(margin, g.FrameY);
+        Assert.Equal(board.Chrome.Frame.Bounds.Width, g.FrameWidth);
+        var image = layers.Host.Pulse!.Image;
+        Assert.Equal((int)Math.Ceiling((g.FrameWidth + margin * 2) * g.Scale), image.PixelWidth);
+        Assert.True(image.Png.Length > 8 && image.Png[1] == (byte)'P' && image.Png[2] == (byte)'N' && image.Png[3] == (byte)'G');
+        Close(board);
+    }
+
+    [AvaloniaFact]
+    public void 不透明度はOSの層にも渡す()
+    {
+        var (board, _, layers) = Board();
+        board.ApplyOpacity(50);
+        Assert.Equal(0.5, layers.Host!.Opacity);
+        Close(board);
+    }
+
+    [AvaloniaFact]
+    public void 取り付けに失敗したらAvaloniaの層で描く()
+    {
+        var (board, _, layers) = Board(attach: false);
+        Assert.Null(layers.Host);
+        Assert.Null(board.Native);
+        Assert.True(board.AmbientRunning);
+        Close(board);
+    }
+}

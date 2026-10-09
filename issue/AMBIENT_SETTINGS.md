@@ -84,7 +84,7 @@ Core・Platform・JSON は触らない。`SettingsWindow.cs` と両 resx とテ�
 
 Retina（scale 2）は未計測。
 
-**2026-10-08**: 負荷削減 A + B（`issue/AMBIENT_RENDER_OPT.md`）の設計が入ったので、以下の残りの計測は **その実装後に同 issue のステップ 4 とまとめて取る**（同じ手順・同じ構成に「既定・背景画像なし」を含める）。試作値は既定構成（背景あり）29.6 → 22.8%。
+**2026-10-08**: 負荷削減 A + B（`issue/AMBIENT_RENDER_OPT.md`、2026-10-09 に閉じた）の実装後の再計測で既定構成（背景あり）22.8% / すべてなし 0.6% を記録済み（EFFECTS.md 冒頭）。**2026-10-09**: E（`issue/CA_AMBIENT.md`）の採用で Mac の既定の描き手が Core Animation になるため、以下の Mac の計測（既定構成・VSync 比較）は **`CA_AMBIENT.md` ステップ 7 / SPEC §13.3 C30 に寄せる**（VSync は macOS では使わない = 比較は Windows だけ）。注記の数値「15〜25%」は同日のユーザー判断で注記から外した（TERMS.md）。残るのは Windows 側の 1 項目。
 
 - [ ] **新しい既定構成**（`orb / 8000` + `pulse / 4000` + `beam / 4000`、VSync 2、背景画像なし / あり）の表示中 CPU と隠した後、表示まで n ms、footprint。EFFECTS.md 冒頭の実装後の表に「既定構成（2026-10-07 午後）」の行を足し、SPEC §11 (2) の見込み「20〜25%」を実測に置き換える。
 - [ ] **VSync 1 / 2 / 3** を既定構成で比較。EFFECTS.md の表に列を足す。見た目: VSync 3 で玉（8 s / 周 ≈ 9.5 px / 更新）・帯（≈ 5 px / 更新）のコマ送りが「選べる範囲」として許容か（ユーザー確認、Mac 環境があれば）。

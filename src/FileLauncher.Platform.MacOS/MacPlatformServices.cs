@@ -44,6 +44,7 @@ public sealed class MacPlatformServices : IPlatformServices
     public IAutoStartService AutoStart { get; } = new MacAutoStartService();
     public IPermissionService Permissions { get; } = new MacPermissionService();
     public IDesktopDetector Desktop { get; }
+    public IAmbientLayerService Ambient { get; } = new MacAmbientLayerService();
 
     public void Dispose()
     {

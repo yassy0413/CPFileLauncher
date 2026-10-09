@@ -180,7 +180,11 @@ public partial class BoardWindow : Window
     }
 
     /// <summary>不透明度設定（SPEC §3.1）。演出の透明度（Frame）とは別の層（ウィンドウ）に掛ける。</summary>
-    public void ApplyOpacity(int percent) => Opacity = percent / 100.0;
+    public void ApplyOpacity(int percent)
+    {
+        Opacity = percent / 100.0;
+        _native?.SetOpacity(percent / 100.0); // OS の層には Window.Opacity が掛からない
+    }
 
     /// <summary>演出の設定を反映する（spec/EFFECTS.md）。ホバーの色変化はスロットを作るときに付けるので描き直す。</summary>
     public void ApplyEffects(AppearanceSettings appearance)
@@ -195,11 +199,26 @@ public partial class BoardWindow : Window
         _labelEffect = EffectCatalog.Resolve(appearance, EffectCatalog.LabelHover);
         _iconEffect = EffectCatalog.Resolve(appearance, EffectCatalog.IconLoad);
         _dropEffect = EffectCatalog.Resolve(appearance, EffectCatalog.DropTarget);
-        _orbLayer.Spec = EffectCatalog.Resolve(appearance, EffectCatalog.FrameOrb);
-        _ambient.Vsync = appearance.Vsync; // 次のフレームから新しい間隔で間引く
-        _beamLayer.Spec = EffectCatalog.Resolve(appearance, EffectCatalog.ScanBeam);
-        _ambient.PulseSpec = EffectCatalog.Resolve(appearance, EffectCatalog.GlowPulse);
-        _pulseLayer.IsVisible = _ambient.PulseSpec.IsActive;
+        var orb = EffectCatalog.Resolve(appearance, EffectCatalog.FrameOrb);
+        var beam = EffectCatalog.Resolve(appearance, EffectCatalog.ScanBeam);
+        var pulse = EffectCatalog.Resolve(appearance, EffectCatalog.GlowPulse);
+        _ambientAny = orb.IsActive || pulse.IsActive || beam.IsActive;
+        if (UseNativeAmbient())
+        {
+            // OS の層（macOS = Core Animation）が描く。Avalonia の層は何も描かない（issue/CA_AMBIENT.md §4）
+            _native!.Apply(orb, pulse, beam);
+            _native.SetOpacity(Opacity);
+            _orbLayer.Spec = _beamLayer.Spec = _ambient.PulseSpec = EffectSpec.None;
+            _pulseLayer.IsVisible = false;
+        }
+        else
+        {
+            _orbLayer.Spec = orb;
+            _ambient.Vsync = appearance.Vsync; // 次のフレームから新しい間隔で間引く
+            _beamLayer.Spec = beam;
+            _ambient.PulseSpec = pulse;
+            _pulseLayer.IsVisible = pulse.IsActive;
+        }
         UpdateAmbient();
         if (_board.Pages.Count > 0 && SlotGrid.Children.Count > 0)
         {
@@ -298,6 +317,26 @@ public partial class BoardWindow : Window
     private readonly Grid _ambientRoot;
     private readonly AmbientAnimator _ambient;
     private int _transitions; // 表示・非表示・グリッチの演出中（その間は止める）
+    private bool _ambientAny; // 3 つのどれかが「なし」以外
+    private NativeAmbient? _native;
+    private bool _nativeFailed;
+
+    /// <summary>常時の演出を OS の層で描くサービス（App が入れる。null = Avalonia の層。--ambient avalonia）。</summary>
+    internal FileLauncher.Platform.IAmbientLayerService? AmbientLayers { get; set; }
+
+    /// <summary>OS の層で描いているとき（テスト用）。</summary>
+    internal NativeAmbient? Native => _native;
+
+    /// <summary>OS の層に取り付ける（初回だけ）。非対応・失敗なら false（Avalonia の層で描く）。</summary>
+    private bool UseNativeAmbient()
+    {
+        if (_native is not null) return true;
+        if (_nativeFailed || AmbientLayers is not { IsSupported: true } service) return false;
+        var native = new NativeAmbient(this, service, _pulseLayer);
+        if (!native.TryAttach()) { _nativeFailed = true; return false; }
+        _native = native;
+        return true;
+    }
     private bool _ambientSuspended;
 
     /// <summary>常駐の自動収納中など、外から止めたいとき（ResidentController が立てる）。</summary>
@@ -335,8 +374,8 @@ public partial class BoardWindow : Window
     {
         if (_ambient is null) return; // 構築中（InitializeComponent の途中で IsVisible が変わる）
         if (_appearance is not null) UpdateClock(); // 時刻のタイマーも同じ条件（見えている・収納中でない）で動かす
-        bool any = _orbLayer.Spec.IsActive || _ambient.PulseSpec.IsActive || _beamLayer.Spec.IsActive;
-        bool run = any && IsVisible && !_ambientSuspended && _transitions == 0 && ReducedMotion?.Invoke() != true;
+        bool run = _ambientAny && IsVisible && !_ambientSuspended && _transitions == 0 && ReducedMotion?.Invoke() != true;
+        if (_native is not null) { _native.SetRunning(run); return; } // OS の層: 止める・進めるだけ（Avalonia の層は動かさない）
         if (run == _ambient.IsRunning) return;
         if (run)
         {

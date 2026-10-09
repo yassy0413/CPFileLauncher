@@ -8,6 +8,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using FileLauncher.App;
+using FileLauncher.Core.Effects;
 using FileLauncher.Core.Theming;
 
 namespace FileLauncher.Desktop.Tests;
@@ -65,7 +66,7 @@ public sealed class NeonGlowTests
         Assert.True(g(x, top - 1) > 60, $"辺のすぐ外が光る: {g(x, top - 1)}");
         for (int d = 1; d < top; d++) Assert.True(g(x, top - d - 1) <= g(x, top - d) + 1, $"d={d}: {g(x, top - d - 1)} > {g(x, top - d)}");
         Assert.True(g(x, 1) <= 1, $"窓の端の 2 px 手前で消えている: {g(x, 1)}");
-        Assert.True(NeonProfile.Extent([new(4, 0xE6 / 255.0), new(14, 0x8C / 255.0), new(32, 0x4D / 255.0)], AmbientAnimator.MaxPulseGain) + 2 <= margin);
+        Assert.True(NeonProfile.Extent([new(4, 0xE6 / 255.0), new(14, 0x8C / 255.0), new(32, 0x4D / 255.0)], AmbientLook.MaxPulseGain) + 2 <= margin);
         window.Close();
     }
 

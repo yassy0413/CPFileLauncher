@@ -24,6 +24,9 @@ internal sealed class FakePlatform : IPlatformServices, IInputHookService, IHotk
     public IPermissionService Permissions => this;
     public IDesktopDetector Desktop => this;
 
+    /// <summary>既定は非対応（従来の Avalonia の層）。OS の層のテストでは FakeAmbientLayers を入れる。</summary>
+    public IAmbientLayerService Ambient { get; set; } = AmbientLayers.Unsupported;
+
     // 入力フック
     public void Start() { }
     public bool IsRunning => HookRunning;

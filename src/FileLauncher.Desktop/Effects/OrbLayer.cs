@@ -78,7 +78,7 @@ internal sealed class OrbLayer : Canvas
     {
         double thickness = Token<Thickness>("FlBoardBorderThickness").Left;
         double radius = Token<CornerRadius>("FlBoardCornerRadius").TopLeft;
-        double inset = Chamfer > 0 ? thickness * 1.5 : thickness / 2;
+        double inset = AmbientLayout.OrbInset(Chamfer, thickness);
         if (_path is null || size != _pathSize || radius != _pathRadius || inset != _pathInset || Chamfer != _pathChamfer)
         {
             _path = Chamfer > 0
@@ -118,9 +118,9 @@ internal sealed class OrbLayer : Canvas
 /// <summary>光の玉 1 個（芯 + 暈 + 尾）。中心がこの部品の真ん中。尾の位置は玉からの相対座標で受け取る。</summary>
 internal sealed class OrbSprite : Control
 {
-    public const int TailPoints = 10;
-    public const double TailLength = 48;
-    private const double CoreRadius = 2.5, HaloRadius = 9, TailStartRadius = 7, TailEndRadius = 3, TailStartOpacity = 0.6;
+    public const int TailPoints = AmbientLook.OrbTailPoints;
+    public const double TailLength = AmbientLook.OrbTailLength;
+    private const double CoreRadius = AmbientLook.OrbCoreRadius, HaloRadius = AmbientLook.OrbHaloRadius;
     public const double Half = TailLength + HaloRadius + 4;
 
     private IBrush _core = Brushes.White;
@@ -136,13 +136,13 @@ internal sealed class OrbSprite : Control
 
     public void SetColor(Color c)
     {
-        static byte Mix(byte v) => (byte)(v + (255 - v) * 0.6);
-        _core = new SolidColorBrush(Color.FromRgb(Mix(c.R), Mix(c.G), Mix(c.B))).ToImmutable();
+        var core = AmbientLook.OrbCoreColor(new(c.R, c.G, c.B));
+        _core = new SolidColorBrush(Color.FromRgb(core.R, core.G, core.B)).ToImmutable();
         _halo = new RadialGradientBrush
         {
             GradientStops =
             {
-                new GradientStop(Color.FromArgb(230, c.R, c.G, c.B), 0),
+                new GradientStop(Color.FromArgb((byte)Math.Round(AmbientLook.OrbHaloAlpha * 255), c.R, c.G, c.B), 0),
                 new GradientStop(Color.FromArgb(0, c.R, c.G, c.B), 1),
             },
         }.ToImmutable();
@@ -159,11 +159,11 @@ internal sealed class OrbSprite : Control
     {
         var center = new Point(Half, Half);
         // 尾: 後ろへ行くほど小さく薄い暈だけ
+        var steps = AmbientLook.OrbTailSteps(); // 尾の先端（i = 10）から
         for (int i = _tail.Length; i >= 1; i--)
         {
-            double t = i / (double)_tail.Length;
-            double r = TailStartRadius + (TailEndRadius - TailStartRadius) * t;
-            using (context.PushOpacity(TailStartOpacity * (1 - t)))
+            var (r, opacity, _) = steps[TailPoints - i];
+            using (context.PushOpacity(opacity))
                 context.DrawEllipse(_halo, null, center + _tail[i - 1], r, r);
         }
         context.DrawEllipse(_halo, null, center, HaloRadius, HaloRadius);

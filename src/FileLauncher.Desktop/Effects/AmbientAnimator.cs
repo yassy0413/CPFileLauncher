@@ -19,10 +19,6 @@ internal sealed class AmbientAnimator(TopLevel topLevel, OrbLayer orbs, PulseLay
     /// </summary>
     internal double MinFrameMs => AmbientMath.FrameIntervalMs(Vsync);
     private const double PulseStep = 0.02;
-    private const double WeakPeak = 0.45, StrongPeak = 0.9;
-
-    /// <summary>明滅で発光が最も明るくなる倍率（静的な発光 + 明滅「強」の画像）。発光の広がりの終わり（窓の余白）の計算に使う。</summary>
-    public const double MaxPulseGain = 1 + StrongPeak;
     private readonly Stopwatch _clock = new();
     private double _lastMs = double.NegativeInfinity;
     private double _lastFrameMs = double.NegativeInfinity;
@@ -73,7 +69,7 @@ internal sealed class AmbientAnimator(TopLevel topLevel, OrbLayer orbs, PulseLay
         _lastMs = elapsedMs;
         orbs.Advance(elapsedMs);
         beam.Advance(elapsedMs);
-        double peak = PulseSpec.Kind switch { EffectKind.Pulse => WeakPeak, EffectKind.PulseStrong => StrongPeak, _ => 0 };
+        double peak = AmbientLook.PulsePeak(PulseSpec.Kind);
         double level = peak <= 0 ? 0 : AmbientMath.PulseLevel(elapsedMs, PulseSpec.DurationMs, peak);
         // 明滅の層は盤面全体に掛かるので、変えるたびに盤面全体が描き直しになる。目に見える差（2%）が出たときだけ変える
         if (Math.Abs(level - pulse.Level) >= PulseStep || (level == 0) != (pulse.Level == 0)) pulse.Level = level;

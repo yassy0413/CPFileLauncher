@@ -176,4 +176,7 @@ public interface IPlatformServices : IDisposable
     IAutoStartService AutoStart { get; }
     IPermissionService Permissions { get; }
     IDesktopDetector Desktop { get; }
+
+    /// <summary>常時の演出を OS の層で描く（macOS = Core Animation）。既定は非対応（App は Avalonia の層で描く）。</summary>
+    IAmbientLayerService Ambient => AmbientLayers.Unsupported;
 }

@@ -248,7 +248,7 @@ Core（`FileLauncher.Tests`）は `AmbientEffectsCoreTests.cs`、Desktop は `Am
 - [ ] 自動で掛かるもの: `StringsTests`（`Settings_Effects_Scanlines` / `_Note` / `Settings_Effects_ScanlineOpacity` / `Settings_Effects_ScanlinePitch` / `Settings_Effects_ScanlinesHeading` が両 resx にあり、旧 `Settings_Appearance_Hud_Scanline*` が残っていない）、`NoHardcodedJapaneseTests`、既存のはみ出しテスト（全タブ・全 `Expander` を開いて右端を見る。演出タブの末尾に 3 行増えても自動で対象）。
 - [ ] 上の「走査線」節（2026-10-07 午前の設計）の `SettingsUiTests` の項目で「表示タブに…」とある箇所と `StringsTests` の旧キー名は、この節の内容で読み替える（表示タブ → 演出タブの末尾、`Settings_Appearance_Hud_Scanline*` → `Settings_Effects_Scanline*`）。
 
-### 常時の演出の負荷削減（A + B。SPEC §3.6「作り置き」/ §10.5 / §10.7 の 2026-10-08 の項、EFFECTS.md `glowPulse` の「作り方」。2026-10-08 設計、未実装。`issue/AMBIENT_RENDER_OPT.md`。Desktop は `NeonGlowTests.cs`（描画ありフィクスチャ）と `AmbientEffectsTests.cs`）
+### 常時の演出の負荷削減（A + B。SPEC §3.6「作り置き」/ §10.5 / §10.7 の 2026-10-08 の項、EFFECTS.md `glowPulse` の「作り方」。2026-10-08 設計・同日実装（`issue/AMBIENT_RENDER_OPT.md` は 2026-10-09 に閉じた。下の [ ] は実装側が実在するテストに合わせて [x] に直す）。Desktop は `NeonGlowTests.cs`（描画ありフィクスチャ）と `AmbientEffectsTests.cs`）
 
 画素テストは既存の「八角形に沿う枠の発光」節と同じ流儀（黒地の窓、主色シアンの G、許容 ±4 / ±20%）。`Draw(setup, bake)` ヘルパーに焼き込みの有無を足す。`UseRegionDirtyRectClipping` はアプリの設定なのでテストしない。
 
@@ -263,6 +263,21 @@ Core（`FileLauncher.Tests`）は `AmbientEffectsCoreTests.cs`、Desktop は `Am
 - [ ] `明滅のLevelが0なら帯は何も描かない`: `Level = 0` で上辺の外側の画素が 0。
 - [ ] 既存 `明滅の画像は静的な発光と同じ八角形の形`（`BakedImage` を見る）と `AmbientEffectsTests` の `PulseLayer.Level` のテストはそのまま通る。`GlitchTests`（静止画に焼いた発光を `DrawImage` する経路）と `BackgroundTests` が描画ありフィクスチャで例外を出さない。
 - [ ] 自動で掛かるもの: `NoHardcodedJapaneseTests`（ログ「枠の発光の作り置き」は `AppLog` なので対象外）。`grep "MEASURE-TEMP\|CPFL_"` が 0 件であることは実装者が手で確認（テストにはしない）。
+
+### 常時の演出の Core Animation 化（E。SPEC §10.3 `IAmbientLayerService` / §10.7 の 2026-10-09 の項 / §13.3 C30、EFFECTS.md「描き方（OS 別）」。2026-10-09 設計、未実装。`issue/CA_AMBIENT.md`。Core は `FileLauncher.Tests/AmbientLayerCoreTests.cs`（新規）、Desktop は `AmbientEffectsTests.cs` と `SettingsUiTests.cs`。CA 自体はヘッドレスで動かないので、Desktop は `FakePlatform` の記録用ホストで「`BoardWindow` が何をいつ渡すか」を見る）
+
+`FakePlatform` に `FakeAmbientLayers`（`IsSupported` を切り替えられる。`Attach` は記録用 `FakeAmbientLayerHost` を返すか、`AttachFails = true` で null）を足し、`IPlatformServices.Ambient` を上書きする。既定は非対応（既存のテストは従来の Avalonia の層で動く）。
+
+- [ ] Core `AmbientLayout`: `OrbInset`（面取りあり 1.5 → 2.25、なし → 0.75）/ `OrbCenterline` の最初の点が `(inset + chamfer, inset)` で 8 点、`Perimeter` が `OrbPath.Octagon(w − 2 inset, h − 2 inset, c).Length` と一致 / `OrbTimeOffsetMs`: `(8000, 0, 0, p)` = 0、`(8000, 0.5, 0, p)` = 4000、`(8000, 0, p/4, p)` = 6000、`(8000, 0, p, p)` = 0、`(8000, 0.5, p/4, p)` = 2000、常に `[0, T)` / `BeamCenterY(0, 330)` = −30、`(1, 330)` = 360、`(0.5, 330)` = 165 / `FaceRect` / `PulseLayerRect`（画像のピクセル数 ÷ 拡大率）。
+- [ ] Core `AmbientLook`: `PulseKeyframes(0.45, 33)` が長さ 33・両端 0・中央 0.45・対称・前半で単調増加 / `OrbTailSteps` が 10 個で先頭 `(3, 0, 48)`・末尾 `(6.6, 0.54, 4.8)` / `OrbCoreColor((0, 255, 255))` = `(153, 255, 255)` / `PulsePeak(Pulse)` = 0.45、`(PulseStrong)` = 0.9、他 0。
+- [ ] Desktop `ホストがあるときは Avalonia の層を動かさず_表示と非表示をホストに渡す`: `FakeAmbientLayers.IsSupported = true` で `frameOrb = orb` を設定し `Show()` → `AmbientRunning == false`、`AmbientRoot.IsVisible == false`、ホストに `SetRunning(true)` が 1 回以上 / `Hide()` → 最後の呼び出しが `SetRunning(false)` / `AmbientSuspended = true`・`ReducedMotion = true`・`Animation = false` でも `SetRunning(false)`。
+- [ ] Desktop `ホストには解決した演出と色が届く`: `orbTwin / 6000` → `SetOrbs(Count 2, PeriodMs 6000, Primary = FlAccent, Secondary = FlAccent2)`、`pulseStrong` → `SetPulse(Peak 0.9)` と `EncodedImage.PixelWidth == ceil((W + 2 × 40) × scale)`、`beam / 3000` → `SetBeam(3000)`、`none` → null。配色を変える（`AppTheme.SetColors`）と `Primary` が新しい色で届き直す。
+- [ ] Desktop `ホストには枠の位置と大きさが届く`: `SetGeometry` の `FrameX == FrameY == FlGlowMargin`、`FrameWidth == Chrome.Frame.Bounds.Width`、`WindowHeight == ClientSize.Height`、`Scale == RenderScaling`。盤面の `Width` を変えると新しい `FrameWidth` で届き直す。
+- [ ] Desktop `不透明度はホストにも渡る`: `ApplyOpacity(50)` → `SetOpacity(0.5)`。
+- [ ] Desktop `取り付けに失敗したら従来の層で動く`: `AttachFails = true` → `Show()` で `AmbientRunning == true`。
+- [ ] Desktop `窓を閉じるとホストを手放す`: `Close()` → `Disposed == true`。
+- [ ] Desktop（設定画面。2026-10-09 ユーザー判断）: `IsSupported = true` のとき演出タブに VSync の `ComboBox` と `Strings.Settings_Effects_AmbientNote` の `TextBlock` が無い。false のとき両方ある（文言は短くなった新しい値。`Strings.*` 参照なので既存テストはそのまま）。
+- [ ] 既存: `AmbientEffectsTests` の Avalonia 経路のテストはそのまま通る（既定の `FakePlatform` は非対応）。`NeonGlowTests` の `MaxPulseGain` 参照先が `AmbientLook` に変わるだけ。
 
 ## 3. 実装時の注意
 

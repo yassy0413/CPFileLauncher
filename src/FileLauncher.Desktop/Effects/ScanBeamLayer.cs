@@ -13,7 +13,7 @@ namespace FileLauncher.App;
 /// </summary>
 internal sealed class ScanBeamLayer : Canvas
 {
-    public const double BandHeight = 60;
+    public const double BandHeight = AmbientLook.BeamBandHeight;
 
     private readonly Rectangle _band = new() { Height = BandHeight, IsHitTestVisible = false, IsVisible = false };
     private readonly TranslateTransform _move = new();
@@ -52,17 +52,13 @@ internal sealed class ScanBeamLayer : Canvas
         var c = this.TryFindResource("FlAccent", variant, out var v) && v is ISolidColorBrush b ? b.Color : Colors.Cyan;
         if (c == _accent) return;
         _accent = c;
-        // 上端は透明、下へ行くほど明るい（85% で α28、下端 α60）
-        _band.Fill = new LinearGradientBrush
+        // 上端は透明、下へ行くほど明るい（AmbientLook.BeamStops）
+        var brush = new LinearGradientBrush
         {
             StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
             EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
-            GradientStops =
-            {
-                new GradientStop(Color.FromArgb(0, c.R, c.G, c.B), 0),
-                new GradientStop(Color.FromArgb(28, c.R, c.G, c.B), 0.85),
-                new GradientStop(Color.FromArgb(60, c.R, c.G, c.B), 1),
-            },
-        }.ToImmutable();
+        };
+        foreach (var (offset, alpha) in AmbientLook.BeamStops) brush.GradientStops.Add(new GradientStop(Color.FromArgb(alpha, c.R, c.G, c.B), offset));
+        _band.Fill = brush.ToImmutable();
     }
 }

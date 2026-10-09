@@ -1127,7 +1127,7 @@ The current files are kept in backup/.</value>
     <value>Strong</value>
   </data>
   <data name="Settings_Effects_AmbientNote" xml:space="preserve">
-    <value>Light orb, glow pulse, and scan beam run the whole time the board is visible and use a lot of CPU (about 15–25%). Set the kind to None to stop them, or raise VSync to lighten the load.</value>
+    <value>Light orb, glow pulse, and scan beam run the whole time the board is visible and use a lot of CPU.</value>
   </data>
   <data name="Settings_Effects_ReducedMotionNote" xml:space="preserve">
     <value>Stopped because the system’s reduce-motion setting is on.</value>

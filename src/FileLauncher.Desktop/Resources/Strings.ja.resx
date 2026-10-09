@@ -1070,7 +1070,7 @@
     <value>強</value>
   </data>
   <data name="Settings_Effects_AmbientNote" xml:space="preserve">
-    <value>光の玉・発光の明滅・走査線の帯は、盤面が見えている間ずっと動き、CPU を多く使います（15〜25% 程度）。種類を「なし」にすると止まり、「VSync」を大きくすると軽くなります。</value>
+    <value>光の玉・発光の明滅・走査線の帯は、盤面が見えている間ずっと動き、CPU を多く使います。</value>
   </data>
   <data name="Settings_Effects_ReducedMotionNote" xml:space="preserve">
     <value>OS の「視差効果を減らす」設定がオンのため停止しています。</value>

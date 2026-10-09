@@ -715,13 +715,17 @@ internal sealed class SettingsWindow : ChromeWindow
         body.Children.Add(new TextBlock { Text = Strings.Settings_Effects_AmbientHeading, FontWeight = FontWeight.SemiBold, FontSize = 13, Margin = new Thickness(0, 6, 0, 0) });
         foreach (var def in EffectCatalog.All.Where(d => d.IsAmbient))
             body.Children.Add(EffectRow(def, showId: false, showEasing: false));
-        body.Children.Add(Row(Strings.Settings_Effects_Vsync, Combo(
-            AppearanceSettings.VsyncValues.Select(v => (Strings.FormatSettings_Effects_Vsync_Item(v, 60 / v), v)).ToArray(),
-            s => s.Appearance.Vsync, (s, v) => s.Appearance.Vsync = v, SettingsChange.Effects),
-            Strings.Settings_Effects_Vsync_Note));
+        // OS の層で描く（macOS = Core Animation）ときは OS が画面に合わせて進めるので VSync も CPU の注記も出さない（2026-10-09 ユーザー判断）
+        bool native = _ctx.Platform.Ambient.IsSupported;
+        if (!native)
+            body.Children.Add(Row(Strings.Settings_Effects_Vsync, Combo(
+                AppearanceSettings.VsyncValues.Select(v => (Strings.FormatSettings_Effects_Vsync_Item(v, 60 / v), v)).ToArray(),
+                s => s.Appearance.Vsync, (s, v) => s.Appearance.Vsync = v, SettingsChange.Effects),
+                Strings.Settings_Effects_Vsync_Note));
         p.Children.Add(body);
 
-        p.Children.Add(Themed.Note(new TextBlock { Text = Strings.Settings_Effects_AmbientNote, FontSize = 12, TextWrapping = TextWrapping.Wrap }));
+        if (!native)
+            p.Children.Add(Themed.Note(new TextBlock { Text = Strings.Settings_Effects_AmbientNote, FontSize = 12, TextWrapping = TextWrapping.Wrap }));
         if (_ctx.Platform.Window.PrefersReducedMotion)
             p.Children.Add(Themed.Note(new TextBlock { Text = Strings.Settings_Effects_ReducedMotionNote, FontSize = 12, TextWrapping = TextWrapping.Wrap }));
 
