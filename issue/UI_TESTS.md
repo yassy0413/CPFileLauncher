@@ -286,7 +286,7 @@ Core（`FileLauncher.Tests`）は `AmbientEffectsCoreTests.cs`、Desktop は `Am
 - [ ] Desktop（設定画面。2026-10-09 ユーザー判断）: `IsSupported = true` のとき演出タブに VSync の `ComboBox` と `Strings.Settings_Effects_AmbientNote` の `TextBlock` が無い。false のとき両方ある（文言は短くなった新しい値。`Strings.*` 参照なので既存テストはそのまま）。
 - [ ] 既存: `AmbientEffectsTests` の Avalonia 経路のテストはそのまま通る（既定の `FakePlatform` は非対応）。`NeonGlowTests` の `MaxPulseGain` 参照先が `AmbientLook` に変わるだけ。
 
-### グリッチの強さ（`appearance.glitchIntensity`。SETTINGS.md 演出タブ、EFFECTS.md「glitch の詳細」の「強さの倍率」。2026-10-10 設計、未実装。`issue/GLITCH_INTENSITY.md`）
+### グリッチの強さ（`appearance.glitchIntensity`。SETTINGS.md 演出タブ、EFFECTS.md「glitch の詳細」の「強さの倍率」。2026-10-10 実装済み・Mac でユーザー確認済み）
 
 Core は `FileLauncher.Tests`（`GlitchLookTests.cs` 新規 + 既存の `AppSettings` の丸めのテスト）、Desktop は `GlitchTests.cs`（描画ありフィクスチャ。種を固定した `GlitchPlayer(new Random(seed))`）と `SettingsUiTests.cs`、`ChromeWindowTests.cs`。文言は `Strings.*` 参照。
 
@@ -297,7 +297,7 @@ Core は `FileLauncher.Tests`（`GlitchLookTests.cs` 新規 + 既存の `AppSett
 - [ ] Desktop `SettingsUiTests`: 演出タブの「詳細設定」の中に `Strings.Settings_Effects_GlitchIntensity` の行があり、`Strings.Effect_boardHide` の行の**直後**（`boardShow` → `boardHide` → グリッチの強さ → `pageSwitch` の順）/ `Slider` が `Minimum 0`・`Maximum 200`・`TickFrequency 10`・既定で `Value 100`、右の表示が「100 %」/ スライダーを 150 にすると `hub.Current.Appearance.GlitchIntensity == 150`・`Changed(Effects)` が 1 回・`Flush` で settings.json に `"glitchIntensity": 150` / 端の 0 と 200 に動かせる / **`boardShow` と `boardHide` の種類をどちらも fade にするとスライダーが `IsEffectivelyEnabled == false`、片方を glitch に戻すと true**（種類の `ComboBox` の変更だけで追従する。`RefreshAll` を待たない）/ `boardShow` の「既定に戻す」でも追従 / 「アニメーション」OFF で無効（折りたたみごと）/ 「すべて既定に戻す」で 100 に戻り `Changed(Effects)` 1 回 / `hub.Replace`（リセット）で 100 に描き直され、再入防止で `Update` が呼ばれない。
 - [ ] 自動で掛かるもの: `StringsTests`（`Settings_Effects_GlitchIntensity` / `_Note` が両 resx にある）、`NoHardcodedJapaneseTests`。
 
-### カーソルのアンカー（`popup.cursorAnchor`。キーボード・マウス共通の 1 項目。SPEC §3.3、SETTINGS.md ポップアップタブ。2026-10-10 実装済み。`issue/POPUP_CURSOR_ANCHOR.md`）
+### カーソルのアンカー（`popup.cursorAnchor`。キーボード・マウス共通の 1 項目。SPEC §3.3、SETTINGS.md ポップアップタブ。2026-10-10 実装済み・Mac でユーザー確認済み）
 
 Core は `FileLauncher.Tests/PopupTests.cs` の `PopupPlacementTests` に足す（作業領域は既存の `AreaAt` / `Primary`）。Desktop は `SettingsUiTests.cs`（要素は `Strings.Settings_Popup_CursorAnchor` の行の中の `AnchorPicker` / `ToggleButton` で探す。ツールチップは `EnumNames.Of` = `Strings.Enum_CursorAnchor_*`）と `ResidentTests.cs`。
 
